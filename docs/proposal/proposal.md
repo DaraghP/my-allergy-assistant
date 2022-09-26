@@ -52,11 +52,11 @@
 >
 > There will be two methods which users can use to check if a product contains any of their allergens.
 > 1. __Scan ingredients__ <br/>
-     > Users will be able to take or select a picture of the ingredients found on food packaging.
-     > Our app will then scan the ingredients for matches to the user's allergens, using text recognition and Google Translate API or similar.
-     > <br/> <br/>
+     Users will be able to take or select a picture of the ingredients found on food packaging.
+     Our app will then scan the ingredients for matches to the user's allergens, using text recognition and Google Translate API or similar.
+     <br/> <br/>
 > 2. __Scan barcode__ <br/>
-     > Users can take or select a picture of the product's barcode. Our app will then identify the product from the unique barcode if available and tell the user if the food is safe to eat, which allergens the product contains if any, more information may be provided such as nutrition through using the barcode using Open Food Facts API or similar. By scanning the barcode, users can also see if that product was previously reported by another user who experienced an allergic reaction, where their allergen was not listed in the ingredients.
+     Users can take or select a picture of the product's barcode. Our app will then identify the product from the unique barcode if available and tell the user if the food is safe to eat, which allergens the product contains if any, more information may be provided such as nutrition through using the barcode using Open Food Facts API or similar. By scanning the barcode, users can also see if that product was previously reported by another user who experienced an allergic reaction, where their allergen was not listed in the ingredients.
 >
 > The app will also have a report feature, where users who experience an allergic reaction after consuming a product that didn't list the allergen in the ingredients,
 > can scan the barcode found on the packaging and report the product, which will send an alert to other users who also scan that product in the future.
