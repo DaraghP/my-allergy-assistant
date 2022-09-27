@@ -1,6 +1,5 @@
 # School of Computing &mdash; Year 4 Project Proposal Form
 
-
 ## SECTION A
 
 |                     |                                                                                      |
@@ -37,11 +36,16 @@
 > The aim of our project is to assist these people and make their everyday lives less stressful with the help of our 'Intelligent Allergy Assistant' app.
 >
 > The target audience of this app is people with allergies, have trouble reading through ingredients, and anyone else who wants to ensure that food ingredients don't contain allergens
+> 
+> We will refer to sources such as these to identify a list of known food allergens:
+> * [Food Safety Authority of Ireland's website](https://www.fsai.ie/legislation/food_legislation/food_information/14_allergens.html)
+> * [InformAll](https://farrp.unl.edu/resources/gi-fas/informall)
+> * [Food Allergy Research and Education (FARE)](https://www.foodallergy.org/living-food-allergies/food-allergy-essentials/common-allergens/other-food-allergens)
 >
 > Statistics:
 >  * ["In Ireland, statistics show that approximately 5% of children and 3% of adults suffer from food allergies."](https://www.indi.ie/diseases,-allergies-and-medical-conditions/food-allergy-and-intolerance/383-food-allergies-and-intolerances-factsheet.html)
 >  * ["In Ireland, one in six adults struggle with understanding basic written text."](https://www.nala.ie/literacy-and-numeracy-in-ireland/)
->
+> 
 
 ### Outline
 > #### Outline the proposed project.
@@ -60,6 +64,7 @@
 >
 > The app will also have a report feature, where users who experience an allergic reaction after consuming a product that didn't list the allergen in the ingredients,
 > can scan the barcode found on the packaging and report the product, which will send an alert to other users who also scan that product in the future.
+>
 >
 ### Background
 
@@ -144,14 +149,19 @@
 
 ### Breakdown of work
 
->We plan to use a pair-programming approach throughout the development of this project, as we found that this approach worked well last year for our third year project. We both have experience using JetBrains “Code With Me” feature and Visual Studio Code’s “LiveShare” feature which allows us to work collaboratively in the same workspace in real-time.
+>We plan to mostly use a pair-programming approach throughout the development of this project, as we found that this approach worked well last year for our third year project. 
+> We both have experience using JetBrains “Code With Me” feature and Visual Studio Code’s “LiveShare” feature which allows us to work collaboratively in the same workspace in real-time.
+> 
+> We will work independently, from time to time on documentation, testing, and development if we feel it would be better to break up the work, or if one person is unavailable.
+> This independent work will then be peer-reviewed by the other person to ensure we are both happy with it.
 >
->For the documentation related to this project, we will work together using Google Docs, Code with Me, and LiveShare, so we can read and edit each other’s work in real-time.
+>For the documentation related to this project, we will work together using Google Docs, Code with Me, and LiveShare, so we can read and edit each other’s work in real-time. 
 >
 >We both have experience with React Native as we used it last year to create an Android app for our 3rd year project.
 >Neither of us have experience working with implementing text recognition, barcodes, machine learning (potentially), and AWS Lambda but we will work together to learn these technologies as the project progresses.
 >
 >From now until week 9 in semester 1, we will be working together on the Functional Specification for this project. We will also be researching the new technologies needed for this project, and getting started with some coding. We plan to set up the backend with AWS Lambda, and the frontend in React Native, and create some API that deals with allergen data and other app data as appropriate.
-
-
- 
+>
+> We aim to build a basic working prototype early, and then we will improve the UI and functionality from that point.
+>We plan to put CI/CD in action early, so we can see the benefit from it as the project unfolds.
+>We will commit our work to our Gitlab repository regularly throughout the duration of this project.
