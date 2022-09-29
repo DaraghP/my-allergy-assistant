@@ -2,14 +2,14 @@
 
 ## SECTION A
 
-|                     |                                                                                      |
-|---------------------|--------------------------------------------------------------------------------------|
-|Project Title:       | Intelligent Allergy Assistant - Android app to scan food ingredients for allergens.  |
-|Student 1 Name:      | George Eskander                                                                      |
-|Student 1 ID:        | 19451972                                                                             |
-|Student 2 Name:      | Daragh Prizeman                                                                      |
-|Student 2 ID:        | 19459734                                                                             |
-|Project Supervisor:  | Paul Clarke                                                                          |
+|                     |                                                                          |
+|---------------------|--------------------------------------------------------------------------|
+|Project Title:       | MyAllergyAssistant - Android app to scan food ingredients for allergens. |
+|Student 1 Name:      | George Eskander                                                          |
+|Student 1 ID:        | 19451972                                                                 |
+|Student 2 Name:      | Daragh Prizeman                                                          |
+|Student 2 ID:        | 19459734                                                                 |
+|Project Supervisor:  | Paul Clarke                                                              |
 
 <!-- > Ensure that the Supervisor formally agrees to supervise your project; this is only recognised once the
 > Supervisor assigns herself/himself via the project Dashboard.
@@ -33,7 +33,7 @@
 >
 > For this reason, people with food allergies must be very careful when shopping for food, and consuming food products in order to avoid their allergens.
 > Some may struggle reading the ingredients on the back of packaging. This can turn an everyday task, like shopping for food, into a very daunting and stressful situation for people.
-> The aim of our project is to assist these people and make their everyday lives less stressful with the help of our 'Intelligent Allergy Assistant' app.
+> The aim of our project is to assist these people and make their everyday lives less stressful with the help of the 'MyAllergyAssistant' app.
 >
 > The target audience of this app is people with allergies, have trouble reading through ingredients, and anyone else who wants to ensure that food ingredients don't contain allergens
 > 
@@ -70,7 +70,7 @@
 
 > The main idea for this project came from our supervisor, Paul Clarke, you can find the idea listed on https://computing.dcu.ie/~pclarke/ProjectIdeas/index.html
 >
-> Over the summer we were both sending each other project ideas back and forth. Until we came across this ‘Intelligent Allergy Assistant’ idea on Paul Clarke’s website. We were both interested in this idea, did some research into text recognition, and decided to set up a meeting with Paul to discuss the idea more and to become our supervisor for this project.
+> Over the summer we were both sending each other project ideas back and forth. Until we came across the ‘Intelligent Allergy Assistant’ idea on Paul Clarke’s website. We were both interested in this idea, did some research into text recognition, and decided to set up a meeting with Paul to discuss the idea more and to become our supervisor for this project. We then came up with the name 'MyAllergyAssistant' for our app.
 
 ### Achievements
 
@@ -86,7 +86,7 @@
 > The main use-case where we foresee this app being useful is for people with allergies while in the supermarket for example.
 > If they are unsure if a particular product is safe for them to eat, they can simply scan the ingredients or barcode on the product packaging, and the app will tell them if the product contains any of their allergens and if anybody has reported this product for containing any unlisted allergens.
 >
-> Another use-case where this app would be useful is if you are abroad in Spain, for example and all the ingredients are listed in Spanish which you don't speak. Using our 'Intelligent Allergy Assistant', you can simply scan the ingredients on the product packaging, and the app will translate the ingredients and tell you if it contains any of your allergens.
+> Another use-case where this app would be useful is if you are abroad in Spain, for example and all the ingredients are listed in Spanish which you don't speak. Using 'MyAllergyAssistant', you can simply scan the ingredients on the product packaging, and the app will translate the ingredients and tell you if it contains any of your allergens.
 >
 > Another use-case where this app would be useful, is somebody who has an allergic reaction to peanuts after eating a chocolate bar, where peanuts weren't listed in the ingredients of the chocolate bar. This person could then use our app to report and warn other users about the unlisted allergen in the product, to prevent others from getting an allergic reaction.
 
