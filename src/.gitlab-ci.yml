@@ -1,0 +1,27 @@
+image: node:latest
+
+stages:
+  - ui-test
+  - mobile-build
+
+mobile-build:
+  stage: mobile-build
+  before_script:
+    - cd frontend
+  script:
+    - yarn
+  cache:
+    paths:
+      - node_modules/
+  artifacts:
+    expire_in: 1 days
+    when: on_success
+    paths:
+      - node_modules/
+
+ui-test:
+  stage: ui-test
+  dependencies:
+    - mobile-build
+  script:
+    - yarn test
