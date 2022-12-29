@@ -4,26 +4,20 @@ stages:
   - mobile-build
   - ui-test
 
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - src/frontend/node_modules/
+
 mobile-build:
   stage: mobile-build
   before_script:
     - cd src/frontend
   script:
     - npm install
-  cache:
-    paths:
-      - src/frontend/node_modules/
-  artifacts:
-    expire_in: 1 days
-    when: on_success
-    paths:
-      - src/frontend/node_modules/
 
 ui-test:
   stage: ui-test
-  needs:
-    - job: mobile-build
-      artifacts: true
   before_script:
     - cd src/frontend
   script:
