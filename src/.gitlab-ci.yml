@@ -9,7 +9,7 @@ mobile-build:
   before_script:
     - cd src/frontend
   script:
-    - yarn
+    - npm install
   cache:
     paths:
       - node_modules/
@@ -23,5 +23,7 @@ ui-test:
   stage: ui-test
   dependencies:
     - mobile-build
+  before_script:
+    - cd src/frontend
   script:
-    - yarn test
+    - npm test
