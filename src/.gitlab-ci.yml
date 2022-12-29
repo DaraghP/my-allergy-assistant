@@ -7,7 +7,7 @@ stages:
 mobile-build:
   stage: mobile-build
   before_script:
-    - cd frontend
+    - cd src/frontend
   script:
     - yarn
   cache:
