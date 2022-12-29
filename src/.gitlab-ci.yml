@@ -21,8 +21,9 @@ mobile-build:
 
 ui-test:
   stage: ui-test
-  dependencies:
-    - mobile-build
+  needs:
+    - job: mobile-build
+      artifacts: true
   before_script:
     - cd src/frontend
   script:
