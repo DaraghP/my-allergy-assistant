@@ -1,8 +1,8 @@
 image: node:latest
 
 stages:
-  - ui-test
   - mobile-build
+  - ui-test
 
 mobile-build:
   stage: mobile-build
