@@ -1,0 +1,20 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-myallergyassistant-dev-114348-authRole",
+      "UnauthRoleArn": "arn:aws:iam::726018912366:role/amplify-myallergyassistant-dev-114348-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::726018912366:role/amplify-myallergyassistant-dev-114348-authRole",
+      "Region": "eu-west-1",
+      "DeploymentBucketName": "amplify-myallergyassistant-dev-114348-deployment",
+      "UnauthRoleName": "amplify-myallergyassistant-dev-114348-unauthRole",
+      "StackName": "amplify-myallergyassistant-dev-114348",
+      "StackId": "arn:aws:cloudformation:eu-west-1:726018912366:stack/amplify-myallergyassistant-dev-114348/3925a2a0-8837-11ed-8156-02bacd034ead",
+      "AmplifyAppId": "d5zspc6ni82s7"
+    },
+    "categories": {
+      "auth": {
+        "myallergyassistant95e6a009": {}
+      }
+    }
+  }
+}

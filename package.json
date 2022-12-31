@@ -1,5 +1,9 @@
 {
   "devDependencies": {
     "jest-junit": "^15.0.0"
+  },
+  "dependencies": {
+    "@aws-amplify/ui-react": "^4.3.2",
+    "aws-amplify": "^5.0.8"
   }
 }
