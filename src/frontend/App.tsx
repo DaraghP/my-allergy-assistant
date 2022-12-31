@@ -26,7 +26,7 @@ const App = () => {
           signOut();
           setEmail('');
         }}
-      />;
+      />
     );
   };
 
