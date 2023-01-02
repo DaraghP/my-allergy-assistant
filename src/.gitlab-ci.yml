@@ -10,12 +10,6 @@ cache:
   paths:
     - src/frontend/node_modules/
 
-#
-#
-# so after pulling, we need to
-# mv src/aws-exports.js frontend/aws-exports.ts
-# rm src/
-#
 mobile-build:
   stage: mobile-build
   before_script:
@@ -28,6 +22,7 @@ amplify:
   before_script:
     - cd src
   script:
+    - npm install -g @aws-amplify/cli
     - chmod +x ./amplify-gitlab-ci.sh
     - ./amplify-gitlab-ci.sh
     - mv src/aws-exports.js frontend/aws-exports.ts
