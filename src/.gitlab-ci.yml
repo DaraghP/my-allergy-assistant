@@ -25,7 +25,7 @@ amplify:
     - npm install -g @aws-amplify/cli
     - chmod +x ./amplify-gitlab-ci.sh
     - ./amplify-gitlab-ci.sh
-    - mv src/aws-exports.js frontend/aws-exports.ts
+    - mv aws-exports.js frontend/aws-exports.ts
 
 ui-test:
   stage: ui-test
