@@ -2,6 +2,7 @@ image: node:latest
 
 stages:
   - mobile-build
+  - amplify
   - ui-test
 
 cache:
@@ -9,12 +10,26 @@ cache:
   paths:
     - src/frontend/node_modules/
 
+#
+#
+# so after pulling, we need to
+# mv src/aws-exports.js frontend/aws-exports.ts
+# rm src/
+#
 mobile-build:
   stage: mobile-build
   before_script:
     - cd src/frontend
   script:
     - npm install
+
+amplify:
+  stage: amplify
+  before_script:
+    - cd src
+  script:
+    - ./amplify-gitlab-ci.sh
+    - mv src/aws-exports.js frontend/aws-exports.ts
 
 ui-test:
   stage: ui-test
