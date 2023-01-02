@@ -28,6 +28,7 @@ amplify:
   before_script:
     - cd src
   script:
+    - chmod +x ./amplify-gitlab-ci.sh
     - ./amplify-gitlab-ci.sh
     - mv src/aws-exports.js frontend/aws-exports.ts
 
