@@ -37,8 +37,18 @@ PROVIDERS="{\
 \"awscloudformation\":$AWSCLOUDFORMATIONCONFIG\
 }"
 
+AUTHCONFIG="{\
+\"googleAppIdUserPool\":\"$GoogleClientId\",\
+\"googleAppSecretUserPool\":\"$GoogleClientSecret\"\
+}"
+
+CATEGORIES="{\
+\"auth\":$AUTHCONFIG\
+}"
+
 amplify pull \
 --amplify $AMPLIFY \
 --frontend $FRONTEND \
 --providers $PROVIDERS \
+--categories $CATEGORIES \
 --yes
