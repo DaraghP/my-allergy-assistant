@@ -10,7 +10,6 @@ cache:
   paths:
     - src/frontend/node_modules/
     - src/frontend/aws-exports.ts
-    - src/amplify/
 
 mobile-build:
   stage: mobile-build
