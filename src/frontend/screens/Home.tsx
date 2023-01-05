@@ -1,53 +1,25 @@
-import {Button, Text, View} from "react-native";
+import {StyleSheet, Text, View} from "react-native";
 import React, {useEffect, useState} from "react";
-import {useAuthenticator} from "@aws-amplify/ui-react-native";
 import {Auth} from "aws-amplify";
-// https://github.com/aws-amplify/amplify-ui/issues/3184
-// 
-//
-function HomeScreen() {
-    const { user, signOut } = useAuthenticator(context => [context.user]);
-    const [email, setEmail] = useState('');//
-    const LogOut = () => {
 
-        return (
-            <Button
-                color={'red'}
-                title={'Log out'}
-                onPress={() => {
-                    console.log("signout pressed");
-                    signOut();
-                    setEmail('');
-                }}
-            />
-        );
-    };
+function HomeScreen() {
+    const [email, setEmail] = useState('');
 
     useEffect(() => {
-        console.log('User has changed.');
+        Auth.currentAuthenticatedUser().then((user) => setEmail(user.attributes.email))
     }, [Auth]);
 
-    useEffect(() => {
-        //setUserDetails(Auth.currentUserInfo());
-        // let userDetails = Auth.currentUserInfo();
-        // let authUserDetails = Auth.currentAuthenticatedUser({bypassCache: true})
-        // console.log(Auth.user);
-        if (Auth.user != null) {
-            console.log('authUser', Auth.user.attributes.email);
-            setEmail(Auth.user.attributes?.email);
-        } else {
-            setEmail('');//sd
-        }
-    }, [Auth.user]);
-
     return (
-        <View>
-            <Text>MyAllergyAssistant</Text>
-            <LogOut />
+        <View style={styles.container}>
+            <Text>MyAllergyAssistant HOMEPAGE</Text>
             <Text>{email}</Text>
             {/*<Text>Hello {user.username}</Text>*/}
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {display: "flex", justifyContent: "center", alignItems: "center"}
+});
 
 export default HomeScreen;
