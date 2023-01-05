@@ -60,7 +60,7 @@
       "<rootDir>/jest.setup.js"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!@aws-amplify/ui-react-native|@react-native|react-native)"
+      "node_modules/(?!@aws-amplify/ui-react-native|@react-native|react-native|aws-amplify-react-native|@react-navigation)"
     ]
   }
 }
