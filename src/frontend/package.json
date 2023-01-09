@@ -12,6 +12,7 @@
   "dependencies": {
     "@aws-amplify/ui-react-native": "^1.2.2",
     "@react-native-async-storage/async-storage": "^1.17.11",
+    "@react-native-community/checkbox": "^0.5.13",
     "@react-native-community/netinfo": "^9.3.7",
     "@react-navigation/bottom-tabs": "^6.5.2",
     "@react-navigation/native": "^6.1.1",
@@ -19,6 +20,7 @@
     "amazon-cognito-identity-js": "^6.1.2",
     "aws-amplify": "^5.0.8",
     "aws-amplify-react-native": "^7.0.2",
+    "lodash.filter": "^4.6.0",
     "react": "18.1.0",
     "react-native": "0.70.6",
     "react-native-bootsplash": "^4.4.0",
@@ -36,6 +38,7 @@
     "@react-native-community/eslint-config": "^2.0.0",
     "@tsconfig/react-native": "^2.0.2",
     "@types/jest": "^26.0.23",
+    "@types/lodash.filter": "^4.6.7",
     "@types/react": "^18.0.21",
     "@types/react-native": "^0.70.6",
     "@types/react-native-vector-icons": "^6.4.12",

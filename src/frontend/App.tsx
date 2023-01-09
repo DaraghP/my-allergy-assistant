@@ -22,7 +22,7 @@ async function urlOpener(url, redirect) {
     })
 
     if (type == 'success') {
-        console.log(newUrl)
+        // console.log(newUrl)
         Linking.openURL(newUrl);
     }
 }
@@ -45,19 +45,15 @@ const App = (props) => {
     Hub.listen('auth', (data) => {
       switch (data.payload.event) {
           case 'signIn':
-            console.log('user signed in: ');
             setAuthStatus('authenticated');
             break;
         case 'signUp':
-            // console.log('user signed up');
             setAuthStatus('authenticated');
             break;
         case 'signOut':
-            // console.log('user signed out');
             setAuthStatus('unauthenticated')
             break;
         case 'signIn_failure':
-            // console.log('user sign in failed');
             setAuthStatus('unauthenticated')
             break;
       }
