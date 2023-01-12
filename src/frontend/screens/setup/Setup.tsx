@@ -2,7 +2,7 @@ import {SafeAreaView} from "react-native-safe-area-context";
 import {Button, StyleSheet, Text, View} from "react-native";
 import AllergySelectionList from "../../components/AllergySelectionList";
 
-function Setup({route, navigation, setOutput}) {
+function Setup({route, navigation}) {
 
     return (
         <SafeAreaView style={{padding: 25, height: "auto", flex: 1}}>

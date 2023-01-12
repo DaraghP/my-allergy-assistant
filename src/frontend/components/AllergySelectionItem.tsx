@@ -8,22 +8,13 @@ function AllergySelectionItem({key = "", children, selection, setSelection}) {
         if (selection.has(children.item)) {
             selection.delete(children.item);
             setSelection(new Set([...selection]));
-
-            // console.log(children.item, false);
-
         }
         else {
             selection.add(children.item);
             setSelection(new Set([...selection]));
-            // console.log(children.item, true);
-
         }
 
     }
-
-    useEffect(() => {
-        // console.log(children.item, selection, selection.has(children.item))
-    }, [selection])
 
     return (
         <TouchableNativeFeedback key={key} onPress={() => {select()}}>

@@ -1,10 +1,15 @@
 import {Alert, Button, FlatList, StyleSheet, View} from "react-native";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import AllergySelectionItem from "./AllergySelectionItem";
 import SearchBar from "./SearchBar";
 import filter from "lodash.filter";
+import {useAppDispatch, useAppSelector} from "../hooks";
+import {setHasCompletedSetup, updateAllergens, updateNotSetTest} from "../reducers/app-data-reducer";
 
 function AllergySelectionList({onConfirm}) {
+    const dispatch = useAppDispatch();
+    const username = useAppSelector(state => state.user.username);
+    const user = useAppSelector(state => state.appData.accounts[username]);
 
     // mock data
     let data: Array<string> = []
@@ -12,7 +17,7 @@ function AllergySelectionList({onConfirm}) {
         data.push(`allergen${i}`);
     }
 
-    const [selection, setSelection] = useState(new Set());
+    const [selection, setSelection] = useState(new Set(user?.allergens));
     const [filteredData, setFilteredData] = useState(data);
 
     const searchHandler = (text: string) => {
@@ -27,6 +32,11 @@ function AllergySelectionList({onConfirm}) {
         );
     }
 
+    useEffect(() => {
+        if (user?.allergens.size > 0) {
+            setSelection(new Set([...user.allergens]))
+        }
+    }, [])
 
     return (
         <>
@@ -53,6 +63,7 @@ function AllergySelectionList({onConfirm}) {
                 <Button title={"Confirm"} onPress={() => {
                     if (selection.size != 0) {
                         onConfirm()
+                        dispatch(updateAllergens({username: username, allergens: [...selection]}));
                     }
                     else {
                         Alert.alert(

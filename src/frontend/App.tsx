@@ -3,13 +3,16 @@ import {Button, Text, Linking, StyleSheet, View} from 'react-native';
 import {Amplify, Auth} from 'aws-amplify';
 // @ts-ignore
 import {withOAuth} from 'aws-amplify-react-native';
-import {Authenticator, useAuthenticator} from '@aws-amplify/ui-react-native';
+import {Authenticator} from '@aws-amplify/ui-react-native';
 import config from './aws-exports';
 import {Hub} from "aws-amplify";
 
 import AuthenticatedApp from "./components/AuthenticatedApp";
 import InAppBrowser from "react-native-inappbrowser-reborn";
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import {useAppDispatch, useAppSelector} from "./hooks";
+import {createAccount, updateAccounts, updateNotSetTest} from "./reducers/app-data-reducer";
+import {updateUsername} from "./reducers/user-reducer";
 
 // Amplify documentation: https://docs.amplify.aws/lib/auth/social/q/platform/react-native/#full-samples
 async function urlOpener(url, redirect) {
@@ -37,18 +40,39 @@ Amplify.configure({
 });
 
 const App = (props) => {
-
+  const dispatch = useAppDispatch();
+  const accounts = useAppSelector(state => state.appData.accounts);
+  const username = useAppSelector(state => state.user.username);
   const [authStatus, setAuthStatus] = useState('unauthenticated');
 
   useEffect(() => {
+    console.log(accounts)
     // documentation: https://docs.amplify.aws/guides/authentication/listening-for-auth-events/q/platform/js/
     Hub.listen('auth', (data) => {
       switch (data.payload.event) {
           case 'signIn':
+            // check if username exists
+            if (!(data.payload.data.username in accounts)) {
+                /*
+                 case: the user does not have existing data of their account stored locally,
+                 could happen when user deletes their app data or re-installs app
+                 TODO: need to set up db and retrieve their allergen profile stored in AWS db
+                */
+
+                dispatch(createAccount(data.payload.data));
+            }
+
             setAuthStatus('authenticated');
+            dispatch(updateUsername(data.payload.data.username));
+
             break;
         case 'signUp':
             setAuthStatus('authenticated');
+            //
+            dispatch(createAccount(data.payload.data));
+
+            dispatch(updateUsername(data.payload.data.username));
+
             break;
         case 'signOut':
             setAuthStatus('unauthenticated')
@@ -59,9 +83,26 @@ const App = (props) => {
       }
     });
 
+    // automatic sign-in
+    Auth.currentAuthenticatedUser().then((user) => {
+        if (user) {
+            setAuthStatus("authenticated");
+            dispatch(updateUsername(user.username));
+        }
+    })
+
   }, [])
 
-    return (
+  useEffect(() => {
+      console.log("Accounts", accounts)
+  }, [accounts])
+
+  useEffect(() => {
+      console.log("user", username);
+  }, [username])
+
+ 
+  return (
       <>
           {authStatus != "authenticated" ?
             <Authenticator

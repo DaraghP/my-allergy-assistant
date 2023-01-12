@@ -1,6 +1,10 @@
 import {Button, Dimensions, Image, SafeAreaView, Text, View} from "react-native";
+import {setHasCompletedSetup} from "../../reducers/app-data-reducer";
+import {useAppDispatch, useAppSelector} from "../../hooks";
 
-function CompleteSetup({route, navigation, setOutput}) {
+function CompleteSetup({route, navigation}) {
+    const dispatch = useAppDispatch();
+    const username = useAppSelector(state => state.user.username);
 
     return (
         <SafeAreaView style={{padding: 25, height: "auto", flex: 1, justifyContent: "center"}}>
@@ -16,7 +20,7 @@ function CompleteSetup({route, navigation, setOutput}) {
                 title={"Finish"}
                 color={"red"}
                 onPress={() => {
-                    setOutput(false);
+                    dispatch(setHasCompletedSetup(username));
                 }}
             />
 

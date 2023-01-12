@@ -4,11 +4,7 @@ import {createNativeStackNavigator} from "@react-navigation/native-stack";
 import Setup from "./Setup";
 import CompleteSetup from "./CompleteSetup";
 
-interface SetupProps {
-    setOutput: Function
-}
-
-function SetupNavigator({setOutput}: SetupProps) {
+function SetupNavigator() {
 
     const Stack = createNativeStackNavigator();
 
@@ -19,7 +15,7 @@ function SetupNavigator({setOutput}: SetupProps) {
                 options={{headerTitleAlign: "center"}}
             >
                 {(props) => (
-                    <Setup {...props} setOutput={setOutput}/>
+                    <Setup {...props} />
                 )}
             </Stack.Screen>
             <Stack.Screen
@@ -27,7 +23,7 @@ function SetupNavigator({setOutput}: SetupProps) {
                 options={{headerTitle: "Setup", headerTitleAlign: "center"}}
             >
                 {(props) => (
-                    <CompleteSetup {...props} setOutput={setOutput}/>
+                    <CompleteSetup {...props} />
                 )}
             </Stack.Screen>
         </Stack.Navigator>
