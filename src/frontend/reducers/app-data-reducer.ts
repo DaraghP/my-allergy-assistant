@@ -29,7 +29,7 @@ const transform = createTransform(
 const persistConfig = {
     key: 'root',
     storage: AsyncStorage,
-    transforms: [transform]
+    transforms: [transform],
 }
 
 const initialState = {
@@ -46,9 +46,12 @@ export const AppDataSlice = createSlice({
    initialState,
    reducers: {
        create_account(state, action) {
-           state.accounts[action.payload.username] = {
-               allergens: new Set(),
-               hasCompletedSetup: false
+           const username = action.payload.username;
+           if (!(username in state.accounts)) {
+               state.accounts[username] = {
+                   allergens: new Set(),
+                   hasCompletedSetup: false
+               }
            }
        },
        update_accounts(state, action) {

@@ -11,7 +11,7 @@ import AuthenticatedApp from "./components/AuthenticatedApp";
 import InAppBrowser from "react-native-inappbrowser-reborn";
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import {useAppDispatch, useAppSelector} from "./hooks";
-import {createAccount, updateAccounts, updateNotSetTest} from "./reducers/app-data-reducer";
+import {createAccount} from "./reducers/app-data-reducer";
 import {updateUsername} from "./reducers/user-reducer";
 
 // Amplify documentation: https://docs.amplify.aws/lib/auth/social/q/platform/react-native/#full-samples
@@ -42,13 +42,11 @@ Amplify.configure({
 const App = (props) => {
   const dispatch = useAppDispatch();
   const accounts = useAppSelector(state => state.appData.accounts);
-  const username = useAppSelector(state => state.user.username);
   const [authStatus, setAuthStatus] = useState('unauthenticated');
 
   useEffect(() => {
-    console.log(accounts)
     // documentation: https://docs.amplify.aws/guides/authentication/listening-for-auth-events/q/platform/js/
-    Hub.listen('auth', (data) => {
+    let clearListener = Hub.listen('auth', (data) => {
       switch (data.payload.event) {
           case 'signIn':
             // check if username exists
@@ -68,9 +66,8 @@ const App = (props) => {
             break;
         case 'signUp':
             setAuthStatus('authenticated');
-            //
-            dispatch(createAccount(data.payload.data));
 
+            dispatch(createAccount(data.payload.data));
             dispatch(updateUsername(data.payload.data.username));
 
             break;
@@ -91,17 +88,21 @@ const App = (props) => {
         }
     })
 
+    return () => {
+        clearListener();
+    }
+
   }, [])
 
-  useEffect(() => {
-      console.log("Accounts", accounts)
-  }, [accounts])
+  // useEffect(() => {
+  //     console.log("Accounts", accounts)
+  // }, [accounts])
+  //
+  // useEffect(() => {
+  //     console.log("user", username);
+  // }, [username])
+  //
 
-  useEffect(() => {
-      console.log("user", username);
-  }, [username])
-
- 
   return (
       <>
           {authStatus != "authenticated" ?

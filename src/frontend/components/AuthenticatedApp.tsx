@@ -12,9 +12,8 @@ import {useAppSelector} from "../hooks";
 function AuthenticatedApp() {
     const Tab = createBottomTabNavigator();
     const navigationRef = createNavigationContainerRef();
-    const account = useAppSelector(state => state.appData.accounts[state.user.username]);
+    const account = useAppSelector(state => state.appData.accounts);
     const setupRequired = useAppSelector(state => state.user.username in state.appData.accounts ? !state.appData.accounts[state.user.username].hasCompletedSetup : null);
-
 
     useEffect(() => {
         console.log("account", account)
