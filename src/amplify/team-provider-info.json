@@ -9,11 +9,21 @@
       "UnauthRoleName": "amplify-myallergyassistant-dev-114348-unauthRole",
       "StackName": "amplify-myallergyassistant-dev-114348",
       "StackId": "arn:aws:cloudformation:eu-west-1:726018912366:stack/amplify-myallergyassistant-dev-114348/3925a2a0-8837-11ed-8156-02bacd034ead",
-      "AmplifyAppId": "d5zspc6ni82s7"
+      "AmplifyAppId": "d5zspc6ni82s7",
+      "APIGatewayAuthURL": "https://s3.amazonaws.com/amplify-myallergyassistant-dev-114348-deployment/amplify-cfn-templates/api/APIGatewayAuthStack.json"
     },
     "categories": {
       "auth": {
         "myallergyassistant95e6a009": {}
+      },
+      "storage": {
+        "Dynamo": {}
+      },
+      "function": {
+        "usersLambda": {
+          "deploymentBucketName": "amplify-myallergyassistant-dev-114348-deployment",
+          "s3Key": "amplify-builds/usersLambda-7346386378617055346c-build.zip"
+        }
       }
     }
   }

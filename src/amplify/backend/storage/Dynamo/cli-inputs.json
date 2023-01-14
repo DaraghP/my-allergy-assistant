@@ -1,0 +1,14 @@
+{
+  "resourceName": "Dynamo",
+  "tableName": "User",
+  "partitionKey": {
+    "fieldName": "username",
+    "fieldType": "string"
+  },
+  "sortKey": {
+    "fieldName": "email",
+    "fieldType": "string"
+  },
+  "gsi": [],
+  "triggerFunctions": []
+}
