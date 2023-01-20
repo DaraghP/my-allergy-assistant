@@ -50,7 +50,7 @@ const App = (props) => {
       switch (data.payload.event) {
           case 'signIn':
             // check if username exists
-            if (!(data.payload.data.username in accounts)) {
+            if (!(data.payload.data.username in accounts)) { //
                 /*
                  case: the user does not have existing data of their account stored locally,
                  could happen when user deletes their app data or re-installs app

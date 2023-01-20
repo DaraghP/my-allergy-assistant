@@ -63,16 +63,14 @@ function AllergySelectionList({onConfirm}) {
             <View style={styles.confirmBtn}>
                 <Button title={"Confirm"} onPress={() => {
                     if (selection.size != 0) {
-                        onConfirm() //
+                        onConfirm()
                         dispatch(updateAllergens({username: username, allergens: [...selection]}));
-                        // get() 
+                        // get()
                         API.get('myAPI', '/users', {}).then(res => {
                             console.log(res);
                         }).catch(err => {
                             console.log(err);
-                        })//
-                        // if user already exists in table: put() to update user allergens
-                        // if user doesnt exist in table, post() user allergens
+                        })
                     }
                     else {
                         Alert.alert(

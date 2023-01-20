@@ -16,14 +16,17 @@
       "auth": {
         "myallergyassistant95e6a009": {}
       },
-      "storage": {
-        "Dynamo": {}
-      },
       "function": {
         "usersLambda": {
           "deploymentBucketName": "amplify-myallergyassistant-dev-114348-deployment",
-          "s3Key": "amplify-builds/usersLambda-7346386378617055346c-build.zip"
+          "s3Key": "amplify-builds/usersLambda-5a4e7741414676743041-build.zip"
         }
+      },
+      "storage": {
+        "Dynamo": {}
+      },
+      "api": {
+        "myAPI": {}
       }
     }
   }
