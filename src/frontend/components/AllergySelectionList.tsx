@@ -4,12 +4,13 @@ import AllergySelectionItem from "./AllergySelectionItem";
 import SearchBar from "./SearchBar";
 import filter from "lodash.filter";
 import {useAppDispatch, useAppSelector} from "../hooks";
-import {setHasCompletedSetup, updateAllergens, updateNotSetTest} from "../reducers/app-data-reducer";
-import {API, Storage} from "aws-amplify";
+import {updateAllergens} from "../reducers/app-data-reducer";
+import {User, postNewUser, updateUser} from "../api";
 
 function AllergySelectionList({onConfirm}) {
     const dispatch = useAppDispatch();
     const username = useAppSelector(state => state.user.username);
+    const email = useAppSelector(state => state.user.email);
     const user = useAppSelector(state => state.appData.accounts[username]);
 
     // mock data
@@ -18,7 +19,7 @@ function AllergySelectionList({onConfirm}) {
         data.push(`allergen${i}`);
     }
 
-    const [selection, setSelection] = useState(new Set(user?.allergens));
+    const [selection, setSelection] = useState<Set<string>>(new Set(user?.allergens));
     const [filteredData, setFilteredData] = useState(data);
 
     const searchHandler = (text: string) => {
@@ -61,28 +62,18 @@ function AllergySelectionList({onConfirm}) {
             />
 
             <View style={styles.confirmBtn}>
-                <Button title={"Confirm"} onPress={() => {
-                    if (selection.size != 0) {
-                        onConfirm()
-                        dispatch(updateAllergens({username: username, allergens: [...selection]}));
-                        // get()
-                        API.get('myAPI', '/users', {}).then(res => {
-                            console.log(res);
-                        }).catch(err => {
-                            console.log(err);
-                        })
-                    }
-                    else {
-                        Alert.alert(
-                            "Select your allergies",
-                            "No allergies were selected. Please select at least one.",
-                            [
-                                {
-                                    text: "OK",
-                                }
-                            ],
-                            {cancelable: true}
-                        )
+                <Button title={"Confirm"} color={"green"} onPress={() => {
+                    onConfirm()
+
+                    let userObj : User = {username: username, email: email, allergens: [...selection]}
+                    dispatch(updateAllergens(userObj));
+
+                    // if hasCompletedSetup is false then create new user in DynamoDB via API
+                    if (!user.hasCompletedSetup) {
+                        postNewUser(userObj);
+                    } else {
+                        // else, user is already created, so updateUser
+                        updateUser(userObj);
                     }
 
                 }}/>

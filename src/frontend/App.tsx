@@ -12,7 +12,7 @@ import InAppBrowser from "react-native-inappbrowser-reborn";
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import {useAppDispatch, useAppSelector} from "./hooks";
 import {createAccount} from "./reducers/app-data-reducer";
-import {updateUsername} from "./reducers/user-reducer";
+import {updateUsername, updateEmail} from "./reducers/user-reducer";
 
 // Amplify documentation: https://docs.amplify.aws/lib/auth/social/q/platform/react-native/#full-samples
 async function urlOpener(url, redirect) {
@@ -59,9 +59,13 @@ const App = (props) => {
 
                 dispatch(createAccount(data.payload.data));
             }
-
-            setAuthStatus('authenticated');
+            setAuthStatus('authenticated'); //
             dispatch(updateUsername(data.payload.data.username));
+            dispatch(updateEmail(data.payload.data.email))
+
+            Auth.currentAuthenticatedUser().then((user) => {//
+                dispatch(updateEmail(user.attributes.email))
+            })
 
             break;
         case 'signUp':
@@ -69,6 +73,7 @@ const App = (props) => {
 
             dispatch(createAccount(data.payload.data));
             dispatch(updateUsername(data.payload.data.username));
+            dispatch(updateEmail(data.payload.data.email))
 
             break;
         case 'signOut':
@@ -85,6 +90,7 @@ const App = (props) => {
         if (user) {
             setAuthStatus("authenticated");
             dispatch(updateUsername(user.username));
+            dispatch(updateEmail(user.attributes.email))
         }
     })
 
