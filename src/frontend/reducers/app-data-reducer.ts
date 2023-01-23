@@ -38,6 +38,7 @@ const initialState = {
 
 export const createAccount = createAction<object>("storage/create_account");
 export const updateAccounts = createAction<object>("storage/update_accounts");
+export const deleteAccount = createAction<string>("storage/delete_account");
 export const updateAllergens = createAction<object>("storage/update_allergens");
 export const setHasCompletedSetup = createAction<string>("storage/set_has_completed_setup") // takes username
 
@@ -57,6 +58,11 @@ export const AppDataSlice = createSlice({
        update_accounts(state, action) {
            state.accounts = {...state.accounts, ...action.payload}
        },
+       delete_account(state, action) {
+            const username = action.payload;
+            state.accounts[username] = {};
+            delete state.accounts[username];
+        },
        update_allergens(state, action) {
 
            const username = action.payload.username;

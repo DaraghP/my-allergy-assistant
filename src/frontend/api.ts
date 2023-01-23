@@ -81,7 +81,8 @@ export async function updateUser({username, email, allergens} : User) {
 
 export async function getSingleUser({username, email} : User) {
   console.log('get users from dynamoDB...');
-  API.get('myAPI', '/users', {
+  return (
+    API.get('myAPI', '/users', {
     queryStringParameters: {
       username: username,
       email: email,
@@ -92,15 +93,22 @@ export async function getSingleUser({username, email} : User) {
         .getIdToken()
         .getJwtToken()}`,
     },
-  })
+    })
     .then(res => {
       console.log('SUCCESS 200');
-      console.log(res);
+      if (Object.keys(res).length > 0){
+        delete res.Item.username;
+        return {[username]: res.Item};
+      } else {
+        return res;
+      }
     })
     .catch(err => {
       console.log(err);
       console.log(err.response.data);
-    });
+      
+    })
+  )
 }
 
 export async function getAllUsers() {

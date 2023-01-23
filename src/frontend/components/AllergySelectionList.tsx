@@ -64,10 +64,12 @@ function AllergySelectionList({onConfirm}) {
             <View style={styles.confirmBtn}>
                 <Button title={"Confirm"} color={"green"} onPress={() => {
                     onConfirm()
-
+                    console.log("curr_username:", username);
+                    console.log("curr_email:", email);
+                    console.log("allergens selected:", [...selection]);
                     let userObj : User = {username: username, email: email, allergens: [...selection]}
                     dispatch(updateAllergens(userObj));
-
+                    
                     // if hasCompletedSetup is false then create new user in DynamoDB via API
                     if (!user.hasCompletedSetup) {
                         postNewUser(userObj);

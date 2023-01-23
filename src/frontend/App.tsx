@@ -11,8 +11,10 @@ import AuthenticatedApp from "./components/AuthenticatedApp";
 import InAppBrowser from "react-native-inappbrowser-reborn";
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import {useAppDispatch, useAppSelector} from "./hooks";
-import {createAccount} from "./reducers/app-data-reducer";
+import {createAccount, updateAccounts} from "./reducers/app-data-reducer";
 import {updateUsername, updateEmail} from "./reducers/user-reducer";
+import { getSingleUser } from './api';
+
 
 // Amplify documentation: https://docs.amplify.aws/lib/auth/social/q/platform/react-native/#full-samples
 async function urlOpener(url, redirect) {
@@ -49,37 +51,41 @@ const App = (props) => {
     let clearListener = Hub.listen('auth', (data) => {
       switch (data.payload.event) {
           case 'signIn':
-            // check if username exists
-            if (!(data.payload.data.username in accounts)) { //
-                /*
-                 case: the user does not have existing data of their account stored locally,
-                 could happen when user deletes their app data or re-installs app
-                 TODO: need to set up db and retrieve their allergen profile stored in AWS db
-                */
-
-                dispatch(createAccount(data.payload.data));
-            }
-            setAuthStatus('authenticated'); //
-            dispatch(updateUsername(data.payload.data.username));
-            dispatch(updateEmail(data.payload.data.email))
-
+            // getSingleUser from DynamoDB
             Auth.currentAuthenticatedUser().then((user) => {//
                 dispatch(updateEmail(user.attributes.email))
+                
+                getSingleUser({username: data.payload.data.username, email: user.attributes.email}).then((res) => {
+                    if (Object.keys(res).length > 0) {
+                        console.log("user found! update redux");
+                        dispatch(updateAccounts(res));
+                    }
+                    else {
+                        console.log("user not found in dynamo, create new account/select allergens");
+                        dispatch(createAccount(data.payload.data));
+                    }
+                    
+                    setAuthStatus('authenticated');
+                    dispatch(updateUsername(data.payload.data.username));
+                    dispatch(updateEmail(user.attributes.email))                    
+                })
             })
 
             break;
         case 'signUp':
-            setAuthStatus('authenticated');
-
-            dispatch(createAccount(data.payload.data));
-            dispatch(updateUsername(data.payload.data.username));
-            dispatch(updateEmail(data.payload.data.email))
+            console.log("signUp block executed", data.payload.data);
+            dispatch(createAccount({username: data.payload.data.userSub}));
+            dispatch(updateUsername(data.payload.data.userSub));
+            dispatch(updateEmail(data.payload.data.user.username));
 
             break;
         case 'signOut':
             setAuthStatus('unauthenticated')
             break;
         case 'signIn_failure':
+            setAuthStatus('unauthenticated')
+            break;
+        case 'userDeleted':
             setAuthStatus('unauthenticated')
             break;
       }
@@ -100,10 +106,10 @@ const App = (props) => {
 
   }, [])
 
-  // useEffect(() => {
-  //     console.log("Accounts", accounts)
-  // }, [accounts])
-  //
+  useEffect(() => {
+      console.log("Accounts", accounts)
+  }, [accounts])
+  
   // useEffect(() => {
   //     console.log("user", username);
   // }, [username])

@@ -3833,6 +3833,11 @@
   dependencies:
     "merge-options" "^3.0.4"
 
+"@react-native-community/blur@^4.3.0":
+  "integrity" "sha512-d6phh39kKcbZ4IluDftiVWqfeFOgjl1AbQWzN47x+hLKQ5GvQJ6QhRvgAuDZ+xbJksrbXgNpMjVYkjsbcVehxg=="
+  "resolved" "https://registry.npmjs.org/@react-native-community/blur/-/blur-4.3.0.tgz"
+  "version" "4.3.0"
+
 "@react-native-community/checkbox@^0.5.13":
   "integrity" "sha512-FMDYudaUbodbDOBgD6wT7s5z2QSzzghq46og8fF1yNXAp56AIrmRHZAtQhvlfyCdzWDu1+lBqgOxgupRmkCAUA=="
   "resolved" "https://registry.npmjs.org/@react-native-community/checkbox/-/checkbox-0.5.13.tgz"

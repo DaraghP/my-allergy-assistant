@@ -10,10 +10,9 @@ function HomeScreen() {
 
     return (
         <View style={styles.container}>
-
             <Text>MyAllergyAssistant HOMEPAGE new</Text>
             <Text>{user.email}</Text>
-            {/* */}
+
             <Button title={"Get users"} onPress={() => {getAllUsers()}}/>
             <Button title={"POST new user"} onPress={() => {postNewUser({username: 'user6', email: 'email6@email6.com', allergens: []})}}/>
             <Button title={"Delete user"} onPress={() => {deleteUser({username: 'user6', email: 'email6@email6.com'})}}/>
