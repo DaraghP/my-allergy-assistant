@@ -5,8 +5,9 @@ import AllergySelectionList from "../components/AllergySelectionList";
 import {deleteUser} from "../api"
 import {useAppDispatch, useAppSelector} from "../hooks";
 import { deleteAccount } from "../reducers/app-data-reducer";
+import AppModal from "../components/AppModal";
 // import { BlurView } from "@react-native-community/blur";
-// 
+
 function ProfileScreen() {
     let dispatch = useAppDispatch();
     let user = useAppSelector(state => state.user);
@@ -47,50 +48,33 @@ function ProfileScreen() {
                 />
 
                 {/* <BlurView> */}
+                <AppModal
+                    isModalOpen={{state: isModalOpen, setState: (bool: boolean) => {setIsModalOpen(bool)}}}
+                    headerText={"Delete Account"}
+                    modalContentText={"Are you sure you want to delete your account?"}
+                    modalBtnsConfig={{
+                        option1: {
+                            onPress: () => {
+                                console.log("Yes pressed.");
 
-                    <Modal animationType="fade" visible={isModalOpen} onRequestClose={() => {setIsModalOpen(!isModalOpen)}} transparent>
-                        <View style={styles.modal}>
+                                // delete user from dynamoDB, delete account in app data, and log out
+                                deleteUser({username: user.username, email: user.email});
 
-                            <Text style={styles.modalHeader}>Delete Account</Text>
-
-                            <View style={styles.modalContent}>
-                                <Text>Are you sure you want to delete your account?</Text>
-
-                                <View style={styles.modalBtnsContainer}>
-                                    <TouchableOpacity
-                                        style={styles.modalBtn}
-                                        onPress={() => {
-                                            console.log("Yes pressed.");
-                                            
-                                            // delete user from dynamoDB, delete account in app data, and log out
-                                            deleteUser({username: user.username, email: user.email});
-                                            
-                                            // delete user data from redux
-                                            dispatch(deleteAccount(user.username));
-                                            
-                                            // delete their account in cognito
-                                            Auth.deleteUser();
-                                            
-
-                                            setIsModalOpen(false);
-                                        }}
-                                    >
-                                        <Text style={styles.modalBtnText}>Yes - Delete Account</Text>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        style={styles.modalBtn}
-                                        onPress={() => {
-                                            console.log("No pressed.")
-                                            setIsModalOpen(false);
-                                        }}
-                                    >
-                                        <Text style={styles.modalBtnText}>No - Cancel</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        </View>
-                    </Modal>
+                                // delete user data from redux
+                                dispatch(deleteAccount(user.username));
+                                // delete their account in cognito
+                                Auth.deleteUser();
+                            },
+                            text: "Yes - Delete Account"
+                        },
+                        option2: {
+                            onPress: () => {
+                                console.log("No pressed.")
+                            },
+                            text: "No - Cancel",
+                        }
+                    }}
+                />
                 {/* </BlurView> */}
 
                 <Text>{"\n\n"}</Text>
@@ -139,13 +123,6 @@ const styles = StyleSheet.create({
     },
     modalBtnText: {
       textAlign: "center"
-    },
-    heading: {
-        color: "black",
-        fontSize: 25,
-        fontWeight: "900",
-        marginVertical: 10,
-        textAlign: "center"
     }
 })
 

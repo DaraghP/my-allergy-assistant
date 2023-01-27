@@ -120,14 +120,12 @@ export async function getAllUsers() {
           .getJwtToken()}`,
     },
   })
-      .then(res => {
-        console.log('SUCCESS 200');
-        console.log(res);
-      })
-      .catch(err => {
-        console.log(err);
-        console.log(err.response.data);
-      });
+  .then(res => {
+    console.log('SUCCESS 200');
+    console.log(res);
+  })
+  .catch(err => {
+    console.log(err);
+    console.log(err.response.data);
+  });
 }
-
-/*****************************/
