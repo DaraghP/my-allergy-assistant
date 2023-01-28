@@ -129,3 +129,32 @@ export async function getAllUsers() {
     console.log(err.response.data);
   });
 }
+
+/************** OPEN FOOD FACTS ***************/
+
+export async function scanBarcode(barcodeText: string) {
+  return fetch(`https://world.openfoodfacts.org/api/v2/product/${barcodeText}.json`, {
+    method: "GET",
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }).then(res => {
+    console.log("Response received.");
+    return res.json().then((data) => {
+      return {
+        "product_code:": data.code,
+        "product_name": data.product.product_name,
+        "allergens": data.product.allergens_hierarchy,
+        "allergens_from_ingredients": data.product.allergens_from_ingredients,
+        "may_contain": data.product.traces,
+        "missing_ingredients": data.product.unknown_ingredients_n,
+        "non_vegan_ingredients": data.product.ingredients_analysis["en:non-vegan"],
+        "vegan_status_unknown_ingredients": data.product.ingredients_analysis["en:vegan-status-unknown"],
+        "vegetarian_status_unkown_ingredients": data.product.ingredients_analysis["en:vegetarian-status-unknown"]
+      }
+    })
+    }).catch(err => {
+      console.log(err);
+      console.log(err.response.data);
+    });
+}

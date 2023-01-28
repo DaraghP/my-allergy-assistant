@@ -12,14 +12,14 @@ interface ModalBtnsConfig {
     }
 }
 
-interface IAppModal {
+interface AppModalProps {
     headerText: string,
     modalContentText: string,
     modalBtnsConfig: ModalBtnsConfig,
     isModalOpen: {state: boolean, setState: Function}
 }
 
-function AppModal({headerText, modalContentText, modalBtnsConfig, isModalOpen}: IAppModal) {
+function AppModal({headerText, modalContentText, modalBtnsConfig, isModalOpen}: AppModalProps) {
 
     return (
         <Modal animationType="fade" visible={isModalOpen.state} onRequestClose={() => {isModalOpen.setState(!isModalOpen.state)}} transparent>

@@ -1,29 +1,35 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {Button, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React, {useEffect,  useRef, useState} from 'react';
+import {StyleSheet, TouchableOpacity, View} from 'react-native';
 import {
   Camera,
   useCameraDevices,
-  useFrameProcessor,
 } from 'react-native-vision-camera';
-import {runOnJS} from 'react-native-reanimated';
 import {BarcodeFormat, useScanBarcodes} from 'vision-camera-code-scanner';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import AppModal from "./AppModal";
+import {scanBarcode} from '../api';
+import ScanResult from '../screens/scan/ScanResult';
 
 enum ScanMode {
   Text = 'TEXT',
   Barcode = 'BARCODE',
 }
 
-function Scanner() {
+interface ScannerProps {
+  barcodeText: string,
+  setBarcodeText: object
+}
+
+function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
+  const navigation = useNavigation();
+  const Stack = createNativeStackNavigator();
   const devices = useCameraDevices();
   const device = devices.back;
   const camera = useRef<Camera>(null);
   const scanMode = useState<ScanMode>(ScanMode.Barcode);
   const isFocused = useIsFocused();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [barcodeText, setBarcodeText] = useState<string>("");
-  // const [isBarcodeDetected, setIsBarcodeDetected] = useState<boolean>(false);
 
   const [frameProcessor, barcodes] = useScanBarcodes([BarcodeFormat.EAN_13], {
     checkInverted: true
@@ -49,6 +55,14 @@ function Scanner() {
     <View style={{flex: 1}}>
       {device !== undefined && (
         <>
+            <Stack.Navigator>
+              <Stack.Screen name="ScanResult" >
+                {(props) => (
+                    <ScanResult {...props} />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+
           <Camera
             ref={camera}
             frameProcessor={frameProcessor}
@@ -66,10 +80,11 @@ function Scanner() {
               modalContentText={"Would you like to scan this product?"}
               modalBtnsConfig={{
                   option1: {
-                      onPress: () => {
-                          console.log("Yes pressed.");
-                          // TODO: scanBarcode(barcodeText);
-
+                      onPress: async () => {
+                          console.log("Yes pressed. product:", barcodeText);
+                          let scan = await scanBarcode(barcodeText);
+                          console.log("Scanner scan:", scan);
+                          navigation.navigate("ScanResult", { scan: scan });
                       },
                       text: "Yes"
                   },

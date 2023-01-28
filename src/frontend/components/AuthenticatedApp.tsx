@@ -29,7 +29,7 @@ function AuthenticatedApp() {
 
               {!setupRequired && Auth.user != null &&
                   <Tab.Navigator>
-                      <Tab.Screen name="Home" component={HomeScreen} options={{tabBarIcon: () => <FontAwesome5 name={"home"} size={25}/>}}/>
+                      <Tab.Screen name="Home" component={HomeScreen} options={{headerShown: false, tabBarIcon: () => <FontAwesome5 name={"home"} size={25}/>}}/>
                       <Tab.Screen name="Profile" component={ProfileScreen} options={{tabBarIcon: () => <FontAwesome5 name={"user"} size={25}/>}}/>
                   </Tab.Navigator>
               }

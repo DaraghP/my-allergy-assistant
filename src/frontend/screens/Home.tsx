@@ -1,9 +1,8 @@
-import {StyleSheet} from 'react-native';
 import React from 'react';
-import Scanner from '../components/Scanner';
+import ScanNavigator from "./scan/ScanNavigator";
 
 function HomeScreen() {
-  return <Scanner />;
+  return <ScanNavigator />;
 }
 
 export default HomeScreen;
