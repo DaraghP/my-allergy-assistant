@@ -52,10 +52,11 @@ const App = (props) => {
       switch (data.payload.event) {
           case 'signIn':
             // getSingleUser from DynamoDB
-            Auth.currentAuthenticatedUser().then((user) => {//
+            Auth.currentAuthenticatedUser().then((user) => {
                 dispatch(updateEmail(user.attributes.email))
                 
                 getSingleUser({username: data.payload.data.username, email: user.attributes.email}).then((res) => {
+                    console.log("user -> ", res)
                     if (Object.keys(res).length > 0) {
                         console.log("user found! update redux");
                         dispatch(updateAccounts(res));

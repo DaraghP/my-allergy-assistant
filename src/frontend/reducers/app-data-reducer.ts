@@ -40,6 +40,7 @@ export const createAccount = createAction<object>("storage/create_account");
 export const updateAccounts = createAction<object>("storage/update_accounts");
 export const deleteAccount = createAction<string>("storage/delete_account");
 export const updateAllergens = createAction<object>("storage/update_allergens");
+export const updateScans = createAction<object>("storage/update_scans");
 export const setHasCompletedSetup = createAction<string>("storage/set_has_completed_setup") // takes username
 
 export const AppDataSlice = createSlice({
@@ -51,6 +52,7 @@ export const AppDataSlice = createSlice({
            if (!(username in state.accounts)) {
                state.accounts[username] = {
                    allergens: new Set(),
+                   scans: {},
                    hasCompletedSetup: false
                }
            }
@@ -69,6 +71,12 @@ export const AppDataSlice = createSlice({
            const allergens = action.payload.allergens;
 
            state.accounts[username].allergens = new Set(allergens);
+       },
+       update_scans(state, action) {
+            const username = action.payload.username;
+            const barcode = Object.keys(action.payload.scan)[0];
+            const scanInfo = action.payload.scan[barcode];
+            state.accounts[username].scans[barcode] = scanInfo;
        },
        set_has_completed_setup(state, action) {
            const username = action.payload;

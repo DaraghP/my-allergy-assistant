@@ -6,9 +6,11 @@ import {deleteUser} from "../api"
 import {useAppDispatch, useAppSelector} from "../hooks";
 import { deleteAccount } from "../reducers/app-data-reducer";
 import AppModal from "../components/AppModal";
+import { useNavigation } from "@react-navigation/native";
 // import { BlurView } from "@react-native-community/blur";
 
 function ProfileScreen() {
+    const navigation = useNavigation();
     let dispatch = useAppDispatch();
     let user = useAppSelector(state => state.user);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -44,6 +46,15 @@ function ProfileScreen() {
                     onPress={() => {
                         setIsModalOpen(true);
                         console.log("deleting account!")
+                    }}
+                />
+                <Text>{"\n\n"}</Text>
+                <Button
+                    title={"Scan History"}
+                    color={"navy"}
+                    onPress={() => {
+                        console.log("Scan History");
+                        navigation.navigate("ScanHistory");
                     }}
                 />
 

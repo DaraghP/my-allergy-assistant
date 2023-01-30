@@ -2,6 +2,7 @@ import {StyleSheet} from "react-native";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
 import ScanResult from "./ScanResult";
 import ScanScreen from "./ScanScreen";
+import ScanHistory from "./ScanHistory";
 import { useNavigation } from "@react-navigation/native";
 import {HeaderBackButton} from '@react-navigation/elements';
 import {useState} from "react";

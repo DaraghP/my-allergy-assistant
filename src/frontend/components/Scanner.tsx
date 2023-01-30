@@ -8,8 +8,10 @@ import {BarcodeFormat, useScanBarcodes} from 'vision-camera-code-scanner';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import AppModal from "./AppModal";
-import {scanBarcode} from '../api';
+import {scanBarcode, updateUser} from '../api';
 import ScanResult from '../screens/scan/ScanResult';
+import { useAppDispatch, useAppSelector } from '../hooks';
+import { updateScans } from '../reducers/app-data-reducer';
 
 enum ScanMode {
   Text = 'TEXT',
@@ -22,6 +24,8 @@ interface ScannerProps {
 }
 
 function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
+  const dispatch = useAppDispatch();
+  const user = useAppSelector(state => state.user);
   const navigation = useNavigation();
   const Stack = createNativeStackNavigator();
   const devices = useCameraDevices();
@@ -83,6 +87,14 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                       onPress: async () => {
                           console.log("Yes pressed. product:", barcodeText);
                           let scan = await scanBarcode(barcodeText);
+                          // if product found then store scan
+                          if (scan.status == "product found") {
+                            // store scan in dynamoDB table
+                            let scanObj = {[barcodeText]: {date: scan.date, receive_notifications: scan.receive_notifications}};
+                            updateUser({username: user.username, email: user.email, scan: scanObj});
+                            // add to redux scans
+                            dispatch(updateScans({username: user.username, scan: {...scanObj}}));
+                          }
                           console.log("Scanner scan:", scan);
                           navigation.navigate("ScanResult", { scan: scan });
                       },

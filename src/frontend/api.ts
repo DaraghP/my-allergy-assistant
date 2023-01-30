@@ -1,11 +1,17 @@
 import {API, Auth} from 'aws-amplify';
 
-/************** USERS ***************/
+/************** USERS ***************/ 
 
 export interface User {
   username: string,
   email: string,
   allergens?: Array<string>,
+  scans?: Array<object>
+}
+
+interface UpdatableUserData extends User {
+  allergens?: Array<string>,
+  scan?: object
 }
 
 export async function postNewUser({username, email, allergens} : User) {
@@ -52,16 +58,44 @@ export async function deleteUser({username, email} : User) {
     });
 }
 
-export async function updateUser({username, email, allergens} : User) {
-  API.put('myAPI', '/users', {
-    body: {
+
+export async function updateUser({username, email, allergens, scan}: UpdatableUserData){// , {allergens = [], scans = []} : UpdatableUserData) {
+  let requestBody;
+  if (allergens) {
+    // if (typeof allergens[0] == String)
+    console.log("data is allergens");
+    requestBody = {
       Key: {username: username, email: email},
       UpdateExpression: 'set allergens = :allergen_list',
       ExpressionAttributeValues: {
         ':allergen_list': allergens,
       },
       ReturnValues: 'UPDATED_NEW',
-    },
+    } 
+  } else if (scan) {
+    console.log("data is scan");
+  // user.scans = {'1': {}, '2'={}}
+  // if product_id in user.scans: update that scan
+  // else append to user.scans 
+    requestBody = requestBody = {
+      Key: {username: username, email: email},
+      UpdateExpression: `set #scans.#product = :scanResult`, // ${scan.product_id}
+      ExpressionAttributeValues: {
+        ':scanResult': [scan],
+      },
+      ExpressionAttributeNames: {
+        '#scans': "scans",
+        '#product': Object.keys(scan)[0],
+      },
+      ReturnValues: 'UPDATED_NEW',
+    } 
+  } else {
+    console.log("error");
+    return "errorUpdate"
+  }
+
+  API.put('myAPI', '/users', {
+    body: requestBody,
     headers: {
       'Content-Type': 'application/json',
       Authorization: `${(await Auth.currentSession())
@@ -141,17 +175,23 @@ export async function scanBarcode(barcodeText: string) {
   }).then(res => {
     console.log("Response received.");
     return res.json().then((data) => {
-      return {
-        "product_code:": data.code,
-        "product_name": data.product.product_name,
-        "allergens": data.product.allergens_hierarchy,
-        "allergens_from_ingredients": data.product.allergens_from_ingredients,
-        "may_contain": data.product.traces,
-        "missing_ingredients": data.product.unknown_ingredients_n,
-        "non_vegan_ingredients": data.product.ingredients_analysis["en:non-vegan"],
-        "vegan_status_unknown_ingredients": data.product.ingredients_analysis["en:vegan-status-unknown"],
-        "vegetarian_status_unkown_ingredients": data.product.ingredients_analysis["en:vegetarian-status-unknown"]
+      console.log(data);
+      const scanResults = {
+        "date": new Date().toISOString(),
+        "status": data?.status_verbose,
+        "product_code:": data?.code,
+        "product_name": data?.product?.product_name,
+        "allergens": data?.product?.allergens_hierarchy,
+        "allergens_from_ingredients": data?.product?.allergens_from_ingredients,
+        "may_contain": data?.product?.traces,
+        "missing_ingredients": data?.product?.unknown_ingredients_n,
+        "non_vegan_ingredients": data?.product?.ingredients_analysis?.["en:non-vegan"],
+        "vegan_status_unknown_ingredients": data?.product?.ingredients_analysis?.["en:vegan-status-unknown"],
+        "vegetarian_status_unkown_ingredients": data?.product?.ingredients_analysis?.["en:vegetarian-status-unknown"],
+        "receive_notifications": false
       }
+      
+      return scanResults
     })
     }).catch(err => {
       console.log(err);
