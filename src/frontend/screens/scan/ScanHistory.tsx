@@ -15,11 +15,15 @@ function ScanHistory({navigation}) {
 
     return (
         <>
-            {
+            {Object.keys(scans).length > 0
+                ?
                 Object.keys(scans).map((key) => (
                     <Text key={key}>{key}: {scans[key].date}</Text>
                 ))
+                :
+                <Text style={{textAlign: "center", paddingVertical: 20}}>No scanned products</Text>
             }
+            <Text>Test</Text>
             
         </>
     )

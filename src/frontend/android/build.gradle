@@ -6,6 +6,8 @@ buildscript {
         minSdkVersion = 23
         compileSdkVersion = 33
         targetSdkVersion = 33
+        VisionCameraCodeScanner_targetSdkVersion = 31
+        VisionCameraCodeScanner_compileSdkVersion = 31
         kotlinVersion = "1.7.10"
         kotlin_version = "1.7.10"
         androidXAnnotation = "1.2.0"

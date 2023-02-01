@@ -6,6 +6,8 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
+    "devm": "adb shell input keyevent 82",
+    "reload": "adb shell input keyevent 82 && adb shell input keyevent 66 && adb shell input keyevent 66",
     "test": "jest",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
@@ -28,6 +30,7 @@
     "react-native": "0.70.6",
     "react-native-bootsplash": "^4.4.0",
     "react-native-get-random-values": "^1.8.0",
+    "react-native-image-picker": "^5.0.1",
     "react-native-inappbrowser-reborn": "^3.7.0",
     "react-native-reanimated": "^2.14.4",
     "react-native-safe-area-context": "^4.4.1",
@@ -37,6 +40,7 @@
     "react-native-vision-camera": "^2.15.2",
     "react-redux": "^8.0.5",
     "redux-persist": "^6.0.0",
+    "rn-qr-generator": "^1.2.1",
     "ts-jest": "^29.0.3",
     "vision-camera-code-scanner": "^0.2.0"
   },
@@ -74,7 +78,7 @@
       "<rootDir>/jest.setup.js"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!@aws-amplify/ui-react-native|@react-native|react-native|aws-amplify-react-native|@react-navigation)"
+      "node_modules/(?!@aws-amplify/ui-react-native|@react-native|react-native|aws-amplify-react-native|@react-navigation|rn-qr-generator)"
     ]
   }
 }
