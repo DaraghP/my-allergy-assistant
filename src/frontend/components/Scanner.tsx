@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, Text, TouchableOpacity, View, Image} from 'react-native';
 import {
   Camera,
-  useCameraDevices
+  useCameraDevices,  useFrameProcessor
 } from 'react-native-vision-camera';
 import {BarcodeFormat, useScanBarcodes, scanBarcodes} from 'vision-camera-code-scanner';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
@@ -14,7 +14,7 @@ import { useAppDispatch, useAppSelector } from '../hooks';
 import { updateScans } from '../reducers/app-data-reducer';
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import {launchImageLibrary} from "react-native-image-picker";
-import RNQRGenerator from 'rn-qr-generator';
+import BarcodeScanning from '@react-native-ml-kit/barcode-scanning';
 
 enum ScanMode {
   Text = 'TEXT',
@@ -40,9 +40,8 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   const [photo, setPhoto] = useState<string>("");
 
   const [frameProcessor, barcodes] = useScanBarcodes([BarcodeFormat.EAN_13], {
-    checkInverted: true
-  })
-
+    checkInverted: true,
+  });
 
   const takePhotoHandler = async () => {
     return await camera.current.takePhoto({
@@ -52,31 +51,34 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   };
 
   const openCameraRoll = () => {
-    let options = {
-      title: 'Select an image',
-      // storageOptions: {
-      //   skipBackup: true,
-      //   path: 'images',
-      // }
-    }
+    let options = {title: 'Select an image'}
+
     launchImageLibrary(options, (res) => {
-      console.log(res);
-      console.log("data= ", res.assets[0].uri);
-      setPhoto(res.assets[0].uri);
-      RNQRGenerator.detect({uri: res.assets[0].uri.replace('file://', '')}).then((res) => {
-        console.log("barcode from image -> ", res);
-      })
+      if (!res.didCancel) {
+        setPhoto(res.assets[0].uri);
+        BarcodeScanning.scan(res.assets[0].uri).then((res) => {
+          console.log(res, res[0].value);
+          setBarcodeText(res[0].value);
+        });
+      }
     });
   }
 
   useEffect(() => {
     if (barcodes.length > 0) {
-      setIsModalOpen(true);
-      setBarcodeText(barcodes[0].displayValue);
+        setIsModalOpen(true);
+        setBarcodeText(barcodes[0].displayValue);
     }
-    
-    // console.log('barcodes ->', barcodeText);
+
+
+    console.log('barcodes ->', barcodeText);
   }, [barcodes]);
+
+  useEffect(() => {
+    if (barcodeText !== "") {
+      setIsModalOpen(true);
+    }
+  }, [barcodeText])
 
   return (
     <View style={{flex: 1}}>
@@ -126,6 +128,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                    option2: {
                        onPress: () => {
                            console.log("No pressed.");
+                           console.log(barcodes, barcodeText)
                            setBarcodeText("");
                        },
                        text: "No",
