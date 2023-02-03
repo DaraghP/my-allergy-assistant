@@ -9,7 +9,8 @@
     "devm": "adb shell input keyevent 82",
     "reload": "adb shell input keyevent 82 && adb shell input keyevent 66 && adb shell input keyevent 66",
     "test": "jest",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@aws-amplify/ui-react-native": "^1.2.2",
@@ -27,6 +28,7 @@
     "aws-amplify": "^5.0.8",
     "aws-amplify-react-native": "^7.0.2",
     "lodash.filter": "^4.6.0",
+    "patch-package": "^6.5.1",
     "react": "18.1.0",
     "react-native": "0.70.6",
     "react-native-bootsplash": "^4.4.0",
