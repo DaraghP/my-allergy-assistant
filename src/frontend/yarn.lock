@@ -10492,6 +10492,11 @@
   "resolved" "https://registry.npmjs.org/vision-camera-code-scanner/-/vision-camera-code-scanner-0.2.0.tgz"
   "version" "0.2.0"
 
+"vision-camera-ocr@^1.0.0":
+  "integrity" "sha512-CHk4D39RK6KGwVx76iObUhRk43h94sTeiBAsXp8BE2GbXVzZeY4vZxsR0w75Nw8nYv4/71aOF0XYuYHGv6uV7w=="
+  "resolved" "https://registry.npmjs.org/vision-camera-ocr/-/vision-camera-ocr-1.0.0.tgz"
+  "version" "1.0.0"
+
 "vlq@^1.0.0":
   "integrity" "sha512-gQpnTgkubC6hQgdIcRdYGDSDc+SaujOdyesZQMv6JlfQee/9Mp0Qhnys6WxDWvQnL5WZdT7o2Ul187aSt0Rq+w=="
   "resolved" "https://registry.npmjs.org/vlq/-/vlq-1.0.1.tgz"

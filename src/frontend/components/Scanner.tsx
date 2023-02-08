@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, Text, TouchableOpacity, View, Image} from 'react-native';
 import {
   Camera,
-  useCameraDevices,  useFrameProcessor
+  useCameraDevices, useFrameProcessor
 } from 'react-native-vision-camera';
 import {BarcodeFormat, useScanBarcodes, scanBarcodes} from 'vision-camera-code-scanner';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
@@ -15,6 +15,8 @@ import { updateScans } from '../reducers/app-data-reducer';
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import {launchImageLibrary} from "react-native-image-picker";
 import BarcodeScanning from '@react-native-ml-kit/barcode-scanning';
+import { scanOCR } from 'vision-camera-ocr';
+import { onChange, runOnJS } from 'react-native-reanimated';
 
 enum ScanMode {
   Text = 'TEXT',
@@ -24,7 +26,7 @@ enum ScanMode {
 interface ScannerProps {
   barcodeText: string,
   setBarcodeText: object
-}
+} 
 
 function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   const dispatch = useAppDispatch();
@@ -36,12 +38,26 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   const camera = useRef<Camera>(null);
   const scanMode = useState<ScanMode>(ScanMode.Barcode);
   const isFocused = useIsFocused();
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState<boolean>(false);
+  const [isOcrModalOpen, setIsOcrModalOpen] = useState<boolean>(false);
   const [photo, setPhoto] = useState<string>("");
+  const [barcodes, setBarcodes] = useState([]);
+  const [ocrResult, setOcrResult] = useState({});
 
-  const [frameProcessor, barcodes] = useScanBarcodes([BarcodeFormat.EAN_13], {
-    checkInverted: true,
-  });
+  // const [frameProcessor, barcodes] = useScanBarcodes([BarcodeFormat.EAN_13], {
+  //   checkInverted: true,
+  // });
+
+  const frameProcessor = useFrameProcessor((frame) => {
+    'worklet';
+    
+    const barcodesDetected = scanBarcodes(frame, [BarcodeFormat.EAN_13], {checkInverted: true});
+    const ocrScan = scanOCR(frame);
+
+    runOnJS(setOcrResult)(ocrScan);
+    runOnJS(setBarcodes)(barcodesDetected);
+  }, [])
+
 
   const takePhotoHandler = async () => {
     return await camera.current.takePhoto({
@@ -66,19 +82,31 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
 
   useEffect(() => {
     if (barcodes.length > 0) {
-        setIsModalOpen(true);
+        setIsBarcodeModalOpen(true);
         setBarcodeText(barcodes[0].displayValue);
     }
-
 
     console.log('barcodes ->', barcodeText);
   }, [barcodes]);
 
   useEffect(() => {
     if (barcodeText !== "") {
-      setIsModalOpen(true);
+      setIsBarcodeModalOpen(true);
     }
   }, [barcodeText])
+
+  useEffect(() => {
+    console.log(ocrResult);
+    if (ocrResult.result?.text != "") {
+      console.log("text-detected");
+      if (ocrResult.result?.text.toLowerCase().includes("ingredients")) {
+        console.log("INGREDIENTS FOUND");
+        setIsOcrModalOpen(true);
+      }
+    } else {
+      console.log("no-text-detected");
+    }
+  }, [ocrResult])
 
   return (
     <View style={{flex: 1}}>
@@ -103,8 +131,9 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
              style={StyleSheet.absoluteFill}
              enableZoomGesture
            />
+           
            <AppModal
-               isModalOpen={{state: isModalOpen, setState: (bool: boolean) => {setIsModalOpen(bool)}}}
+               isModalOpen={{state: isBarcodeModalOpen, setState: (bool: boolean) => {setIsBarcodeModalOpen(bool)}}}
                headerText={"Scan barcode"}
                modalContentText={"Would you like to scan this product?"}
                modalBtnsConfig={{
@@ -130,6 +159,31 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                            console.log("No pressed.");
                            console.log(barcodes, barcodeText)
                            setBarcodeText("");
+                       },
+                       text: "No",
+                   }
+               }}
+          />
+
+          <AppModal
+               isModalOpen={{state: isOcrModalOpen, setState: (bool: boolean) => {setIsOcrModalOpen(bool)}}}
+               headerText={"Scan Ingredients"}
+               modalContentText={"Would you like to scan this product's ingredients?"}
+               modalBtnsConfig={{
+                   option1: {
+                       onPress: async () => { // 
+                        console.log("yes pressed.");
+                          /* TODO: 
+                             - translate ingredients if needed
+                             - show ingredients to user
+                             - detect user allergens within the ingredients
+                          */
+                       },
+                       text: "Yes"
+                   },
+                   option2: {
+                       onPress: () => {
+                          setOcrResult({});
                        },
                        text: "No",
                    }
@@ -178,7 +232,7 @@ const styles = StyleSheet.create({
     width:"100%",
     flexDirection: "row",
     justifyContent: "center",
-    marginBottom: 5
+    marginBottom: 5 
   },
   buttonSpacing: {
     // marginVertical: ,

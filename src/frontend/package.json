@@ -44,7 +44,8 @@
     "react-redux": "^8.0.5",
     "redux-persist": "^6.0.0",
     "ts-jest": "^29.0.3",
-    "vision-camera-code-scanner": "^0.2.0"
+    "vision-camera-code-scanner": "^0.2.0",
+    "vision-camera-ocr": "^1.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
@@ -80,7 +81,7 @@
       "<rootDir>/jest.setup.js"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!@aws-amplify/ui-react-native|@react-native|react-native|aws-amplify-react-native|@react-navigation)"
+      "node_modules/(?!@aws-amplify/ui-react-native|@react-native|react-native|aws-amplify-react-native|@react-navigation|@react-native-ml-kit/barcode-scanning)"
     ]
   }
 }

@@ -16,7 +16,7 @@ function ScanNavigator() {
         <Stack.Navigator>
             <Stack.Screen
                 name={"ScanScreen"}
-                options={{headerTitle: "Scan Barcode", headerTitleAlign: "center"}}
+                options={{headerTitle: "Scan Product", headerTitleAlign: "center"}}
             >
                 {(props) => (
                     <ScanScreen {...props} navigation={navigation} setBarcodeText={(text: string) => {setBarcodeText(text)}} barcodeText={barcodeText}/>
