@@ -89,6 +89,9 @@ const App = (props) => {
         case 'userDeleted':
             setAuthStatus('unauthenticated')
             break;
+        case 'configured':
+            setAuthStatus()
+            break;
       }
     });
 

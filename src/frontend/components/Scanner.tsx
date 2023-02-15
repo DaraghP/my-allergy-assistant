@@ -16,6 +16,7 @@ import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import {launchImageLibrary} from "react-native-image-picker";
 import BarcodeScanning from '@react-native-ml-kit/barcode-scanning';
 import { scanOCR } from 'vision-camera-ocr';
+import TextRecognition from '@react-native-ml-kit/text-recognition';
 import { onChange, runOnJS } from 'react-native-reanimated';
 
 enum ScanMode {
@@ -69,12 +70,24 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   const openCameraRoll = () => {
     let options = {title: 'Select an image'}
 
-    launchImageLibrary(options, (res) => {
-      if (!res.didCancel) {
-        setPhoto(res.assets[0].uri);
-        BarcodeScanning.scan(res.assets[0].uri).then((res) => {
-          console.log(res, res[0].value);
-          setBarcodeText(res[0].value);
+    /*  */
+    launchImageLibrary(options, (image) => {
+      if (!image.didCancel) {
+        setPhoto(image.assets[0].uri); // 
+      
+        // scan barcode from image 
+        BarcodeScanning.scan(image.assets[0].uri).then(async (res) => {
+          if (res.length > 0){
+            console.log("res: ", res);
+            console.log(res, res[0]?.value);
+            setBarcodeText(res[0]?.value ?? "");
+          } else {
+            // scan ingredients text from image
+            console.log("Scanning image text");
+            const text = await TextRecognition.recognize(image.assets[0].uri);
+            console.log("Selected image ingredients -> ", text)
+            navigation.navigate("ScanResult", { scan: {ocrResult: text} });
+          }
         });
       }
     });
@@ -125,9 +138,9 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
              frameProcessor={frameProcessor}
              frameProcessorFps={5}
              photo={true}
-             enableHighQualityPhotos
+             enableHighQualityPhotos 
              device={device}
-             isActive={barcodeText == "" && isFocused}
+             isActive={!ocrResult.result?.text.toLowerCase().includes("ingredients") && barcodeText == "" && isFocused}
              style={StyleSheet.absoluteFill}
              enableZoomGesture
            />

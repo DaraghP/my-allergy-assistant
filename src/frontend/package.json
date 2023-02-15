@@ -19,6 +19,7 @@
     "@react-native-community/checkbox": "^0.5.13",
     "@react-native-community/netinfo": "^9.3.7",
     "@react-native-ml-kit/barcode-scanning": "^1.2.1",
+    "@react-native-ml-kit/text-recognition": "^1.2.1",
     "@react-navigation/bottom-tabs": "^6.5.2",
     "@react-navigation/native": "^6.1.1",
     "@react-navigation/native-stack": "^6.9.7",
@@ -81,7 +82,7 @@
       "<rootDir>/jest.setup.js"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!@aws-amplify/ui-react-native|@react-native|react-native|aws-amplify-react-native|@react-navigation|@react-native-ml-kit/barcode-scanning)"
+      "node_modules/(?!@aws-amplify/ui-react-native|@react-native|react-native|aws-amplify-react-native|@react-navigation|@react-native-ml-kit/barcode-scanning|@react-native-ml-kit/text-recognition|@react-native-ml-kit|vision-camera-ocr)"
     ]
   }
 }
