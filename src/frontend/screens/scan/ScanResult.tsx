@@ -1,14 +1,20 @@
+import _ from "lodash";
 import React, {useEffect} from "react";
 import {Text, StyleSheet, View} from "react-native";
 import {useAppSelector} from "../../hooks";
 
 function ScanResult({navigation, route}) { 
     const scan = route.params?.scan;
+
     // mock data
     const possibleAllergens = ['peanut', 'wheat', 'milk', 'yeast', 'water', 'sucralose']
     
     const username = useAppSelector(state => state.user.username);
     const user = useAppSelector(state => state.appData.accounts[username]);
+
+    const tokenise = (text: string) => {
+        return _.words(text);
+    }
 
     const getAllergensFromText = () => {
         let allergensFound = []
@@ -19,6 +25,7 @@ function ScanResult({navigation, route}) {
                 allergensFound.push(allergen);
             }
         })
+
         // check if user allergens were found
         let userAllergensFound = []
         allergensFound.forEach((item) => {
@@ -27,17 +34,16 @@ function ScanResult({navigation, route}) {
             } else {
                 console.log(item, " found, but user not allergic");
             }// 
-        }) // i saw some mock platform, might try this: https://stackoverflow.com/a/47596449
+        })
 
         return allergensFound;
     }
 
     useEffect(() => {
-        // console.log("scan -> ", scan);
-
-        
+        console.log("test: ", tokenise(scan?.ocrResult?.text.toLowerCase()))
     }, [])
-    
+
+
     return (
         <View style={styles.container}>
             <Text>Product Found! : {scan?.product_name}</Text>

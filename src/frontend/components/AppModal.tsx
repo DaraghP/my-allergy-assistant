@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { View, Text, Modal, StyleSheet, TouchableOpacity, Button } from "react-native";
 
 interface ModalBtnsConfig {
@@ -14,12 +14,13 @@ interface ModalBtnsConfig {
 
 interface AppModalProps {
     headerText: string,
+    modalContent?: React.ReactNode,
     modalContentText: string,
     modalBtnsConfig: ModalBtnsConfig,
     isModalOpen: {state: boolean, setState: Function}
 }
 
-function AppModal({headerText, modalContentText, modalBtnsConfig, isModalOpen}: AppModalProps) {
+function AppModal({headerText, modalContent = <></>, modalContentText, modalBtnsConfig, isModalOpen}: AppModalProps) {
 
     return (
         <Modal animationType="fade" visible={isModalOpen.state} onRequestClose={() => {isModalOpen.setState(!isModalOpen.state)}} transparent>
@@ -28,7 +29,12 @@ function AppModal({headerText, modalContentText, modalBtnsConfig, isModalOpen}: 
                 <Text style={styles.modalHeader}>{headerText}</Text>
 
                 <View style={styles.modalContent}>
+
                     <Text>{modalContentText}</Text>
+
+                    <View style={styles.content}>
+                        {modalContent}
+                    </View>
 
                     <View style={styles.modalBtnsContainer}>
                         <TouchableOpacity
@@ -79,6 +85,9 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: "center",
         justifyContent: "center"
+    },
+    content: {
+        marginVertical: 10
     },
     modalBtnsContainer: {
         flexGrow: 0,

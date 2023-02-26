@@ -18,6 +18,7 @@ import BarcodeScanning from '@react-native-ml-kit/barcode-scanning';
 import { scanOCR } from 'vision-camera-ocr';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import { onChange, runOnJS } from 'react-native-reanimated';
+import ImagePicker from 'react-native-image-crop-picker';
 
 enum ScanMode {
   Text = 'TEXT',
@@ -37,6 +38,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   const devices = useCameraDevices();
   const device = devices.back;
   const camera = useRef<Camera>(null);
+  const crop = useRef(null);
   const scanMode = useState<ScanMode>(ScanMode.Barcode);
   const isFocused = useIsFocused();
   const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState<boolean>(false);
@@ -44,6 +46,8 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   const [photo, setPhoto] = useState<string>("");
   const [barcodes, setBarcodes] = useState([]);
   const [ocrResult, setOcrResult] = useState({});
+  const [ingredientsFound, setIngredientsFound] = useState(false);
+
 
   // const [frameProcessor, barcodes] = useScanBarcodes([BarcodeFormat.EAN_13], {
   //   checkInverted: true,
@@ -55,6 +59,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
     const barcodesDetected = scanBarcodes(frame, [BarcodeFormat.EAN_13], {checkInverted: true});
     const ocrScan = scanOCR(frame);
 
+    console.log(ingredientsFound)
     runOnJS(setOcrResult)(ocrScan);
     runOnJS(setBarcodes)(barcodesDetected);
   }, [])
@@ -70,7 +75,6 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   const openCameraRoll = () => {
     let options = {title: 'Select an image'}
 
-    /*  */
     launchImageLibrary(options, (image) => {
       if (!image.didCancel) {
         setPhoto(image.assets[0].uri); // 
@@ -114,7 +118,14 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
       console.log("text-detected");
       if (ocrResult.result?.text.toLowerCase().includes("ingredients")) {
         console.log("INGREDIENTS FOUND");
-        setIsOcrModalOpen(true);
+        if (!ingredientsFound) {
+          takePhotoHandler().then((photo) => {
+            setPhoto("file://" + photo.path)
+          }).then(() => {
+            setIngredientsFound(true);
+            setIsOcrModalOpen(true);
+          })
+        }
       }
     } else {
       console.log("no-text-detected");
@@ -138,13 +149,13 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
              frameProcessor={frameProcessor}
              frameProcessorFps={5}
              photo={true}
-             enableHighQualityPhotos 
+             enableHighQualityPhotos
              device={device}
-             isActive={!ocrResult.result?.text.toLowerCase().includes("ingredients") && barcodeText == "" && isFocused}
+             isActive={!ingredientsFound && barcodeText == "" && isFocused}
              style={StyleSheet.absoluteFill}
              enableZoomGesture
            />
-           
+
            <AppModal
                isModalOpen={{state: isBarcodeModalOpen, setState: (bool: boolean) => {setIsBarcodeModalOpen(bool)}}}
                headerText={"Scan barcode"}
@@ -181,12 +192,41 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
           <AppModal
                isModalOpen={{state: isOcrModalOpen, setState: (bool: boolean) => {setIsOcrModalOpen(bool)}}}
                headerText={"Scan Ingredients"}
+               modalContent={
+                  <>
+                    <Image style={{height: 200, width: 200}} source={{uri: photo}} />
+                    <TouchableOpacity
+                        activeOpacity={0.5}
+                        style={styles.crop}
+                        onPress={() => {
+                          ImagePicker.openCropper({
+                            path: photo,
+                            width: 400,
+                            height: 400,
+                            freeStyleCropEnabled: true,
+                            compressImageQuality: 1,
+                            enableRotationGesture: true
+                          }).then(image => {
+                            setPhoto(image.path);
+                          });
+                        }}
+                    >
+                      <Text>Crop</Text>
+                    </TouchableOpacity>
+                  </>
+               }
                modalContentText={"Would you like to scan this product's ingredients?"}
                modalBtnsConfig={{
                    option1: {
                        onPress: async () => { // 
                         console.log("yes pressed.");
-                          /* TODO: 
+                        const text = await TextRecognition.recognize(photo);
+
+                        setIngredientsFound(false);
+                        setIsOcrModalOpen(false);
+                        navigation.navigate("ScanResult", { scan: {ocrResult: text} });
+
+                          /* TODO:
                              - translate ingredients if needed
                              - show ingredients to user
                              - detect user allergens within the ingredients
@@ -197,6 +237,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                    option2: {
                        onPress: () => {
                           setOcrResult({});
+                          setIngredientsFound(false);
                        },
                        text: "No",
                    }
@@ -247,8 +288,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 5 
   },
-  buttonSpacing: {
-    // marginVertical: ,
+  crop: {
+    backgroundColor: "ghostwhite",
+    borderColor: "lightgrey",
+    borderWidth: 0.2,
+    padding: 5,
+    alignItems: "center",
+    justifyContent: "center"
   },
   photoButton: {
     paddingBottom: "6%",
