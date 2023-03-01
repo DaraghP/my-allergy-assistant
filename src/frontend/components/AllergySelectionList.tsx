@@ -6,18 +6,31 @@ import filter from "lodash.filter";
 import {useAppDispatch, useAppSelector} from "../hooks";
 import {updateAllergens} from "../reducers/app-data-reducer";
 import {User, postNewUser, updateUser} from "../api";
+import ALLERGENS from "../allergens.json";
+import _ from "lodash";
+
 
 function AllergySelectionList({onConfirm}) {
     const dispatch = useAppDispatch();
     const username = useAppSelector(state => state.user.username);
     const email = useAppSelector(state => state.user.email);
     const user = useAppSelector(state => state.appData.accounts[username]);
+    const AllergenList = ALLERGENS.data;
 
-    // mock data
-    let data: Array<string> = []
-    for (let i = 1; i <= 50; i++) {
-        data.push(`allergen${i}`);
-    }
+    let allergenArray: Array<string> = [];
+    // loop over each allergen
+    AllergenList.forEach((allergenObject) => {
+        // add it to data list, which will be displayed to user in check-list
+        allergenArray = allergenArray.concat(_.keys(allergenObject)[0]);
+    });
+    //sort alphabetically
+    let data = allergenArray.sort();
+
+    /* TODO:
+            on Profile Screen: show user allergens, and button to edit allergens.
+            button opens allergySelectionList
+            add 'Couldn't find your allergen?' feature where user can add their custom allergen.
+     */
 
     const [selection, setSelection] = useState<Set<string>>(new Set(user?.allergens));
     const [filteredData, setFilteredData] = useState(data);

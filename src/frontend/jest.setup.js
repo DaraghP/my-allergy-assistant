@@ -16,4 +16,10 @@ jest.mock("react-native-bootsplash", () => {
   };
 });
 
+jest.mock("react-native-image-crop-picker", () => {});
+
+jest.mock("react-native/Libraries/EventEmitter/NativeEventEmitter");
+
+jest.mock("react-native-fs", () => {});
+
 jest.useFakeTimers();

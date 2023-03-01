@@ -263,6 +263,8 @@ dependencies {
 
     implementation project(':react-native-inappbrowser-reborn')
 
+    implementation project(":react-native-image-crop-picker")
+
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.fbjni'
     }

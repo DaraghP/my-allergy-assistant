@@ -8,7 +8,7 @@ import {BarcodeFormat, useScanBarcodes, scanBarcodes} from 'vision-camera-code-s
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import AppModal from "./AppModal";
-import {scanBarcode, updateUser} from '../api';
+import {ocrProc, scanBarcode, updateUser} from '../api';
 import ScanResult from '../screens/scan/ScanResult';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { updateScans } from '../reducers/app-data-reducer';
@@ -19,6 +19,7 @@ import { scanOCR } from 'vision-camera-ocr';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import { onChange, runOnJS } from 'react-native-reanimated';
 import ImagePicker from 'react-native-image-crop-picker';
+import {readFile, readFileAssets, TemporaryDirectoryPath, writeFile} from "react-native-fs";
 
 enum ScanMode {
   Text = 'TEXT',
@@ -44,14 +45,10 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState<boolean>(false);
   const [isOcrModalOpen, setIsOcrModalOpen] = useState<boolean>(false);
   const [photo, setPhoto] = useState<string>("");
+  const [editPhoto, setEditPhoto] = useState<string>("");
   const [barcodes, setBarcodes] = useState([]);
   const [ocrResult, setOcrResult] = useState({});
   const [ingredientsFound, setIngredientsFound] = useState(false);
-
-
-  // const [frameProcessor, barcodes] = useScanBarcodes([BarcodeFormat.EAN_13], {
-  //   checkInverted: true,
-  // });
 
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet';
@@ -168,7 +165,8 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                            // if product found then store scan
                            if (scan.status == "product found") {
                              // store scan in dynamoDB table
-                             let scanObj = {[barcodeText]: {date: scan.date, receive_notifications: scan.receive_notifications}};
+                             // let productDisplayName = scan.product_name + " - " + scan.brands + " - " + scan.product_quality
+                             let scanObj = {[barcodeText]: {product_display_name: scan.product_display_name, date: scan.date, receive_notifications: scan.receive_notifications}};
                              updateUser({username: user.username, email: user.email, scan: scanObj});
                              // add to redux scans
                              dispatch(updateScans({username: user.username, scan: {...scanObj}}));
@@ -201,13 +199,12 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                         onPress={() => {
                           ImagePicker.openCropper({
                             path: photo,
-                            width: 400,
-                            height: 400,
                             freeStyleCropEnabled: true,
                             compressImageQuality: 1,
-                            enableRotationGesture: true
+                            enableRotationGesture: true,
                           }).then(image => {
                             setPhoto(image.path);
+                            setEditPhoto(image.path);
                           });
                         }}
                     >
@@ -218,13 +215,24 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                modalContentText={"Would you like to scan this product's ingredients?"}
                modalBtnsConfig={{
                    option1: {
-                       onPress: async () => { // 
-                        console.log("yes pressed.");
-                        const text = await TextRecognition.recognize(photo);
+                       onPress: async () => {
+                          console.log("yes pressed.");
 
-                        setIngredientsFound(false);
-                        setIsOcrModalOpen(false);
-                        navigation.navigate("ScanResult", { scan: {ocrResult: text} });
+                          // prepare image for OCR
+                          let photoBase64 = await readFile(photo, "base64");
+
+                          photoBase64 = await ocrProc(photoBase64); //
+                          let newImagePath = await writeFile(`${TemporaryDirectoryPath}/img.jpg`, photoBase64, "base64");
+                          console.log("NEW IMAGE PATH: ", `${TemporaryDirectoryPath}/img.jpg`); //
+                          // let newPhoto = `data:image/jpeg;base64,${photoBase64}`;//
+                          setEditPhoto(newImagePath); //
+
+                          const text = await TextRecognition.recognize(photo);
+
+                          setIngredientsFound(false);
+                          setIsOcrModalOpen(false);
+
+                          navigation.navigate("ScanResult", { scan: {ocrResult: text} });
 
                           /* TODO:
                              - translate ingredients if needed
@@ -266,10 +274,10 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                }/>
              </View>
              <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
-               {photo != "" && (
+               {editPhoto != "" && (
                    <>
                      <Text style={{color: "white"}}>Image showing</Text>
-                     <Image style={{width: 100, height: 100}} source={{uri: photo}}/>
+                     <Image style={{width: 100, height: 100}} source={{uri: editPhoto}}/>
                    </>
                  )}
              </View>

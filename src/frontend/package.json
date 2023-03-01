@@ -33,6 +33,7 @@
     "react": "18.1.0",
     "react-native": "0.70.6",
     "react-native-bootsplash": "^4.4.0",
+    "react-native-fs": "^2.20.0",
     "react-native-get-random-values": "^1.8.0",
     "react-native-image-crop-picker": "^0.39.0",
     "react-native-image-picker": "^5.0.1",
@@ -84,7 +85,7 @@
       "<rootDir>/jest.setup.js"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!@aws-amplify/ui-react-native|@react-native|react-native|aws-amplify-react-native|@react-navigation|@react-native-ml-kit/barcode-scanning|@react-native-ml-kit/text-recognition|@react-native-ml-kit|vision-camera-ocr)"
+      "node_modules/(?!@aws-amplify/ui-react-native|@react-native|react-native|aws-amplify-react-native|@react-navigation|@react-native-ml-kit/barcode-scanning|@react-native-ml-kit/text-recognition|@react-native-ml-kit|vision-camera-ocr|react-native-image-crop-picker)"
     ]
   }
 }

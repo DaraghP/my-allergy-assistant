@@ -164,6 +164,30 @@ export async function getAllUsers() {
   });
 }
 
+/************** OCR IMAGE PROCESSING ***************/
+export async function ocrProc(base64Image: string) {
+  return (
+    API.post("myAPI", "/ocrproc", {
+      headers: {
+        'Content-Type': 'image/jpeg',
+        Authorization: `${(await Auth.currentSession())
+            .getIdToken()
+            .getJwtToken()}`,
+      },
+      body: {
+        base64: base64Image
+      }
+    })
+    .then(res => {
+      console.log("ocrProc res -> ", "really long base64 string...");
+      return res;
+    })
+    .catch(err => {
+      console.log(err);
+    })
+  );
+}
+
 /************** OPEN FOOD FACTS ***************/
 
 export async function scanBarcode(barcodeText: string) {
@@ -177,6 +201,7 @@ export async function scanBarcode(barcodeText: string) {
     return res.json().then((data) => {
       console.log(data);
       const scanResults = {
+        "product_display_name": data?.product?.product_name + " - " + data?.product?.brands + " - " + data?.product?.quantity,
         "date": new Date().toISOString(),
         "status": data?.status_verbose,
         "product_code:": data?.code,

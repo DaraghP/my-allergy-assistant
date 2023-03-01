@@ -1,0 +1,124 @@
+{
+  "data": [
+    {
+      "Wheat": ["wheat"]
+    },
+    {
+      "Rye": ["rye"]
+    },
+    {
+      "Barley": ["barley"]
+    },
+    {
+      "Oats": ["oats", "oat"]
+    },
+    {
+      "Crustaceans": [
+        "crustacean",
+        "crustaceans",
+        "prawn",
+        "crab",
+        "lobster"
+      ]
+    },
+    {
+      "Fish": [
+        "fish"
+      ]
+    },
+    {
+      "Peanuts": [
+        "peanut",
+        "peanuts"
+      ]
+    },
+    {
+      "Soybeans": [
+        "soy",
+        "soya",
+        "soybean",
+        "soyabean",
+        "soybeans",
+        "soyabeans"
+      ]
+    },
+    {
+      "Milk": [
+        "milk"
+      ]
+    },
+    {
+      "Almonds": [
+        "almond",
+        "almonds"
+      ]
+    },
+    {
+      "Hazelnuts": [
+        "hazelnuts",
+        "hazelnut"
+      ]
+    },
+    {
+      "Walnuts": [
+        "walnut",
+        "walnuts"
+      ]
+    },
+    {
+      "Cashew nuts": [
+        "cashew",
+        "cashews"
+      ]
+    },
+    {
+      "Brazil nuts": [
+        "brazil nuts",
+        "brazilnuts"
+      ]
+    },
+    {
+      "Celery": [
+        "celery"
+      ]
+    },
+    {
+      "Mustard": [
+        "mustard"
+      ]
+    },
+    {
+      "Sesame Seeds": [
+        "sesame"
+      ]
+    },
+    {
+      "Sulphur Dioxide and sulphites": [
+        "sulphur",
+        "sulfur",
+        "sulfite",
+        "sulphite",
+        "sulfites",
+        "sulphites"
+      ]
+    },
+    {
+      "Lupin": [
+        "lupin"
+      ]
+    },
+    {
+      "Molluscs": [
+        "mollusc",
+        "molluscs",
+        "mussel",
+        "mussels",
+        "oyster",
+        "oysters",
+        "squid",
+        "snail",
+        "snails"
+      ]
+    }
+  ]
+}

@@ -3,7 +3,6 @@ import React, {useEffect, ReactNode} from "react";
 import CheckBox from '@react-native-community/checkbox';
 
 function AllergySelectionItem({key = "", children, selection, setSelection}) {
-
     const select = () => {
         if (selection.has(children.item)) {
             selection.delete(children.item);
@@ -23,7 +22,7 @@ function AllergySelectionItem({key = "", children, selection, setSelection}) {
                     value={selection.has(children.item)}
                     onChange={() => {select()}}
                 />
-                <Text>{children.item}</Text>
+                <Text style={{textTransform: "capitalize"}}>{children.item}</Text>
             </View>
         </TouchableNativeFeedback>
     )
