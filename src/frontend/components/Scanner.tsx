@@ -44,6 +44,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   const isFocused = useIsFocused();
   const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState<boolean>(false);
   const [isOcrModalOpen, setIsOcrModalOpen] = useState<boolean>(false);
+  const [isProductNotFoundModalOpen, setIsProductNotFoundModalOpen] = useState<boolean>(false);
   const [photo, setPhoto] = useState<string>("");
   const [editPhoto, setEditPhoto] = useState<string>("");
   const [barcodes, setBarcodes] = useState([]);
@@ -170,9 +171,14 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                              updateUser({username: user.username, email: user.email, scan: scanObj});
                              // add to redux scans
                              dispatch(updateScans({username: user.username, scan: {...scanObj}}));
+                             console.log("Scanner scan:", scan);
+                             navigation.navigate("ScanResult", { scan: scan });
+                           } else {
+                            //product not found in OFF database
+                            // display error modal
+                            setIsProductNotFoundModalOpen(true);
+
                            }
-                           console.log("Scanner scan:", scan);
-                           navigation.navigate("ScanResult", { scan: scan });
                        },
                        text: "Yes"
                    },
@@ -251,6 +257,21 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                    }
                }}
            />
+
+<AppModal
+               isModalOpen={{state: isProductNotFoundModalOpen, setState: (bool: boolean) => {setIsProductNotFoundModalOpen(bool)}}}
+               headerText={"Product NOT FOUND :("}
+               modalContentText={"Barcode '" + barcodeText + "' not found in product database.\nTry scan ingredients instead"}
+               modalBtnsConfig={{
+                   option1: {
+                       onPress: async () => {
+                        setBarcodeText("");
+                        console.log();
+                       },
+                       text: "Continue"
+                   }
+               }}
+          />
 
            <View style={styles.bottomButtonsContainer}>
              <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>

@@ -8,6 +8,7 @@ import {updateAllergens} from "../reducers/app-data-reducer";
 import {User, postNewUser, updateUser} from "../api";
 import ALLERGENS from "../allergens.json";
 import _ from "lodash";
+import {Auth} from "aws-amplify";
 
 
 function AllergySelectionList({onConfirm}) {
@@ -47,6 +48,13 @@ function AllergySelectionList({onConfirm}) {
         );
     }
 
+    const AuthToken = async () => {
+        return `${(await Auth.currentSession()).getIdToken().getJwtToken()}`
+    };
+    AuthToken().then((res) => {
+        console.log(res);
+    });
+
     useEffect(() => {
         if (user?.allergens.size > 0) {
             setSelection(new Set([...user.allergens]))
@@ -80,15 +88,18 @@ function AllergySelectionList({onConfirm}) {
                     console.log("curr_username:", username);
                     console.log("curr_email:", email);
                     console.log("allergens selected:", [...selection]);
-                    let userObj : User = {username: username, email: email, allergens: [...selection]}
+                    console.log("scans:", user.scans);
+                    let userObj : User = {username: username, email: email, allergens: [...selection], scans: user.scans}
                     dispatch(updateAllergens(userObj));
                     
                     // if hasCompletedSetup is false then create new user in DynamoDB via API
                     if (!user.hasCompletedSetup) {
                         postNewUser(userObj);
+                        console.log("attempting to create new user");
                     } else {
                         // else, user is already created, so updateUser
                         updateUser(userObj);
+                        console.log("hasCompletedSetup = true in redux.");
                     }
 
                 }}/>
