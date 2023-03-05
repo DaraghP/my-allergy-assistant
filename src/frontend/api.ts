@@ -165,22 +165,20 @@ export async function getAllUsers() {
 }
 
 /************** OCR IMAGE PROCESSING ***************/
-export async function ocrProc(base64Image: string) {
+export async function ocrPreprocessing(base64Image: string) {
   return (
-    API.post("myAPI", "/ocrproc", {
+    API.post("myAPI", "/ocr-preprocessing", {
       headers: {
-        'Content-Type': 'image/jpeg',
+        'Content-Type': 'application/json',
         Authorization: `${(await Auth.currentSession())
             .getIdToken()
             .getJwtToken()}`,
       },
-      body: {
-        base64: base64Image
-      }
+      body: base64Image
     })
     .then(res => {
-      console.log("ocrProc res -> ", "really long base64 string...");
-      return res;
+      console.log("SUCCESSFUL RESPONSE: ")
+      return res.body;
     })
     .catch(err => {
       console.log(err);

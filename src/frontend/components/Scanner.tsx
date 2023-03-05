@@ -8,7 +8,7 @@ import {BarcodeFormat, useScanBarcodes, scanBarcodes} from 'vision-camera-code-s
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import AppModal from "./AppModal";
-import {ocrProc, scanBarcode, updateUser} from '../api';
+import {ocrPreprocessing, scanBarcode, updateUser} from '../api';
 import ScanResult from '../screens/scan/ScanResult';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { updateScans } from '../reducers/app-data-reducer';
@@ -19,7 +19,7 @@ import { scanOCR } from 'vision-camera-ocr';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import { onChange, runOnJS } from 'react-native-reanimated';
 import ImagePicker from 'react-native-image-crop-picker';
-import {readFile, readFileAssets, TemporaryDirectoryPath, writeFile} from "react-native-fs";
+import {readFile, readFileAssets, TemporaryDirectoryPath, unlink, writeFile} from "react-native-fs";
 
 enum ScanMode {
   Text = 'TEXT',
@@ -56,7 +56,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
     const barcodesDetected = scanBarcodes(frame, [BarcodeFormat.EAN_13], {checkInverted: true});
     const ocrScan = scanOCR(frame);
 
-    console.log(ingredientsFound)
+    // console.log(ingredientsFound)
     runOnJS(setOcrResult)(ocrScan);
     runOnJS(setBarcodes)(barcodesDetected);
   }, [])
@@ -64,7 +64,6 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
 
   const takePhotoHandler = async () => {
     return await camera.current.takePhoto({
-      qualityPrioritization: 'quality',
       enableAutoStabilization: true,
     });
   };
@@ -100,7 +99,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
         setBarcodeText(barcodes[0].displayValue);
     }
 
-    console.log('barcodes ->', barcodeText);
+    // console.log('barcodes ->', barcodeText);
   }, [barcodes]);
 
   useEffect(() => {
@@ -110,9 +109,9 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   }, [barcodeText])
 
   useEffect(() => {
-    console.log(ocrResult);
+    // console.log(ocrResult);
     if (ocrResult.result?.text != "") {
-      console.log("text-detected");
+      // console.log("text-detected");
       if (ocrResult.result?.text.toLowerCase().includes("ingredients")) {
         console.log("INGREDIENTS FOUND");
         if (!ingredientsFound) {
@@ -125,7 +124,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
         }
       }
     } else {
-      console.log("no-text-detected");
+      // console.log("no-text-detected");
     }
   }, [ocrResult])
 
@@ -146,7 +145,6 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
              frameProcessor={frameProcessor}
              frameProcessorFps={5}
              photo={true}
-             enableHighQualityPhotos
              device={device}
              isActive={!ingredientsFound && barcodeText == "" && isFocused}
              style={StyleSheet.absoluteFill}
@@ -204,7 +202,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                             enableRotationGesture: true,
                           }).then(image => {
                             setPhoto(image.path);
-                            setEditPhoto(image.path);
+                            // setEditPhoto(image.path);
                           });
                         }}
                     >
@@ -220,14 +218,12 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
 
                           // prepare image for OCR
                           let photoBase64 = await readFile(photo, "base64");
+                          photoBase64 = await ocrPreprocessing(photoBase64); //
+                          setEditPhoto(`data:image/jpeg;base64,${photoBase64}`);
 
-                          photoBase64 = await ocrProc(photoBase64); //
-                          let newImagePath = await writeFile(`${TemporaryDirectoryPath}/img.jpg`, photoBase64, "base64");
-                          console.log("NEW IMAGE PATH: ", `${TemporaryDirectoryPath}/img.jpg`); //
-                          // let newPhoto = `data:image/jpeg;base64,${photoBase64}`;//
-                          setEditPhoto(newImagePath); //
+                          await writeFile(`${TemporaryDirectoryPath}/img.jpg`, photoBase64, "base64");
 
-                          const text = await TextRecognition.recognize(photo);
+                          const text = await TextRecognition.recognize(`file:///${TemporaryDirectoryPath}/img.jpg`);
 
                           setIngredientsFound(false);
                           setIsOcrModalOpen(false);
