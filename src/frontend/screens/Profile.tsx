@@ -9,12 +9,17 @@ import AppModal from "../components/AppModal";
 import { useNavigation } from "@react-navigation/native";
 // import { BlurView } from "@react-native-community/blur";
 
-function ProfileScreen() {
+function ProfileScreen() {// s
     const navigation = useNavigation();
     let dispatch = useAppDispatch();
     let user = useAppSelector(state => state.user);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-
+    const AuthToken = async () => {
+        return `${(await Auth.currentSession()).getIdToken().getJwtToken()}`
+    };
+    AuthToken().then((res) => {
+        console.log(res);
+    });
     const LogOut = () => {
         return (
             <Button

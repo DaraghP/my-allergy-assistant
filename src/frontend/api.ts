@@ -15,9 +15,10 @@ interface UpdatableUserData extends User {
 }
 
 export async function postNewUser({username, email, allergens} : User) {
+  console.log({username: username, email: email, allergens: allergens, hasCompletedSetup: true, scans: {}});
   API.post('myAPI', '/users', {
     body: {
-      Item: {username: username, email: email, allergens: allergens, hasCompletedSetup: true},
+      Item: {username: username, email: email, allergens: allergens, hasCompletedSetup: true, scans: {}},
     },
     headers: {
       'Content-Type': 'application/json',
@@ -71,13 +72,14 @@ export async function updateUser({username, email, allergens, scan}: UpdatableUs
         ':allergen_list': allergens,
       },
       ReturnValues: 'UPDATED_NEW',
-    } 
+    };
+    console.log(requestBody);
   } else if (scan) {
     console.log("data is scan");
   // user.scans = {'1': {}, '2'={}}
   // if product_id in user.scans: update that scan
   // else append to user.scans 
-    requestBody = requestBody = {
+    requestBody = {
       Key: {username: username, email: email},
       UpdateExpression: `set #scans.#product = :scanResult`, // ${scan.product_id}
       ExpressionAttributeValues: {
@@ -88,7 +90,9 @@ export async function updateUser({username, email, allergens, scan}: UpdatableUs
         '#product': Object.keys(scan)[0],
       },
       ReturnValues: 'UPDATED_NEW',
-    } 
+    }
+    console.log(scan);
+    console.log(requestBody);
   } else {
     console.log("error");
     return "errorUpdate"
@@ -198,8 +202,17 @@ export async function scanBarcode(barcodeText: string) {
     console.log("Response received.");
     return res.json().then((data) => {
       console.log(data);
+      const getProductDisplayName = () => {
+        let productDisplayName = data?.product?.product_name ? data?.product?.product_name : "";
+        productDisplayName += data?.product?.brands ? " - " + data?.product?.brands : "";
+        productDisplayName += data?.product?.quantity ? " - " + data?.product?.quantity : "";
+        //remove unnecessary punctuation from product name
+        productDisplayName = productDisplayName.replace(/[.,\/#!$%\^&\*;:{}=\_`~()]/g,"")
+            .replace(/\s{2,}/g," ");
+        return productDisplayName;
+      }
       const scanResults = {
-        "product_display_name": data?.product?.product_name + " - " + data?.product?.brands + " - " + data?.product?.quantity,
+        "product_display_name": getProductDisplayName(),
         "date": new Date().toISOString(),
         "status": data?.status_verbose,
         "product_code:": data?.code,
