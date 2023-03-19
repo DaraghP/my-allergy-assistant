@@ -26,6 +26,7 @@
     "@react-navigation/stack": "^6.3.11",
     "@reduxjs/toolkit": "^1.9.1",
     "amazon-cognito-identity-js": "^6.1.2",
+    "autocorrect": "^1.2.0",
     "aws-amplify": "^5.0.8",
     "aws-amplify-react-native": "^7.0.2",
     "lodash.filter": "^4.6.0",
@@ -49,6 +50,7 @@
     "react-native-vision-camera": "^2.15.2",
     "react-redux": "^8.0.5",
     "redux-persist": "^6.0.0",
+    "string-similarity": "^4.0.4",
     "ts-jest": "^29.0.3",
     "vision-camera-code-scanner": "^0.2.0",
     "vision-camera-ocr": "^1.0.0"
@@ -64,6 +66,7 @@
     "@types/react-native": "^0.70.6",
     "@types/react-native-vector-icons": "^6.4.12",
     "@types/react-test-renderer": "^18.0.0",
+    "@types/string-similarity": "^4.0.0",
     "@typescript-eslint/eslint-plugin": "^5.37.0",
     "@typescript-eslint/parser": "^5.37.0",
     "babel-jest": "^29.0.0",

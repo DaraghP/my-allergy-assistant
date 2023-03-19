@@ -24,6 +24,7 @@ import {readFile, readFileAssets, TemporaryDirectoryPath, unlink, writeFile} fro
 enum ScanMode {
   Text = 'TEXT',
   Barcode = 'BARCODE',
+  Detect = 'DETECT'
 }
 
 interface ScannerProps {
@@ -39,8 +40,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   const devices = useCameraDevices();
   const device = devices.back;
   const camera = useRef<Camera>(null);
-  const crop = useRef(null);
-  const scanMode = useState<ScanMode>(ScanMode.Barcode);
+  const [scanMode, setScanMode] = useState<ScanMode>(ScanMode.Detect);
   const isFocused = useIsFocused();
   const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState<boolean>(false);
   const [isOcrModalOpen, setIsOcrModalOpen] = useState<boolean>(false);
@@ -57,7 +57,16 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
     const barcodesDetected = scanBarcodes(frame, [BarcodeFormat.EAN_13], {checkInverted: true});
     const ocrScan = scanOCR(frame);
 
-    // console.log(ingredientsFound)
+    if (ocrScan.result.blocks.length > 0) {
+      setScanMode(ScanMode.Text);
+    }
+    else if (barcodesDetected.length > 0) {
+      setScanMode(ScanMode.Barcode);
+    }
+    else {
+      setScanMode(ScanMode.Detect);
+    }
+
     runOnJS(setOcrResult)(ocrScan);
     runOnJS(setBarcodes)(barcodesDetected);
   }, [])
@@ -84,9 +93,21 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
             setBarcodeText(res[0]?.value ?? "");
           } else {
             // scan ingredients text from image
-            console.log("Scanning image text");
-            const text = await TextRecognition.recognize(image.assets[0].uri);
-            console.log("Selected image ingredients -> ", text)
+
+            // TODO: refactor into function
+
+            setIngredientsFound(true);
+            setIsOcrModalOpen(true);
+
+
+            // prepare image for OCR
+            let photoBase64 = await readFile(image.assets[0].uri, "base64");
+            photoBase64 = await ocrPreprocessing(photoBase64);
+            setEditPhoto(`data:image/jpeg;base64,${photoBase64}`);
+            await writeFile(`${TemporaryDirectoryPath}/img.jpg`, photoBase64, "base64");
+
+            const text = await TextRecognition.recognize(`file:///${TemporaryDirectoryPath}/img.jpg`);
+
             navigation.navigate("ScanResult", { scan: {ocrResult: text} });
           }
         });
@@ -172,7 +193,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                              console.log("Scanner scan:", scan);
                              navigation.navigate("ScanResult", { scan: scan });
                            } else {
-                            //product not found in OFF database
+                             //product not found in OFF database
                             // display error modal
                             setIsProductNotFoundModalOpen(true);
 
@@ -208,7 +229,6 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                             enableRotationGesture: true,
                           }).then(image => {
                             setPhoto(image.path);
-                            // setEditPhoto(image.path);
                           });
                         }}
                     >
@@ -222,11 +242,12 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                        onPress: async () => {
                           console.log("yes pressed.");
 
+                          // TODO: refactor into function
+
                           // prepare image for OCR
                           let photoBase64 = await readFile(photo, "base64");
-                          photoBase64 = await ocrPreprocessing(photoBase64); //
+                          photoBase64 = await ocrPreprocessing(photoBase64);
                           setEditPhoto(`data:image/jpeg;base64,${photoBase64}`);
-
                           await writeFile(`${TemporaryDirectoryPath}/img.jpg`, photoBase64, "base64");
 
                           const text = await TextRecognition.recognize(`file:///${TemporaryDirectoryPath}/img.jpg`);
@@ -235,12 +256,6 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                           setIsOcrModalOpen(false);
 
                           navigation.navigate("ScanResult", { scan: {ocrResult: text} });
-
-                          /* TODO:
-                             - translate ingredients if needed
-                             - show ingredients to user
-                             - detect user allergens within the ingredients
-                          */
                        },
                        text: "Yes"
                    },
@@ -254,7 +269,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                }}
            />
 
-<AppModal
+            <AppModal
                isModalOpen={{state: isProductNotFoundModalOpen, setState: (bool: boolean) => {setIsProductNotFoundModalOpen(bool)}}}
                headerText={"Product NOT FOUND :("}
                modalContentText={"Barcode '" + barcodeText + "' not found in product database.\nTry scan ingredients instead"}
@@ -283,14 +298,22 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
              <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
                <FontAwesome5.Button name={"circle"} backgroundColor={"rgba(0,0,0,0)"} size={70} onPress={
                  () => {
-                   console.log("taking photo!");
-                   takePhotoHandler().then(photo => {
-                     console.log(photo.path);
-                   });
+
                  }
                }/>
              </View>
              <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
+               <Text style={{color: "white"}}>
+                  {scanMode == ScanMode.Detect ? 
+                    "Scanning for barcode or ingredients..." 
+                    : 
+                    scanMode == ScanMode.Barcode ?
+                    "Found barcode!"
+                    :
+                    "Found ingredients!"
+                  }
+                </Text>
+
                {editPhoto != "" && (
                    <>
                      <Text style={{color: "white"}}>Image showing</Text>

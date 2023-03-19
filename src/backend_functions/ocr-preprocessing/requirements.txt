@@ -1,2 +1,3 @@
-scikit-image
-deskew
+opencv-python-headless
+fast-deskew
+scipy

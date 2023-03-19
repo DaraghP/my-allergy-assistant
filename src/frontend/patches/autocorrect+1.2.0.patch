@@ -1,0 +1,22 @@
+diff --git a/node_modules/autocorrect/index.js b/node_modules/autocorrect/index.js
+index 27e0c05..a316f8a 100644
+--- a/node_modules/autocorrect/index.js
++++ b/node_modules/autocorrect/index.js
+@@ -1,15 +1,9 @@
+-var fs = require('fs')
++var fs = require('react-native-fs')
+ var leven = require('leven')
+-var wordListPath = require('word-list')
+-
+-var readDictionary = function(path) {
+-  path || (path = wordListPath)
+-  return fs.readFileSync(path).toString().trim().split('\n')
+-}
+ 
+ var autocorrect = function(options) {
+   options || (options = {})
+-  var dictionary = options.words || readDictionary(options.dictionary)
++  var dictionary = options.words
+   var len = dictionary.length
+ 
+   return function(str) {

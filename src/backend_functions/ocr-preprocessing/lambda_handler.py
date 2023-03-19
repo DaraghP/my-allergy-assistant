@@ -1,39 +1,23 @@
+import cv2
 import base64
-from skimage import io
-from skimage.transform import rotate
-from skimage.color import rgb2gray
-from skimage.filters import threshold_otsu
-from skimage.restoration import denoise_tv_chambolle
-from skimage.exposure import adjust_gamma
-from deskew import determine_skew
-from numpy import uint8
+from fast_deskew import deskew_image
 
 print('Loading ocr-preprocessing function!')
 
 def lambda_handler(event, context):
-
     image_base64 = event
     image = base64.b64decode(image_base64)
 
     with open("/tmp/img.jpg", "wb") as f:
          f.write(image)
 
-    io_image = io.imread("/tmp/img.jpg")
+    cv2_image = cv2.imread("/tmp/img.jpg")
 
-    grayscaled_image = rgb2gray(io_image)
-    # threshold = threshold_otsu(grayscaled_image)
-    binarized_image = grayscaled_image
+    # apply pre-processing techniques
+    grayscaled_image = cv2.cvtColor(cv2_image, cv2.COLOR_BGR2GRAY)
+    binarized_image = cv2.threshold(grayscaled_image, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+    denoised_image = cv2.fastNlMeansDenoising(binarized_image, None, 10, 7, 15)
+    rotated_image, angle = deskew_image(denoised_image)
 
-    denoised_image = denoise_tv_chambolle(binarized_image)
-
-    rotation_angle = determine_skew(grayscaled_image)
-    rotated_image = rotate(denoised_image, rotation_angle, resize=True) * 255
-
-    io.imsave("/tmp/out.jpg", rotated_image.astype(uint8))
-
-    final_image = ""
-    with open("/tmp/out.jpg", "rb") as f:
-      final_image = base64.b64encode(f.read())
-      final_image = final_image.decode("utf-8")
-
-    return {"isBase64Encoded": True, "headers": {"content-type": "image/jpeg"}, "body": final_image}
+    buffer = cv2.imencode(".jpg", rotated_image)[1]
+    return {"isBase64Encoded": True, "headers": {"content-type": "image/jpeg"}, "body": base64.b64encode(buffer)}
