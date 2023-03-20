@@ -205,7 +205,7 @@ export async function scanBarcode(barcodeText: string) {
       const getProductDisplayName = () => {
         let productDisplayName = data?.product?.product_name ? data?.product?.product_name : "";
         productDisplayName += data?.product?.brands ? " - " + data?.product?.brands : "";
-        productDisplayName += data?.product?.quantity ? " - " + data?.product?.quantity : "";
+        productDisplayName += data?.product?.quantity ? " - " + data?.product?.quantity.replace(" ", "") : "";
         //remove unnecessary punctuation from product name
         productDisplayName = productDisplayName.replace(/[.,\/#!$%\^&\*;:{}=\_`~()]/g,"")
             .replace(/\s{2,}/g," ");
@@ -217,9 +217,12 @@ export async function scanBarcode(barcodeText: string) {
         "status": data?.status_verbose,
         "product_code:": data?.code,
         "product_name": data?.product?.product_name,
-        "allergens": data?.product?.allergens_hierarchy,
+        "product_image": data?.product?.image_front_url,
+        // "image_size": data?.product
+        "ingredients_text": data?.product?.ingredients_text,
+        "allergens": data?.product?.allergens_hierarchy, //get english only
         "allergens_from_ingredients": data?.product?.allergens_from_ingredients,
-        "may_contain": data?.product?.traces,
+        "may_contain": data?.product?.traces, // get english only
         "missing_ingredients": data?.product?.unknown_ingredients_n,
         "non_vegan_ingredients": data?.product?.ingredients_analysis?.["en:non-vegan"],
         "vegan_status_unknown_ingredients": data?.product?.ingredients_analysis?.["en:vegan-status-unknown"],

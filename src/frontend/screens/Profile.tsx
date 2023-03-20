@@ -14,12 +14,12 @@ function ProfileScreen() {// s
     let dispatch = useAppDispatch();
     let user = useAppSelector(state => state.user);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-    const AuthToken = async () => {
-        return `${(await Auth.currentSession()).getIdToken().getJwtToken()}`
-    };
-    AuthToken().then((res) => {
-        console.log(res);
-    });
+    // const AuthToken = async () => {
+    //     return `${(await Auth.currentSession()).getIdToken().getJwtToken()}`
+    // };
+    // AuthToken().then((res) => {
+    //     console.log(res);
+    // });
     const LogOut = () => {
         return (
             <Button
