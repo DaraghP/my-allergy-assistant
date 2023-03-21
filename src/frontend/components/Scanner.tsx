@@ -172,7 +172,9 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
              style={StyleSheet.absoluteFill}
              enableZoomGesture
            />
-
+           {/* im thinking of having reports be like {productId1: [report1, report2], productId3: [report1]} etc. where report is {username:, suspected_allergens:} 
+           then if get 200 OK response from lambda, call some other function to notifyUsers who previously scanned that product */}
+{/* barcode/product id yeah, pick one  then all of the users allergens i think we said? */}
            <AppModal
                isModalOpen={{state: isBarcodeModalOpen, setState: (bool: boolean) => {setIsBarcodeModalOpen(bool)}}}
                headerText={"Scan barcode"}

@@ -43,13 +43,13 @@ function ScanHistory({navigation}) {
                         ({item}) => (
                             <TouchableNativeFeedback onPress={() => {console.log("Go to product page:", {item})}}>
                                 <View style={styles.item}>
-                                    <View>
+                                    <View style={{flexShrink: 1, flexGrow: 1}}>
                                         <>
-                                            <Text style={{fontWeight: "bold"}}>{scans[item].product_display_name}</Text>
+                                            <Text numberOfLines={1} style={{fontWeight: "bold"}}>{scans[item].product_display_name}</Text>
                                             <Text>Scanned {moment(scans[item].date).fromNow()}</Text>
                                         </>
                                     </View>
-                                    <View>
+                                    <View style={{paddingLeft: 10}}>
                                         <>
                                             <SwitchSelector
                                                 options={[

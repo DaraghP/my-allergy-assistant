@@ -215,15 +215,16 @@ export async function scanBarcode(barcodeText: string) {
         "product_display_name": getProductDisplayName(),
         "date": new Date().toISOString(),
         "status": data?.status_verbose,
-        "product_code:": data?.code,
+        "product_code": barcodeText,
         "product_name": data?.product?.product_name,
         "product_image": data?.product?.image_front_url,
-        // "image_size": data?.product
+        // "image_size": data?.product  
         "ingredients_text": data?.product?.ingredients_text,
         "allergens": data?.product?.allergens_hierarchy, //get english only
         "allergens_from_ingredients": data?.product?.allergens_from_ingredients,
-        "may_contain": data?.product?.traces, // get english only
-        "missing_ingredients": data?.product?.unknown_ingredients_n,
+        "may_contain": data?.product?.traces ? data?.product?.traces.replace("en:", "").replace(" ", "") : "",
+        "traces_tags": data?.product?.traces_tags.length > 0 ? data?.product.traces_tags[0].replace("en:en-", "").split("-en-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(", ") : "",
+        "missing_ingredients": data?.product?.unknown_ingredients_n,    
         "non_vegan_ingredients": data?.product?.ingredients_analysis?.["en:non-vegan"],
         "vegan_status_unknown_ingredients": data?.product?.ingredients_analysis?.["en:vegan-status-unknown"],
         "vegetarian_status_unkown_ingredients": data?.product?.ingredients_analysis?.["en:vegetarian-status-unknown"],

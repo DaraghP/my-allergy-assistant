@@ -1,4 +1,5 @@
 apply plugin: "com.android.application"
+apply plugin: "com.google.gms.google-services"
 import com.android.build.OutputFile
 import org.apache.tools.ant.taskdefs.condition.Os
 
@@ -290,7 +291,8 @@ dependencies {
     }
 }
 
-apply plugin: 'com.google.gms.google-services'
+// apply plugin: 'com.google.gms.google-services'
+
 
 if (isNewArchitectureEnabled()) {
     // If new architecture is enabled, we let you build RN from source

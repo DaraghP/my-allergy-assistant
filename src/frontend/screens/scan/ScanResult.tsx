@@ -1,10 +1,12 @@
 import _ from "lodash";
-import React, {useEffect} from "react";
-import {Text, StyleSheet, View, Image, Button, TouchableOpacity} from "react-native";
+import React, {useEffect, useState} from "react";
+import {Text, StyleSheet, View, Image, Button, TouchableOpacity, Modal, Linking} from "react-native";
 import {useAppSelector} from "../../hooks";
 import ALLERGENS from "../../allergens.json";
 import SwitchSelector from "react-native-switch-selector";
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import AppModal from "../../components/AppModal";
+import { MultipleSelectList } from 'react-native-dropdown-select-list';
 
 
 function ScanResult({navigation, route}) {
@@ -14,6 +16,15 @@ function ScanResult({navigation, route}) {
 
     const username = useAppSelector(state => state.user.username);
     const user = useAppSelector(state => state.appData.accounts[username]);
+    const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
+    const [selectedList, setSelectedList] = useState([]);
+    // console.log("myAllergens: " + user?.allergens);
+    const reportDropdownData = [
+        // {key:'1', value:'Milk'},
+        // {key:'2', value:'Hazelnuts'},
+        // {key:'3', value:'Wheat'},
+    ];
+    user?.allergens.map((allergen) => (reportDropdownData.push(allergen)));
 
     const tokenise = (text: string) => {
         return _.words(text);
@@ -92,14 +103,14 @@ function ScanResult({navigation, route}) {
                     :
                     <Text><Text style={{fontWeight: "bold"}}>Allergens:</Text>  {scan?.allergens_from_ingredients}</Text>
                 }
-                {scan?.may_contain == ""
+                {scan?.traces_tags == ""
                     ?
                     <Text></Text>
                     :
-                    <Text><Text style={{fontWeight: "bold"}}>May contain traces of:</Text>  {scan?.may_contain}</Text>
+                    <Text><Text style={{fontWeight: "bold"}}>May contain traces of:</Text>  {scan?.traces_tags}</Text>
                 }
                 {
-                    scan?.may_contain == "" && scan?.allergens_from_ingredients == "" &&
+                    scan?.traces_tags == "" && scan?.allergens_from_ingredients == "" &&
                     <Text style={{fontWeight: "bold"}}>No allergens detected</Text>
                 }
                 <Image
@@ -122,24 +133,60 @@ function ScanResult({navigation, route}) {
                             initial={0}
                         />
                     </View>
-                    <TouchableOpacity style={{margin: 20, padding: 20, backgroundColor: "red", borderRadius: 20, flexDirection: "row"}}>
+                    <TouchableOpacity 
+                        style={{margin: 20, padding: 20, backgroundColor: "red", borderRadius: 20, flexDirection: "row"}}
+                        onPress={() => {
+                            console.log("open report modal.");
+                            setIsReportModalOpen(true);
+                        }}
+                    >
                         <FontAwesome5 color={"white"} name={"flag-checkered"} size={25}/>
                         <Text style={{color: "white", paddingLeft: 20}}>Report product</Text>
                     </TouchableOpacity>
-                    {/*<Button*/}
-                    {/*    title={"Report product"}*/}
-                    {/*    color={"red"}*/}
-                    {/*/>*/}
                 </View>
-
-
             </View>
-            {/*</View>*/}
-            {/*<Text>Product Found! : {scan?.product_name}</Text>*/}
-            {/*<View style={styles.image_column}>*/}
+            <View style={{backgroundColor: "#c1bbb7", padding: 10, marginTop: 25}}>
+                    <Text style={{alignSelf: "center"}}>Product data provided by Open Food Facts.{' '}
+                        <Text style={{color: "blue", textDecorationLine: "underline"}}
+                            onPress={() => Linking.openURL('https://world.openfoodfacts.org/')}    
+                        >
+                            Click here
+                        </Text> to learn more
+                    </Text>
+                </View>
+            <AppModal
+                isModalOpen={{state: isReportModalOpen, setState: (bool: boolean) => {setIsReportModalOpen(bool)}}}
+                headerText={"Are you sure you want to report this product?"}
+                modalContentText={"Only report products if it caused you to have an allergic reaction, and you have consulted with a doctor to ensure you're not allergic to any of the listed ingredients. \n\n This will notify all users who previously scanned this product's barcode. \n A warning will also be displayed on the product page to warn future scanners. \n\n If you are certain what caused your allergic reaction, please select the allergen(s) from the dropdown list:"}
+                // TODO:
+                modalContent={
+                    <MultipleSelectList
+                        label={'Allergen'}
+                        setSelected={(value)=>setSelectedList(value)}
+                        data={reportDropdownData}
+                        save="value"
+                        // onSelect={()=>alert(selectedList)}
+                    />
+                }
+                modalBtnsConfig={{
+                    option1: {
+                        onPress: () => { 
+                            console.log("report cancelled.")
+                        },
+                        text: "No - Cancel",
+                    },
+                    option2: {
+                        onPress: () => {
+                            console.log("sending report for product " + scan?.product_code +  " with allergens {" +selectedList + "} to dynamo");
+                            setSelectedList([]);
+                        },
+                        text: "Yes - Report Product",
+                    }
+                }}
 
-            {/*</View>*/}
+            />
         </View>
+        
         // <View>
         //     <Text style={{backgroundColor: "yellow"}}>Contains allergens: {scan?.allergens}</Text>
         //     <Text>OCR: {scan?.ocrResult?.text.toLowerCase()}</Text>
@@ -162,7 +209,7 @@ function ScanResult({navigation, route}) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 10,
+        // padding: 10,
         // alignItems: 'strech',
     },
     top_row: {

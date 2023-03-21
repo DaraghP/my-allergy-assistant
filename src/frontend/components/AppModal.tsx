@@ -68,7 +68,7 @@ function AppModal({headerText, modalContent = <></>, modalContentText, modalBtns
 const styles = StyleSheet.create({
     modal: {
         flex: 1,
-        marginVertical: "50%",
+        marginVertical: "20%",
         marginHorizontal: 5,
         backgroundColor: "white",
         borderWidth: 0.5,
@@ -79,12 +79,14 @@ const styles = StyleSheet.create({
         paddingLeft: 10,
         color: "black",
         fontSize: 22,
-        borderBottomWidth: 0.5
+        borderBottomWidth: 0.5,
+        alignSelf: "center"
     },
     modalContent: {
         flex: 1,
         alignItems: "center",
-        justifyContent: "center"
+        justifyContent: "center",
+        padding: 20
     },
     content: {
         marginVertical: 10
