@@ -6,6 +6,7 @@ import {withOAuth} from 'aws-amplify-react-native';
 import {Authenticator} from '@aws-amplify/ui-react-native';
 import config from './aws-exports';
 import {Hub} from "aws-amplify";
+import {Notification, Notifications, Registered} from "react-native-notifications";
 
 import AuthenticatedApp from "./components/AuthenticatedApp";
 import InAppBrowser from "react-native-inappbrowser-reborn";
@@ -104,6 +105,26 @@ const App = (props) => {
         }
     })
 
+    // mobile push notifications: https://wix.github.io/react-native-notifications/docs/
+
+    Notifications.registerRemoteNotifications();
+
+    Notifications.events().registerRemoteNotificationsRegistered((event: Registered) => {
+        console.log(`Device token given: ${event.deviceToken}`)
+    })
+
+    Notifications.events().registerNotificationReceivedForeground((notification: Notification, completion) => {
+        console.log(`Foreground notification: ${notification.title} : ${notification.body}`);
+        // do stuff with notification data
+
+        completion({alert: true, sound: true, badge: true});
+    })
+
+    Notifications.events().registerNotificationOpened((notification: Notification, completion) => {
+        console.log("Notification opened: " + notification.payload);
+        completion();
+    });
+
     return () => {
         clearListener();
     }
@@ -114,10 +135,7 @@ const App = (props) => {
       console.log("Accounts", accounts)
   }, [accounts])
   
-  // useEffect(() => {
-  //     console.log("user", username);
-  // }, [username])
-  //
+  
 
   return (
       <>
