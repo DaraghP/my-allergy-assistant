@@ -7,7 +7,7 @@ import SwitchSelector from "react-native-switch-selector";
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import AppModal from "../../components/AppModal";
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
-
+import { Report, addReportToDynamo, getProductReports } from "../../api";
 
 function ScanResult({navigation, route}) {
     const scan = route.params?.scan;
@@ -60,23 +60,6 @@ function ScanResult({navigation, route}) {
                 });
             });
         }
-        // TODO: check for 'oat' allergy, using below pseudocode
-        // PSEUDOCODE for AllergenIdentificationAlgorithm()
-        // warnings = ...
-        // ingredients = output.split(",")
-        // for i in ingredients:
-        //      for a in allergens:
-        //          if a == oat:
-        //              for w in i:
-        //          if w == a:
-        //        add_warning
-//                  else:
-        //          if i.contains(a) && (a in user.allergens):
-        //              add_big_warning
-        //          elif i.contains(a) && !(a in user.allergens):
-        //              add_small_warning
-        // if len(warnings) > 0
-        //    show_warnings
         return allergensFound;
     }
 
@@ -86,36 +69,68 @@ function ScanResult({navigation, route}) {
 
     return (
         <View style={styles.container}>
-            {/*<View>*/}
-            {/*style={styles.top_row}>*/}
-            {/*<View style={styles.text_column}>*/}
+            
             <Text style={{fontSize: 30, fontWeight: 'bold', margin:'3.5%', flexWrap: "wrap", textAlign: 'center'}}>
                 {scan?.product_display_name}
             </Text>
-            {/*</View>*/}
+            {/* the way we could do notifications: 
+            reporter POSTS to lambda function report which puts something in db, then publishes to a topic,
+            another lambda function which has a trigger using that topic gets messages from the report publish, message could be stringified json can include product id, users waiting to be notified etc,
+            when the lambda function retrieves it, it will go through each user and notify them */}
+
+            {/* 1 just for the lambda function that will notify, it will trigger whenever the reporter publishes to the topic, then the other lambda function will look at the json message and notify the users */}
+            {/* the topic is just for the other lambda function to trigger/start,  
+
+                so user submits report in app, report gets added to dynamo through api lambda1 call, when get 200 response that dynamo was updated
+                another lambda function2 is called with json in message, which sends the notifications to users
+
+                report is now created in dynamo when user submits report through app
+                -- atm only works for POST, need to work on PUT still to append report to existing product_id
+
+
+                ok i'm gonna find out how to set up device tokens and send them to sns locally,
+                back, almost have it, will continue looking into it, may have to go before 6 as well btw 
+                
+            */}
             <View style={{display:"flex", justifyContent:"space-between", marginLeft: 20}}>
                 {/*//, flexDirection: "row"}}>*/}
-                <Text style={{alignSelf: "flex-start", paddingBottom: 20}}><Text style={{fontWeight: "bold"}}>Ingredients:</Text>  {scan?.ingredients_text}</Text>
-                {/*<Text>Allergens: {scan?.allergens}</Text>*/}
-                {scan?.allergens_from_ingredients == ""
+                {/* {console.log("")} */}
+                {(!scan?.ingredients_complete_boolean) && (!scan?.ingredients_text)
                     ?
-                    <Text></Text>
+                    <Text style={{alignSelf: "flex-start", paddingBottom: 20}}>
+                        Ingredients not available.{"\n"}{"\n"}
+                        Allergen information unavailable{"\n"}{"\n"}
+                        <Text style={{color: "blue", textDecorationLine: "underline"}}
+                            onPress={() => Linking.openURL(`https://world.openfoodfacts.org/cgi/product.pl?type=edit&code=${scan?.product_code}`)}    
+                        >
+                            Click here
+                        </Text> to update the product information via Open Food Facts to inform future scanners.
+
+                    </Text>
                     :
-                    <Text><Text style={{fontWeight: "bold"}}>Allergens:</Text>  {scan?.allergens_from_ingredients}</Text>
+                    
+                    <Text style={{alignSelf: "flex-start", paddingBottom: 20}}><Text style={{fontWeight: "bold"}}>Ingredients:</Text>  {scan?.ingredients_text}</Text>
                 }
-                {scan?.traces_tags == ""
-                    ?
-                    <Text></Text>
-                    :
-                    <Text><Text style={{fontWeight: "bold"}}>May contain traces of:</Text>  {scan?.traces_tags}</Text>
-                }
-                {
-                    scan?.traces_tags == "" && scan?.allergens_from_ingredients == "" &&
-                    <Text style={{fontWeight: "bold"}}>No allergens detected</Text>
-                }
+                    {scan?.allergens_from_ingredients == ""
+                        ?
+                        <Text></Text>
+                        :
+                        <Text><Text style={{fontWeight: "bold"}}>Allergens:</Text>  {scan?.allergens_from_ingredients}</Text>
+                    }
+                    {scan?.traces_tags == ""
+                        ?
+                        <Text></Text>
+                        :
+                        <Text><Text style={{fontWeight: "bold"}}>May contain traces of:</Text>  {scan?.traces_tags}</Text>
+                    }
+                    {scan?.traces_tags == "" && scan?.allergens_from_ingredients == "" &&
+                        <Text style={{fontWeight: "bold"}}>No allergens detected</Text>
+                    }
+                
+                
                 <Image
                     source={{uri: scan?.product_image}}
-                    // TODO: get image size from OFF API
+                    // TODO: get image size from OFF API, and check for back-up images first befire displaying default
                     style={{width: 208, height: 400, marginRight:'3.5%', marginLeft: 'auto', alignSelf: "flex-end", borderRadius:20}}
                 />
                 <View style={{flexDirection: "row", justifyContent: "space-between", marginTop: 25}}>
@@ -145,6 +160,16 @@ function ScanResult({navigation, route}) {
                     </TouchableOpacity>
                 </View>
             </View>
+
+        {/* 
+            DynamoDB tables: User table, Report table, Notifications table
+            
+            - when user scans a product, update user scans attribute, before loading product page, check reports table for that product
+            - when user reports a product, post/update report to report table, when response received, get all users who have notifications turned on for that product
+            - when a user turns notifications for product X on, update user scans table, and update notifications table
+            
+        */}
+
             <View style={{backgroundColor: "#c1bbb7", padding: 10, marginTop: 25}}>
                     <Text style={{alignSelf: "center"}}>Product data provided by Open Food Facts.{' '}
                         <Text style={{color: "blue", textDecorationLine: "underline"}}
@@ -177,6 +202,11 @@ function ScanResult({navigation, route}) {
                     },
                     option2: {
                         onPress: () => {
+                            let reportObj : Report = {username: username, productId: scan?.product_code, suspectedAllergens: selectedList}
+                            addReportToDynamo(reportObj);
+                            // let reportObj2 : Report = {productId: scan?.product_code}
+                            // let reportsResponse = await getProductReports(reportObj2);
+                            // console.log(reportsResponse);
                             console.log("sending report for product " + scan?.product_code +  " with allergens {" +selectedList + "} to dynamo");
                             setSelectedList([]);
                         },

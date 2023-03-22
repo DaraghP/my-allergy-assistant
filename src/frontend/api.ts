@@ -1,6 +1,6 @@
 import {API, Auth} from 'aws-amplify';
 
-/************** USERS ***************/ 
+/************** USERS API ***************/ 
 
 export interface User {
   username: string,
@@ -168,6 +168,128 @@ export async function getAllUsers() {
   });
 }
 
+/************** REPORTS API ***************/ 
+
+export interface Report {
+  productId: string,
+  username?: string,
+  suspectedAllergens?: Array<string>,
+}
+
+// interface UpdatableUserData extends User {
+//   allergens?: Array<string>,
+//   scan?: object
+// }
+
+export async function addReportToDynamo({productId, username, suspectedAllergens} : Report) {
+  // check if product already has been reported
+  let reportObj2 : Report = {productId: productId};
+  let getReportsResponse = await getProductReports(reportObj2);
+
+  // const test = getReportsResponse["Item"]["reports"].length;
+  // console.log("how many reports?  " + test);
+  console.log("getResponse ->  " + JSON.stringify(getReportsResponse));
+  // console.log("\n how many reports? = "+ getReportsResponse["Item"]["reports"]);
+
+  // if product has never been reported before, POST new report new DynamoDB
+  if (Object.keys(getReportsResponse).length == 0){
+    API.post('myAPI', '/reportsLambda-dev', {
+      body: {
+        Item: {product_id: productId, reports: [{suspected_allergens: suspectedAllergens, user_id: username}]},
+      },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `${(await Auth.currentSession())
+          .getIdToken()
+          .getJwtToken()}`,
+      },
+    })
+      .then(res => {
+        console.log('SUCCESS 200 Report created');
+        console.log(res);
+      })
+      .catch(err => {
+        console.log(err);
+        console.log(err.response.data);
+      });
+  }
+  else{
+    // else, product is already in reports DB, so PUT/append new report
+    console.log("Appending report to DB.");
+    console.log(JSON.stringify(getReportsResponse['Item']['reports']));
+    // check if user has already submitted a report for this product.
+    if (getReportsResponse['Item']['reports'].find(r => r.user_id == username)){
+      console.log("User already reported");
+    }
+    else {
+      // add report to DynamoDB
+      API.put('myAPI', '/reportsLambda-dev', {
+        body: {
+          Key: {product_id: productId},
+          UpdateExpression: `set reports = list_append(if_not_exists(reports, :emptyReportsList), :addReport)`,
+          ExpressionAttributeValues: {
+            ':addReport': [{
+              "suspected_allergens": suspectedAllergens,
+              "user_id": username
+            }],
+            ':emptyReportsList': []
+          },
+          ReturnValues: 'UPDATED_NEW',
+        },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${(await Auth.currentSession())
+            .getIdToken()
+            .getJwtToken()}`,
+        },
+      })
+        .then(res => {
+          console.log('SUCCESS 200 Report updated');
+          console.log(res);
+        })
+        .catch(err => {
+          console.log(err);
+          console.log(err.response.data);
+        });
+    }
+  
+
+  }
+}
+  
+export async function getProductReports({productId} : Report) {
+  console.log('get report from dynamoDB...');
+  return (
+    API.get('myAPI', '/reportsLambda-dev', {
+    queryStringParameters: {
+      product_id : productId
+    },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `${(await Auth.currentSession())
+        .getIdToken()
+        .getJwtToken()}`,
+    },
+    })
+    .then(res => {
+      console.log('SUCCESS 200');
+      console.log(res);
+      return res;
+      // if (Object.keys(res).length > 0){
+      //   delete res.Item.username;
+      //   return {[username]: res.Item};
+      // } else {
+      //   return res;
+      // }
+    })
+    .catch(err => {
+      console.log(err);
+      console.log(err.response.data);
+      
+    })
+  )
+}
+
 /************** NOTIFICATIONS / REPORTING ***************/
 export async function registerDeviceToken(token: string) {
   return (
@@ -217,6 +339,7 @@ export async function ocrPreprocessing(base64Image: string) {
 /************** OPEN FOOD FACTS ***************/
 
 export async function scanBarcode(barcodeText: string) {
+  console.log("fetching from OFF");
   return fetch(`https://world.openfoodfacts.org/api/v2/product/${barcodeText}.json`, {
     method: "GET",
     headers: {
@@ -225,7 +348,7 @@ export async function scanBarcode(barcodeText: string) {
   }).then(res => {
     console.log("Response received.");
     return res.json().then((data) => {
-      console.log(data);
+      // console.log(data);
       const getProductDisplayName = () => {
         let productDisplayName = data?.product?.product_name ? data?.product?.product_name : "";
         productDisplayName += data?.product?.brands ? " - " + data?.product?.brands : "";
@@ -244,6 +367,8 @@ export async function scanBarcode(barcodeText: string) {
         "product_image": data?.product?.image_front_url,
         // "image_size": data?.product  
         "ingredients_text": data?.product?.ingredients_text,
+        "ingredients_complete_boolean": data?.product?.states_hierarchy.includes("en:ingredients-completed"),
+        // "states_hierarchy": data?.product?.states_hierarchy,
         "allergens": data?.product?.allergens_hierarchy, //get english only
         "allergens_from_ingredients": data?.product?.allergens_from_ingredients,
         "may_contain": data?.product?.traces ? data?.product?.traces.replace("en:", "").replace(" ", "") : "",
