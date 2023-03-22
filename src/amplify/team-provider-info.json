@@ -20,6 +20,10 @@
         "usersLambda": {
           "deploymentBucketName": "amplify-myallergyassistant-dev-114348-deployment",
           "s3Key": "amplify-builds/usersLambda-5a4e7741414676743041-build.zip"
+        },
+        "registerDeviceToken": {
+          "deploymentBucketName": "amplify-myallergyassistant-dev-114348-deployment",
+          "s3Key": "amplify-builds/registerDeviceToken-6a525955784a71764b70-build.zip"
         }
       },
       "storage": {

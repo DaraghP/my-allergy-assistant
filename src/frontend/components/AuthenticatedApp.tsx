@@ -9,7 +9,8 @@ import {useEffect, useState} from "react";
 import SetupNavigator from "../screens/setup/SetupNavigator";
 import {useAppSelector} from "../hooks";
 import {HeaderBackButton} from '@react-navigation/elements';
-
+import {Notification, NotificationCompletion, Notifications, Registered} from "react-native-notifications";
+import {registerDeviceToken} from "../api";
 
 function AuthenticatedApp() {
     const Tab = createBottomTabNavigator();
@@ -17,6 +18,35 @@ function AuthenticatedApp() {
     const navigationRef = createNavigationContainerRef();
     const account = useAppSelector(state => state.appData.accounts);
     const setupRequired = useAppSelector(state => state.user.username in state.appData.accounts ? !state.appData.accounts[state.user.username].hasCompletedSetup : null);
+
+    useEffect(() => {
+
+      // mobile push notifications: https://wix.github.io/react-native-notifications/docs/
+      Notifications.registerRemoteNotifications();
+
+      Notifications.events().registerRemoteNotificationsRegistered((event: Registered) => {
+          // console.log(`Device token given: ${event.deviceToken}`)
+          registerDeviceToken(event.deviceToken);
+      })
+
+      Notifications.events().registerNotificationReceivedForeground((notification: Notification, completion) => {
+          console.log(`Foreground notification: ${notification.title} : ${notification.body}`, notification.payload);
+          // do stuff with notification data
+
+          completion({alert: true, sound: true, badge: true});
+      })
+
+      Notifications.events().registerNotificationReceivedBackground((notification: Notification, completion : (response: NotificationCompletion) => void) => {
+        console.log(`Background notification: ${notification.title} : ${notification.body}`, notification.payload);
+        // do stuff with notification data
+        completion({alert: true, sound: true, badge: true});
+      })
+    
+      Notifications.events().registerNotificationOpened((notification: Notification, completion) => {
+          console.log("Notification opened: " + notification.payload);
+          completion();
+      });      
+    }, [])
 
     useEffect(() => {
         console.log("account", account)

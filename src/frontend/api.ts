@@ -168,6 +168,30 @@ export async function getAllUsers() {
   });
 }
 
+/************** NOTIFICATIONS / REPORTING ***************/
+export async function registerDeviceToken(token: string) {
+  return (
+    API.post("myAPI", "/register-device-token", {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `${(await Auth.currentSession())
+            .getIdToken()
+            .getJwtToken()}`,
+      },
+      body: {httpMethod: "POST", token: token}
+    })
+    .then(res => {
+      // console.log("Registered device token!");
+      console.log(res)
+      return res;
+    })
+    .catch(err => {
+      console.log(err);
+    })
+  )
+}
+
+
 /************** OCR IMAGE PROCESSING ***************/
 export async function ocrPreprocessing(base64Image: string) {
   return (
