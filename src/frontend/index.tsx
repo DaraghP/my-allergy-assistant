@@ -8,18 +8,23 @@ import {Provider} from "react-redux";
 import {persistor, store} from "./store";
 import {PersistGate} from "redux-persist/integration/react";
 import {Camera} from "react-native-vision-camera";
+import { requestNotifications } from 'react-native-permissions';
 
 export default function Index() {
     const [cameraPerms, setCameraPerms] = useState("");
 
     useEffect(() => {
+        // Request for notifications are required for versions Android 13 and above
+        requestNotifications(["alert", "badge", "sound"]).then(({status, settings}) => {
+            console.log("notifications status:", status);
+        })
+
         RNBootSplash.hide({fade: true}).then(async () => {
             setCameraPerms(await Camera.getCameraPermissionStatus());
             if (cameraPerms != "authorized") {
                 console.log("test")
                 setCameraPerms(await Camera.requestCameraPermission());
             }
-
         })
     }, [])
 
