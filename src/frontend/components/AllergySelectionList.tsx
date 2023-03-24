@@ -15,6 +15,7 @@ function AllergySelectionList({onConfirm}) {
     const dispatch = useAppDispatch();
     const username = useAppSelector(state => state.user.username);
     const email = useAppSelector(state => state.user.email);
+    const deviceEndpoint = useAppSelector(state => state.user.deviceEndpoint);
     const user = useAppSelector(state => state.appData.accounts[username]);
     const AllergenList = ALLERGENS.data;
 
@@ -48,12 +49,12 @@ function AllergySelectionList({onConfirm}) {
         );
     }
 
-    const AuthToken = async () => {
-        return `${(await Auth.currentSession()).getIdToken().getJwtToken()}`
-    };
-    AuthToken().then((res) => {
-        console.log(res);
-    });
+    // const AuthToken = async () => {
+    //     return `${(await Auth.currentSession()).getIdToken().getJwtToken()}`
+    // };
+    // AuthToken().then((res) => {
+    //     console.log(res);
+    // });
 
     useEffect(() => {
         if (user?.allergens.size > 0) {
@@ -89,7 +90,7 @@ function AllergySelectionList({onConfirm}) {
                     console.log("curr_email:", email);
                     console.log("allergens selected:", [...selection]);
                     console.log("scans:", user.scans);
-                    let userObj : User = {username: username, email: email, allergens: [...selection], scans: user.scans}
+                    let userObj : User = {username: username, deviceEndpoint: deviceEndpoint, email: email, allergens: [...selection], scans: user.scans}
                     dispatch(updateAllergens(userObj));
                     
                     // if hasCompletedSetup is false then create new user in DynamoDB via API

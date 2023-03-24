@@ -1,24 +1,30 @@
 import {API, Auth} from 'aws-amplify';
+import userReducer from 'reducers/user-reducer';
+
 
 /************** USERS API ***************/ 
 
 export interface User {
   username: string,
+  deviceEndpoint: string,
   email: string,
   allergens?: Array<string>,
   scans?: Array<object>
 }
 
 interface UpdatableUserData extends User {
+  deviceEndpoint: string,
   allergens?: Array<string>,
-  scan?: object
+  scan?: object,
+  receive_notifications?: Boolean,
+  product_id?: string
 }
 
-export async function postNewUser({username, email, allergens} : User) {
-  console.log({username: username, email: email, allergens: allergens, hasCompletedSetup: true, scans: {}});
+export async function postNewUser({username, deviceEndpoint, email, allergens} : User) {
+  console.log({username: username, deviceEndpoint: deviceEndpoint, email: email, allergens: allergens, hasCompletedSetup: true, scans: {}});
   API.post('myAPI', '/users', {
     body: {
-      Item: {username: username, email: email, allergens: allergens, hasCompletedSetup: true, scans: {}},
+      Item: {username: username, deviceEndpoint: deviceEndpoint, email: email, allergens: allergens, hasCompletedSetup: true, scans: {}},
     },
     headers: {
       'Content-Type': 'application/json',
@@ -51,7 +57,7 @@ export async function deleteUser({username, email} : User) {
   })
     .then(res => {
       console.log('SUCCESS 200 User deleted');
-      console.log(res); //
+      console.log(res);
     })
     .catch(err => {
       console.log(err);
@@ -60,7 +66,7 @@ export async function deleteUser({username, email} : User) {
 }
 
 
-export async function updateUser({username, email, allergens, scan}: UpdatableUserData){// , {allergens = [], scans = []} : UpdatableUserData) {
+export async function updateUser({username, email, deviceEndpoint: deviceEndpoint, allergens, scan, receive_notifications, product_id}: UpdatableUserData){// , {allergens = [], scans = []} : UpdatableUserData) {
   let requestBody;
   if (allergens) {
     // if (typeof allergens[0] == String)
@@ -73,17 +79,31 @@ export async function updateUser({username, email, allergens, scan}: UpdatableUs
       },
       ReturnValues: 'UPDATED_NEW',
     };
-    console.log(requestBody);
+    console.log(requestBody); 
+  } else if (receive_notifications === false || receive_notifications === true){
+    console.log("data is notifications update.. "+ product_id);
+    requestBody = { 
+      Key: {username: username, email: email},
+      UpdateExpression: 'set scans.#product.receive_notifications = :new_boolean',
+      ExpressionAttributeValues: {
+        ':new_boolean': receive_notifications,
+      },
+      ExpressionAttributeNames: {
+        '#product': product_id,
+      },
+      ReturnValues: 'UPDATED_NEW',
+    };
   } else if (scan) {
     console.log("data is scan");
   // user.scans = {'1': {}, '2'={}}
   // if product_id in user.scans: update that scan
   // else append to user.scans 
-    requestBody = {
+  // yeah but a user should still be able to use the app without accepting notifications permissions
+    requestBody = { // 
       Key: {username: username, email: email},
       UpdateExpression: `set #scans.#product = :scanResult`, // ${scan.product_id}
       ExpressionAttributeValues: {
-        ':scanResult': [scan],
+        ':scanResult': Object.values(scan)[0],
       },
       ExpressionAttributeNames: {
         '#scans': "scans",
@@ -109,11 +129,13 @@ export async function updateUser({username, email, allergens, scan}: UpdatableUs
   })
     .then(res => {
       console.log('SUCCESS 200 User updated');
-      console.log(res);
+      // if (res.Item && Object.keys(res.Item).includes("scans")){
+      //   console.log(Object.values(res.Item.scans));
+      // }
     })
     .catch(err => {
       console.log(err);
-      console.log(err.response.data);
+      // console.log(err.response?.data);
     });
 }
 
@@ -377,13 +399,20 @@ export async function scanBarcode(barcodeText: string) {
         "non_vegan_ingredients": data?.product?.ingredients_analysis?.["en:non-vegan"],
         "vegan_status_unknown_ingredients": data?.product?.ingredients_analysis?.["en:vegan-status-unknown"],
         "vegetarian_status_unkown_ingredients": data?.product?.ingredients_analysis?.["en:vegetarian-status-unknown"],
-        "receive_notifications": false
       }
-      
-      return scanResults
+      return scanResults 
     })
     }).catch(err => {
       console.log(err);
       console.log(err.response.data);
     });
+}
+
+export function getInitialNotificationState(productId: string, scans: object) {
+  if (Object.keys(scans).includes(productId)){
+      return scans[productId].receive_notifications;
+  }
+  else {
+      return false;
+  }
 }

@@ -22,4 +22,6 @@ jest.mock("react-native/Libraries/EventEmitter/NativeEventEmitter");
 
 jest.mock("react-native-fs", () => {});
 
+jest.mock("react-native-permissions", () => {});
+
 jest.useFakeTimers();

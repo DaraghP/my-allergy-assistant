@@ -93,7 +93,7 @@
       "<rootDir>/jest.setup.js"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!@aws-amplify/ui-react-native|@react-native|react-native|aws-amplify-react-native|@react-navigation|@react-native-ml-kit/barcode-scanning|@react-native-ml-kit/text-recognition|@react-native-ml-kit|vision-camera-ocr|react-native-image-crop-picker)"
+      "node_modules/(?!@aws-amplify/ui-react-native|@react-native|react-native|aws-amplify-react-native|@react-navigation|@react-native-ml-kit/barcode-scanning|@react-native-ml-kit/text-recognition|@react-native-ml-kit|vision-camera-ocr|react-native-image-crop-picker|react-native-permissions)"
     ]
   }
 }

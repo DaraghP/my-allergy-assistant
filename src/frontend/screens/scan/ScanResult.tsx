@@ -1,20 +1,26 @@
 import _ from "lodash";
 import React, {useEffect, useState} from "react";
 import {Text, StyleSheet, View, Image, Button, TouchableOpacity, Modal, Linking} from "react-native";
-import {useAppSelector} from "../../hooks";
+import {useAppSelector, useAppDispatch} from "../../hooks";
 import ALLERGENS from "../../allergens.json";
 import SwitchSelector from "react-native-switch-selector";
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import AppModal from "../../components/AppModal";
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
-import { Report, addReportToDynamo, getProductReports } from "../../api";
+import { Report, addReportToDynamo, getProductReports, updateUser, getInitialNotificationState } from "../../api";
+import {updateProductNotificationStatus} from "../../reducers/app-data-reducer";
 
 function ScanResult({navigation, route}) {
+    const dispatch = useAppDispatch();
     const scan = route.params?.scan;
 
     const possibleAllergens = ALLERGENS.data;
 
     const username = useAppSelector(state => state.user.username);
+    const email = useAppSelector(state => state.user.email);
+    const usersScanHistory = useAppSelector(state => state.appData.accounts[username].scans);
+    // im getting new error: cannot read property 'scans' of undefined in Scanner.tsx
+    const deviceEndpoint = useAppSelector(state => state.user.deviceEndpoint); // 
     const user = useAppSelector(state => state.appData.accounts[username]);
     const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
     const [selectedList, setSelectedList] = useState([]);
@@ -24,7 +30,10 @@ function ScanResult({navigation, route}) {
         // {key:'2', value:'Hazelnuts'},
         // {key:'3', value:'Wheat'},
     ];
-    user?.allergens.map((allergen) => (reportDropdownData.push(allergen)));
+    
+    if (user?.allergens){
+        user?.allergens?.forEach((allergen) => (reportDropdownData.push(allergen)));
+    }
 
     const tokenise = (text: string) => {
         return _.words(text);
@@ -66,7 +75,6 @@ function ScanResult({navigation, route}) {
     // useEffect(() => {
     // console.log("test: ", tokenise(scan?.ocrResult?.text.toLowerCase()))
     // }, [])
-
     return (
         <View style={styles.container}>
             
@@ -137,15 +145,22 @@ function ScanResult({navigation, route}) {
                     <View style={{justifyContent: "center", alignItems: "center"}}>
                         <Text style={{paddingTop: 20, paddingBottom: 10}}>Receive notifications if product is reported?</Text>
                         <SwitchSelector
+                            initial={getInitialNotificationState(scan?.product_code, usersScanHistory) ? 0 : 1}
+                            onPress={(val) => {
+                                let bool = (val==0);
+                                console.log("set product "+scan?.product_code+" notification_status to " + bool);
+                                updateUser({username: username, deviceEndpoint: deviceEndpoint, email: email, product_id: scan?.product_code, receive_notifications: bool})
+                                // 
+                                dispatch(updateProductNotificationStatus({username: username, product_id: scan?.product_code, product_notifications_boolean: bool}))
+                            }}
                             options={[
-                                {label: " ON", customIcon: <FontAwesome5 name={"bell"} size={25}/>, value: 1},
-                                {label: " OFF", customIcon: <FontAwesome5 name={"bell-slash"} size={25}/>, value: 0}
+                                {label: " ON", customIcon: <FontAwesome5 name={"bell"} size={25}/>, value: 0},
+                                {label: " OFF", customIcon: <FontAwesome5 name={"bell-slash"} size={25}/>, value: 1}
                             ]}
                             height={40}
                             style={{width:240}}
                             buttonMargin={2}
                             hasPadding
-                            initial={0}
                         />
                     </View>
                     <TouchableOpacity 

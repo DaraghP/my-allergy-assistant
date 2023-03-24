@@ -11,24 +11,34 @@ import {useAppSelector} from "../hooks";
 import {HeaderBackButton} from '@react-navigation/elements';
 import {Notification, NotificationCompletion, Notifications, Registered} from "react-native-notifications";
 import {registerDeviceToken} from "../api";
+import { updateDeviceEndpoint } from '../reducers/user-reducer';
+import { useAppDispatch } from '../hooks';
 
 function AuthenticatedApp() {
+    const dispatch = useAppDispatch();
     const Tab = createBottomTabNavigator();
     // const navigation = useNavigation();
     const navigationRef = createNavigationContainerRef();
     const account = useAppSelector(state => state.appData.accounts);
     const setupRequired = useAppSelector(state => state.user.username in state.appData.accounts ? !state.appData.accounts[state.user.username].hasCompletedSetup : null);
+    const [isDeviceTokenRegistered, setIsDeviceTokenRegistered] = useState<boolean>(false);
 
     useEffect(() => {
 
       // mobile push notifications: https://wix.github.io/react-native-notifications/docs/
-      Notifications.registerRemoteNotifications();
+      if (!isDeviceTokenRegistered) {
+        Notifications.registerRemoteNotifications();
 
-      Notifications.events().registerRemoteNotificationsRegistered((event: Registered) => {
-          // console.log(`Device token given: ${event.deviceToken}`)
-          registerDeviceToken(event.deviceToken);
-      })
-
+        Notifications.events().registerRemoteNotificationsRegistered((event: Registered) => {
+            // console.log(`Device token given: ${event.devic eToken}`)
+            registerDeviceToken(event.deviceToken).then((res) => {
+              dispatch(updateDeviceEndpoint(res.deviceEndpoint));
+            })
+        })
+        
+        setIsDeviceTokenRegistered(true);
+      }
+      
       Notifications.events().registerNotificationReceivedForeground((notification: Notification, completion) => {
           console.log(`Foreground notification: ${notification.title} : ${notification.body}`, notification.payload);
           // do stuff with notification data

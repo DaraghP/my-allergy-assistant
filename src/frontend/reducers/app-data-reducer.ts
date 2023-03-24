@@ -36,16 +36,19 @@ const initialState = {
     accounts: {}, // will contain selection of allergies, and hasCompletedSetup
 }
 
+
 export const createAccount = createAction<object>("storage/create_account");
 export const updateAccounts = createAction<object>("storage/update_accounts");
 export const deleteAccount = createAction<string>("storage/delete_account");
+export const updateProductNotificationStatus = createAction<object>("storage/update_product_notification_status");
 export const updateAllergens = createAction<object>("storage/update_allergens");
 export const updateScans = createAction<object>("storage/update_scans");
 export const setHasCompletedSetup = createAction<string>("storage/set_has_completed_setup") // takes username
-
+// 
+// 
 export const AppDataSlice = createSlice({
    name: "storage",
-   initialState,
+   initialState, 
    reducers: {
        create_account(state, action) {
            const username = action.payload.username;
@@ -77,6 +80,12 @@ export const AppDataSlice = createSlice({
             const barcode = Object.keys(action.payload.scan)[0];
             const scanInfo = action.payload.scan[barcode];
             state.accounts[username].scans[barcode] = scanInfo;
+       },
+       update_product_notification_status(state, action){
+            const username = action.payload.username;
+            const product_id = action.payload.product_id;
+            const notifications_boolean = action.payload.product_notifications_boolean;
+            state.accounts[username].scans[product_id].receive_notifications = notifications_boolean;
        },
        set_has_completed_setup(state, action) {
            const username = action.payload;

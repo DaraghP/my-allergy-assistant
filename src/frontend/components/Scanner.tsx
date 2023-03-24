@@ -8,7 +8,7 @@ import {BarcodeFormat, useScanBarcodes, scanBarcodes} from 'vision-camera-code-s
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import AppModal from "./AppModal";
-import {ocrPreprocessing, scanBarcode, updateUser} from '../api';
+import {ocrPreprocessing, scanBarcode, updateUser, getInitialNotificationState} from '../api';
 import ScanResult from '../screens/scan/ScanResult';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { updateScans } from '../reducers/app-data-reducer';
@@ -35,7 +35,8 @@ interface ScannerProps {
 function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   const dispatch = useAppDispatch();
   const user = useAppSelector(state => state.user);
-  const navigation = useNavigation();
+  const scans = useAppSelector(state => state.appData.accounts[user.username]?.scans);
+  const navigation = useNavigation(); // 
   const Stack = createNativeStackNavigator();
   const devices = useCameraDevices();
   const device = devices.back;
@@ -172,9 +173,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
              style={StyleSheet.absoluteFill}
              enableZoomGesture
            />
-           {/* im thinking of having reports be like {productId1: [report1, report2], productId3: [report1]} etc. where report is {username:, suspected_allergens:} 
-           then if get 200 OK response from lambda, call some other function to notifyUsers who previously scanned that product */}
-{/* barcode/product id yeah, pick one  then all of the users allergens i think we said? */}
+
            <AppModal
                isModalOpen={{state: isBarcodeModalOpen, setState: (bool: boolean) => {setIsBarcodeModalOpen(bool)}}}
                headerText={"Scan barcode"}
@@ -185,14 +184,18 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                            console.log("Yes pressed. product:", barcodeText);
                            let scan = await scanBarcode(barcodeText);
                            // if product found then store scan
-                           if (scan.status == "product found") {
+                           if (scan.status == "product found") { 
                              // store scan in dynamoDB table
-                             // let productDisplayName = scan.product_name + " - " + scan.brands + " - " + scan.product_quality
-                             let scanObj = {[barcodeText]: {product_display_name: scan.product_display_name, date: scan.date, receive_notifications: scan.receive_notifications}};
-                             updateUser({username: user.username, email: user.email, scan: scanObj});
+                             console.log("\nuser scan history -> " + JSON.stringify(scans));
+                             let scanObj = {[barcodeText]: {product_display_name: scan.product_display_name, date: scan.date, receive_notifications: getInitialNotificationState(barcodeText, scans)}};
+                             console.log("\nscanObj -> " + JSON.stringify(scanObj));
+                            
+                            
+                             //  LOG  user scan history => [object Object]
+                             updateUser({username: user.username, deviceEndpoint: user.deviceEndpoint, email: user.email, scan: scanObj});
                              // add to redux scans
                              dispatch(updateScans({username: user.username, scan: {...scanObj}}));
-                             console.log("Scanner scan:", scan);
+                             console.log("\nScanner scan:", scan);
                              navigation.navigate("ScanResult", { scan: scan });
                            } else {
                              //product not found in OFF database
