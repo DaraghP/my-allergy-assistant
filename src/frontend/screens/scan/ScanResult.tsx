@@ -7,7 +7,7 @@ import SwitchSelector from "react-native-switch-selector";
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import AppModal from "../../components/AppModal";
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
-import { Report, addReportToDynamo, getProductReports, updateUser, getInitialNotificationState } from "../../api";
+import { Report, addReportToDynamo, updateUser, getInitialNotificationState, addNotificationsToDynamo, deleteNotificationsFromDynamo, UpdatableNotificationObj } from "../../api";
 import {updateProductNotificationStatus} from "../../reducers/app-data-reducer";
 
 function ScanResult({navigation, route}) {
@@ -149,8 +149,18 @@ function ScanResult({navigation, route}) {
                             onPress={(val) => {
                                 let bool = (val==0);
                                 console.log("set product "+scan?.product_code+" notification_status to " + bool);
-                                updateUser({username: username, deviceEndpoint: deviceEndpoint, email: email, product_id: scan?.product_code, receive_notifications: bool})
+                                
+                                let notifyObj : UpdatableNotificationObj = {productId: scan?.product_code, user_endpoint: deviceEndpoint}
                                 // 
+                                // 
+                                if (bool) {
+                                    // add user_endpoint to notifications table in DynamoDB
+                                    addNotificationsToDynamo(notifyObj);
+                                } else {
+                                    // remove user_endpoint from notifications table in DynamoDB
+                                    deleteNotificationsFromDynamo(notifyObj);
+                                }
+                                updateUser({username: username, deviceEndpoint: deviceEndpoint, email: email, product_id: scan?.product_code, receive_notifications: bool})
                                 dispatch(updateProductNotificationStatus({username: username, product_id: scan?.product_code, product_notifications_boolean: bool}))
                             }}
                             options={[

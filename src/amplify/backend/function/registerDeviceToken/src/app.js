@@ -7,42 +7,86 @@ See the License for the specific language governing permissions and limitations 
 */
 
 
-const {AWS} = require("aws-sdk");
-const { SNSClient, CreatePlatformEndpointCommand } = require("@aws-sdk/client-sns");
 
-const client = new SNSClient({region: "eu-west-1"})
-const snsPlatformAppArn = "arn:aws:sns:eu-west-1:726018912366:app/GCM/MyAllergyAssistant";
-exports.handler = async (event, context) => {
-    //console.log('Received event:', JSON.stringify(event, null, 2));
-    let body;
-    let token = event.token;
-    let statusCode = '200';
-    const headers = {
-        'Content-Type': 'application/json',
-    };
 
-    try {
-        switch (event.httpMethod) {
-            case 'POST':
-                console.log({token: token})
-                const res = await client.send(new CreatePlatformEndpointCommand({PlatformApplicationArn: snsPlatformAppArn, token: token}));
-                console.log("test1, ", res)
-                break;
-            default:
-                throw new Error(`Unsupported method "${event.httpMethod}"`);
-        }
-    } catch (err) {
-        statusCode = '400';
-        console.log(err)
-        body = err.message;
-    } finally {
-        body = JSON.stringify(body);
-    }
+const express = require('express')
+const bodyParser = require('body-parser')
+const awsServerlessExpressMiddleware = require('aws-serverless-express/middleware')
 
-    return {
-        statusCode,
-        body,
-        headers,
-        token
-    };
-};
+// declare a new express app
+const app = express()
+app.use(bodyParser.json())
+app.use(awsServerlessExpressMiddleware.eventContext())
+
+// Enable CORS for all methods
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*")
+  res.header("Access-Control-Allow-Headers", "*")
+  next()
+});
+
+
+/**********************
+ * Example get method *
+ **********************/
+
+app.get('/item', function(req, res) {
+  // Add your code here
+  res.json({success: 'get call succeed!', url: req.url});
+});
+
+app.get('/item/*', function(req, res) {
+  // Add your code here
+  res.json({success: 'get call succeed!', url: req.url});
+});
+
+/****************************
+* Example post method *
+****************************/
+
+app.post('/item', function(req, res) {
+  // Add your code here
+  res.json({success: 'post call succeed!', url: req.url, body: req.body})
+});
+
+app.post('/item/*', function(req, res) {
+  // Add your code here
+  res.json({success: 'post call succeed!', url: req.url, body: req.body})
+});
+
+/****************************
+* Example put method *
+****************************/
+
+app.put('/item', function(req, res) {
+  // Add your code here
+  res.json({success: 'put call succeed!', url: req.url, body: req.body})
+});
+
+app.put('/item/*', function(req, res) {
+  // Add your code here
+  res.json({success: 'put call succeed!', url: req.url, body: req.body})
+});
+
+/****************************
+* Example delete method *
+****************************/
+
+app.delete('/item', function(req, res) {
+  // Add your code here
+  res.json({success: 'delete call succeed!', url: req.url});
+});
+
+app.delete('/item/*', function(req, res) {
+  // Add your code here
+  res.json({success: 'delete call succeed!', url: req.url});
+});
+
+app.listen(3000, function() {
+    console.log("App started")
+});
+
+// Export the app object. When executing the application local this does nothing. However,
+// to port it to AWS Lambda we will create a wrapper around that will load the app from
+// this file
+module.exports = app

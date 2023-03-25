@@ -198,11 +198,6 @@ export interface Report {
   suspectedAllergens?: Array<string>,
 }
 
-// interface UpdatableUserData extends User {
-//   allergens?: Array<string>,
-//   scan?: object
-// }
-
 export async function addReportToDynamo({productId, username, suspectedAllergens} : Report) {
   // check if product already has been reported
   let reportObj2 : Report = {productId: productId};
@@ -297,12 +292,145 @@ export async function getProductReports({productId} : Report) {
       console.log('SUCCESS 200');
       console.log(res);
       return res;
-      // if (Object.keys(res).length > 0){
-      //   delete res.Item.username;
-      //   return {[username]: res.Item};
-      // } else {
-      //   return res;
-      // }
+    })
+    .catch(err => {
+      console.log(err);
+      console.log(err.response.data);
+      
+    })
+  )
+}
+
+
+/************** NOTIFICATIONS API ***************/ 
+
+export interface NotificationObj {
+  productId: string,
+  user_endpoint?: string
+}
+
+export interface UpdatableNotificationObj extends NotificationObj{
+  productId: string,
+  user_endpoint: string
+}
+
+export async function addNotificationsToDynamo({productId, user_endpoint} : UpdatableNotificationObj) {
+  // check if product already has been reported
+  let notifyObj2 : NotificationObj = {productId: productId};
+  let notificationResponse = await getProductNotifications(notifyObj2);
+
+  console.log("getResponse ->  " + JSON.stringify(notificationResponse));
+
+  // if product isn't in notifications DB yet, POST new to  DynamoDB
+  if (Object.keys(notificationResponse).length == 0){
+    API.post('myAPI', '/notificationsLambda-dev', {
+      body: {
+        Item: {product_id: productId, user_endpoints: [user_endpoint]},
+      },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `${(await Auth.currentSession())
+          .getIdToken()
+          .getJwtToken()}`,
+      },
+    })
+      .then(res => {
+        console.log('SUCCESS 200 Notification created');
+        console.log(res);
+      })
+      .catch(err => {
+        console.log(err);
+        console.log(err.response.data);
+      });
+  }
+  else{
+    // else, product is already in reports DB, so PUT/append new report
+    console.log("Appending new user_endpoint to product notifications DB.");
+    console.log(JSON.stringify(notificationResponse['Item']['user_endpoints']));
+    
+    // add user_endpoint to product notifications to DynamoDB
+    API.put('myAPI', '/notificationsLambda-dev', {
+      body: {
+        Key: {product_id: productId},
+        UpdateExpression: `ADD user_endpoints :endpoint`,
+        ExpressionAttributeValues: {
+          ':endpoint': [user_endpoint]
+        },
+        ReturnValues: 'UPDATED_NEW',
+      },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `${(await Auth.currentSession())
+          .getIdToken()
+          .getJwtToken()}`,
+      },
+    })
+      .then(res => {
+        console.log('SUCCESS 200 Notifications updated');
+        console.log(res);
+      })
+      .catch(err => {
+        console.log(err);
+        console.log(err.response.data);
+      });
+  }
+}
+
+export async function deleteNotificationsFromDynamo({productId, user_endpoint} : UpdatableNotificationObj) {
+  // check if product already has been reported
+  // let notifyObj2 : NotificationObj = {productId: productId};
+  // let notificationResponse = await getProductNotifications(notifyObj2);
+
+  // console.log("getResponse ->  " + JSON.stringify(notificationResponse));
+
+  console.log("Removing new user_endpoint to product notifications DB.");
+  // console.log(JSON.stringify(notificationResponse['Item']['user_endpoints']));
+  
+  // add user_endpoint to product notifications to DynamoDB
+  API.put('myAPI', '/notificationsLambda-dev', {
+    body: {   
+      Key: {product_id: productId},
+      UpdateExpression: `DELETE user_endpoints :endpoint`,
+      ExpressionAttributeValues: {
+        ':endpoint': [user_endpoint]
+      },
+      ReturnValues: 'UPDATED_NEW',
+    },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `${(await Auth.currentSession())
+        .getIdToken()
+        .getJwtToken()}`,
+    },
+  })
+    .then(res => {
+      console.log('SUCCESS 200 Notifications removed');
+      console.log(res);
+    })
+    .catch(err => {
+      console.log(err);
+      console.log(err.response.data);
+    });
+}
+
+export async function getProductNotifications({productId} : Report) {
+  console.log('get notification endpoints from dynamoDB...');
+  return (
+    API.get('myAPI', '/notificationsLambda-dev', {
+    queryStringParameters: {
+      product_id : productId
+    },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `${(await Auth.currentSession())
+        .getIdToken()
+        .getJwtToken()}`,
+    },
+    })
+    .then(res => {
+      console.log('SUCCESS 200');
+      console.log(res);
+      return res;
     })
     .catch(err => {
       console.log(err);
