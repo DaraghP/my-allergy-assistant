@@ -81,7 +81,7 @@ function AuthenticatedApp() {
       Notifications.events().registerNotificationOpened((notification: Notification, completion) => {
           console.log("Notification opened: " + notification.payload);
           completion();
-      });      
+      });
     }, [])
 
     useEffect(() => {

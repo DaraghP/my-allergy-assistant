@@ -43,7 +43,7 @@ function SearchScreen({route}) {
                             <View style={{height: height * 0.18, alignSelf: "center", marginRight: 10, borderWidth: 10, borderColor: "#f1f1f1", backgroundColor: "#f1f1f1", borderRadius: 10}}>
                                 <View style={{width: width * 0.18, height: height * 0.15, justifyContent: "center"}}>
 
-                                    {product.item.image_url != null && <Image style={{resizeMode: "stretch", flex: 1, alignItems: "center", borderRadius: 5}} source={{uri: product.item.image_url}}/>}
+                                    {product.item.image_url != null && <Image style={{resizeMode: "contain", flex: 1, alignItems: "center", borderRadius: 0}} source={{uri: product.item.image_url}}/>}
                                     {product.item.image_url == null && <Text style={{fontWeight: "200", alignSelf: "center", textAlign: "center"}}>No Image Available</Text>}
                                 </View>
 
