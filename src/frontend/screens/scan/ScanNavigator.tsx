@@ -2,15 +2,26 @@ import {StyleSheet} from "react-native";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
 import ScanResult from "./ScanResult";
 import ScanScreen from "./ScanScreen";
-import ScanHistory from "./ScanHistory";
 import { useNavigation } from "@react-navigation/native";
 import {HeaderBackButton} from '@react-navigation/elements';
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
-function ScanNavigator() {
+function ScanNavigator({route}) {
     const navigation = useNavigation();
     const Stack = createNativeStackNavigator();
     const [barcodeText, setBarcodeText] = useState<string>("");
+
+    useEffect(() => {
+        // console.log("scanmode", route.params?.scanMode, resultData);
+        if (route.params?.data?.products == null && route.params?.scan == null) {
+            navigation.navigate("ScanScreen")
+        }
+        else {
+            navigation.navigate("ScanResult", {scan: route.params?.scan})
+        }
+
+        // console.log(route.params?.data?.products == null, route.params?.scan == null) //
+    }, [route.params])
 
     return (
         <Stack.Navigator>
@@ -19,7 +30,7 @@ function ScanNavigator() {
                 options={{headerTitle: "Scan Product", headerTitleAlign: "center"}}
             >
                 {(props) => (
-                    <ScanScreen {...props} navigation={navigation} setBarcodeText={(text: string) => {setBarcodeText(text)}} barcodeText={barcodeText}/>
+                    <ScanScreen {...props} route={route} setBarcodeText={(text: string) => {setBarcodeText(text)}} barcodeText={barcodeText}/>
                 )}
             </Stack.Screen>
             <Stack.Screen
@@ -29,7 +40,17 @@ function ScanNavigator() {
                             {...props}
                             onPress={() => {
                                 console.log("Back button pressed.");
-                                navigation.goBack();
+                                if (route.params?.data?.products !== undefined) {
+                                    // navigation.navigate("Search", {data: route.params?.products});
+
+                                    // if navigated to ScanResult through SearchScreen, then prevent ScanResult screen appearing when wanting to navigate to scanner
+                                    navigation.navigate("ScanScreen");
+                                    navigation.navigate("Search", {data: route.params?.data});
+                                }
+                                else {
+                                    navigation.navigate("ScanScreen");
+                                    // navigation.goBack()
+                                }
                                 setBarcodeText("");
                             }}
                         />

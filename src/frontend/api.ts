@@ -440,7 +440,6 @@ export async function getProductNotifications({productId} : Report) {
   )
 }
 
-/************** NOTIFICATIONS / REPORTING ***************/
 export async function registerDeviceToken(token: string) {
   return (
     API.post("myAPI", "/register-device-token", {
@@ -488,6 +487,62 @@ export async function ocrPreprocessing(base64Image: string) {
 
 /************** OPEN FOOD FACTS ***************/
 
+export interface SearchQuery {
+  queryString?: string | null,
+  page?: number,
+  searchTerms?: string,
+  brand?: string,
+  category?: string,
+  allergens?: Array<string>,
+  allergensContains?: boolean,
+}
+
+// for faceted product search pagination
+const calculateTotalPages = (totalProducts: number, pageSize: number) => {
+  const maxOFFPageSize = 1000;// looks good, how are the sizes of the images set atm when
+  const result = Math.ceil(totalProducts / pageSize) + 1; //
+ 
+  if (result > maxOFFPageSize) {
+    return maxOFFPageSize;
+  }
+
+  return result;
+}
+
+const getProductDisplayName = (data) => {
+  let productDisplayName = data?.product?.product_name ? data?.product?.product_name : "";
+  productDisplayName += data?.product?.brands ? " - " + data?.product?.brands : "";
+  productDisplayName += data?.product?.quantity ? " - " + data?.product?.quantity.replace(" ", "") : "";
+  //remove unnecessary punctuation from product name
+  productDisplayName = productDisplayName.replace(/[.,\/#!$%\^&\*;:{}=\_`~()]/g,"")
+      .replace(/\s{2,}/g," ");
+  return productDisplayName;
+}
+
+const compileBarcodeResult = (data : object, barcodeText : string | null = null) => {
+  return {
+    "product_display_name": getProductDisplayName(data),
+    "date": new Date().toISOString(),
+    "status": data?.status_verbose,
+    "product_code": barcodeText == null ? data?.product?.code : barcodeText,
+    "product_name": data?.product?.product_name,
+    "product_image": data?.product?.image_front_url,
+    "ingredients_image": data?.product.image_ingredients_thumb_url,
+    // "image_size": data?.product  
+    "ingredients_text": data?.product?.ingredients_text,
+    "ingredients_complete_boolean": data?.product?.states_hierarchy.includes("en:ingredients-completed"),
+    // "states_hierarchy": data?.product?.states_hierarchy,
+    "allergens": data?.product?.allergens_hierarchy, //get english only
+    "allergens_from_ingredients": data?.product?.allergens_from_ingredients,
+    "may_contain": data?.product?.traces ? data?.product?.traces.replace("en:", "").replace(" ", "") : "",
+    "traces_tags": data?.product?.traces_tags.length > 0 ? data?.product.traces_tags[0].replace("en:en-", "").split("-en-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(", ") : "",
+    "missing_ingredients": data?.product?.unknown_ingredients_n,    
+    "non_vegan_ingredients": data?.product?.ingredients_analysis?.["en:non-vegan"],
+    "vegan_status_unknown_ingredients": data?.product?.ingredients_analysis?.["en:vegan-status-unknown"],
+    "vegetarian_status_unkown_ingredients": data?.product?.ingredients_analysis?.["en:vegetarian-status-unknown"],
+  }
+} 
+
 export async function scanBarcode(barcodeText: string) {
   console.log("fetching from OFF");
   return fetch(`https://world.openfoodfacts.org/api/v2/product/${barcodeText}.json`, {
@@ -499,36 +554,7 @@ export async function scanBarcode(barcodeText: string) {
     console.log("Response received.");
     return res.json().then((data) => {
       // console.log(data);
-      const getProductDisplayName = () => {
-        let productDisplayName = data?.product?.product_name ? data?.product?.product_name : "";
-        productDisplayName += data?.product?.brands ? " - " + data?.product?.brands : "";
-        productDisplayName += data?.product?.quantity ? " - " + data?.product?.quantity.replace(" ", "") : "";
-        //remove unnecessary punctuation from product name
-        productDisplayName = productDisplayName.replace(/[.,\/#!$%\^&\*;:{}=\_`~()]/g,"")
-            .replace(/\s{2,}/g," ");
-        return productDisplayName;
-      }
-      const scanResults = {
-        "product_display_name": getProductDisplayName(),
-        "date": new Date().toISOString(),
-        "status": data?.status_verbose,
-        "product_code": barcodeText,
-        "product_name": data?.product?.product_name,
-        "product_image": data?.product?.image_front_url,
-        // "image_size": data?.product  
-        "ingredients_text": data?.product?.ingredients_text,
-        "ingredients_complete_boolean": data?.product?.states_hierarchy.includes("en:ingredients-completed"),
-        // "states_hierarchy": data?.product?.states_hierarchy,
-        "allergens": data?.product?.allergens_hierarchy, //get english only
-        "allergens_from_ingredients": data?.product?.allergens_from_ingredients,
-        "may_contain": data?.product?.traces ? data?.product?.traces.replace("en:", "").replace(" ", "") : "",
-        "traces_tags": data?.product?.traces_tags.length > 0 ? data?.product.traces_tags[0].replace("en:en-", "").split("-en-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(", ") : "",
-        "missing_ingredients": data?.product?.unknown_ingredients_n,    
-        "non_vegan_ingredients": data?.product?.ingredients_analysis?.["en:non-vegan"],
-        "vegan_status_unknown_ingredients": data?.product?.ingredients_analysis?.["en:vegan-status-unknown"],
-        "vegetarian_status_unkown_ingredients": data?.product?.ingredients_analysis?.["en:vegetarian-status-unknown"],
-      }
-      return scanResults 
+      return compileBarcodeResult(data, barcodeText); 
     })
     }).catch(err => {
       console.log(err);
@@ -536,8 +562,66 @@ export async function scanBarcode(barcodeText: string) {
     });
 }
 
-export function getInitialNotificationState(productId: string, scans: object) {
-  if (Object.keys(scans).includes(productId)){
+export async function facetedProductSearch({queryString = null, page = 1, searchTerms = "", brand = "", category = "", allergens, allergensContains}: SearchQuery) {
+  let OFFSearchQueryUrl : string;
+  let parameters = ""
+  let tagCount = 0;  
+
+  if (queryString == null) {
+    if (searchTerms !== "") {
+      parameters += `&search_terms2=${searchTerms}`;
+    }
+
+    if (brand !== "") {
+      parameters += `&tagtype_${tagCount}=brands&tag_contains_${tagCount}=contains&tag_${tagCount}=${brand}`;
+      tagCount++;
+    }
+
+    if (category !== "") {
+      parameters += `&tagtype_${tagCount}=categories&tag_contains_${tagCount}=contains&tag_${tagCount}=${category}`;
+      tagCount++;
+    }
+    
+    for (let allergen of allergens) {
+      parameters += `&tagtype_${tagCount}=allergens&tag_contains_${tagCount}=${allergensContains ? "contains" : "does_not_contain"}&tag_${tagCount}=${allergen}`
+      tagCount++;
+    }
+
+    OFFSearchQueryUrl = `https://world.openfoodfacts.org/cgi/search.pl?action=process${parameters}&page_size=25&json=true`;
+  }
+  else {
+    OFFSearchQueryUrl = queryString;
+  }
+
+  console.log(`${OFFSearchQueryUrl}&page=${page}`)
+  return fetch(`${OFFSearchQueryUrl}&page=${page}`, {
+    method: "GET",
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }).then(res => {
+
+    return res.json().then((res) => {
+      let products = [];
+      for (let product of res?.products) {
+        products.push({
+          barcode: product?.code,
+          product_display_name: getProductDisplayName({product: product}),
+          image_url: product?.image_url,
+          productResults: compileBarcodeResult({product: product})
+        })
+      }
+    
+      return {query: OFFSearchQueryUrl, pages: calculateTotalPages(res.count, 25), products: products};
+    })
+    }).catch(err => {//
+      console.log(err); //
+      console.log(err.response.data);
+    });  
+}
+//
+export function getInitialNotificationState(productId: string, scans: object) { // i'll try using ide
+  if (scans != null && Object.keys(scans).includes(productId)){
       return scans[productId].receive_notifications;
   }
   else {

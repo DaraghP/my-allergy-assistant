@@ -10,39 +10,55 @@ import SetupNavigator from "../screens/setup/SetupNavigator";
 import {useAppSelector} from "../hooks";
 import {HeaderBackButton} from '@react-navigation/elements';
 import {Notification, NotificationCompletion, Notifications, Registered} from "react-native-notifications";
-import {registerDeviceToken} from "../api";
-import { updateDeviceEndpoint } from '../reducers/user-reducer';
+import ScanNavigator from "../screens/scan/ScanNavigator";
 import { useAppDispatch } from '../hooks';
+import SearchScreen from '../screens/SearchScreen';
+import LoadingScreen from '../screens/LoadingScreen';
+import {updateDeviceEndpoint} from '../reducers/user-reducer';
+import {registerDeviceToken} from "../api";
 
 function AuthenticatedApp() {
     const dispatch = useAppDispatch();
     const Tab = createBottomTabNavigator();
-    // const navigation = useNavigation();
     const navigationRef = createNavigationContainerRef();
+    const deviceEndpoint = useAppSelector(state => state.user.deviceEndpoint);
     const account = useAppSelector(state => state.appData.accounts);
+    const didSearch = useAppSelector(state => state.ui.didSearch);
+    const loading = useAppSelector(state => state.ui.loading);
     const setupRequired = useAppSelector(state => state.user.username in state.appData.accounts ? !state.appData.accounts[state.user.username].hasCompletedSetup : null);
-    const [isDeviceTokenRegistered, setIsDeviceTokenRegistered] = useState<boolean>(false);
+
+    const searchTabOptions = {
+      headerTitle: "Search Results", 
+      headerTitleAlign: "center", 
+      headerLeft: (props) => (
+        <HeaderBackButton
+            {...props}
+            onPress={() => {
+                console.log("Back button pressed.");
+                navigationRef.goBack();
+            }}
+        />
+      ),
+      tabBarIcon: () => <FontAwesome5 name={"search"} size={25}/>,
+      tabBarButton: () => null
+    };
 
     useEffect(() => {
-
       // mobile push notifications: https://wix.github.io/react-native-notifications/docs/
-      if (!isDeviceTokenRegistered) {
+      if (deviceEndpoint == "") {
         Notifications.registerRemoteNotifications();
 
         Notifications.events().registerRemoteNotificationsRegistered((event: Registered) => {
-            // console.log(`Device token given: ${event.devic eToken}`)
+            // console.log(`Device token given: ${event.deviceToken}`)
             registerDeviceToken(event.deviceToken).then((res) => {
               dispatch(updateDeviceEndpoint(res.deviceEndpoint));
             })
         })
-        
-        setIsDeviceTokenRegistered(true);
       }
       
       Notifications.events().registerNotificationReceivedForeground((notification: Notification, completion) => {
           console.log(`Foreground notification: ${notification.title} : ${notification.body}`, notification.payload);
           // do stuff with notification data
-
           completion({alert: true, sound: true, badge: true});
       })
 
@@ -63,6 +79,26 @@ function AuthenticatedApp() {
         console.log("setupRequired -> ", setupRequired);
     }, [setupRequired])
 
+    // useEffect(() => {
+    //   if (didSearch) {
+    //     delete searchTabOptions["tabBarButton"];
+    //     // setSearchTabOptions(searchTabOptions);  
+    //     setSearchTabOptions({
+    //       ...searchTabOptions,       
+    //       headerLeft: (props) => (
+    //         <HeaderBackButton
+    //             {...props}
+    //             onPress={() => {
+    //                 console.log("Back button pressed.");
+    //                 navigationRef.goBack();
+    //             }}
+    //         />
+    //       )
+            
+    //     });
+    //   }
+    // }, [didSearch])
+
     return (
        <>
             <NavigationContainer ref={navigationRef}>
@@ -71,8 +107,16 @@ function AuthenticatedApp() {
               }
 
               {!setupRequired && Auth.user != null &&
-                  <Tab.Navigator>
+                  <Tab.Navigator screenOptions={{tabBarStyle: {display: loading ? "none" : "flex"}}}>
                       <Tab.Screen name="Home" component={HomeScreen} options={{headerShown: false, tabBarIcon: () => <FontAwesome5 name={"home"} size={25}/>}}/>
+                      <Tab.Screen name="Scan" component={ScanNavigator} options={{headerShown: false, tabBarIcon: () => <FontAwesome5 name={"eye"} size={25}/>}}/>
+
+                      <Tab.Screen 
+                        name="Search" 
+                        component={SearchScreen} 
+                        options={searchTabOptions}
+                      />
+                      
                       <Tab.Screen name="Profile" component={ProfileScreen} options={{tabBarIcon: () => <FontAwesome5 name={"user"} size={25}/>}}/>
                       <Tab.Screen 
                         name="ScanHistory" 
@@ -91,7 +135,15 @@ function AuthenticatedApp() {
                             />
                           )
                         }}
-                      
+                      />
+
+                      <Tab.Screen 
+                        name="Loading" 
+                        component={LoadingScreen} 
+                        options={{ 
+                          tabBarButton: () => null,
+                          header: () => null, 
+                        }}
                       />
                   </Tab.Navigator>
               }

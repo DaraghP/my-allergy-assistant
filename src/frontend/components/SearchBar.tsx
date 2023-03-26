@@ -4,10 +4,11 @@ import {useState} from "react";
 interface SearchBarProps {
     style?: object,
     placeholder: string,
-    handler: Function
+    onChangeText?: Function
+    onSubmit?: Function
 }
 
-function SearchBar({style = {}, placeholder, handler}: SearchBarProps) {
+function SearchBar({style = {}, placeholder, onChangeText = null, onSubmit = null}: SearchBarProps) {
     const [query, setQuery] = useState<string>("");
 
     return (
@@ -17,12 +18,19 @@ function SearchBar({style = {}, placeholder, handler}: SearchBarProps) {
                 value={query}
                 onChangeText={text => {
                     setQuery(text);
-                    handler(text.toLowerCase());
+                    if (onChangeText !== null) {
+                        onChangeText(text.toLowerCase());
+                    }
                 }}
                 clearButtonMode={"always"}
                 autoCorrect={false}
                 autoCapitalize={"none"}
                 placeholder={placeholder}
+                onSubmitEditing={() => {
+                    if (onSubmit !== null) {
+                        onSubmit(query);
+                    }
+                }}
             />
         </View>
     )

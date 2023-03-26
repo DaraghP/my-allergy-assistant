@@ -9,9 +9,16 @@ import {User, postNewUser, updateUser} from "../api";
 import ALLERGENS from "../allergens.json";
 import _ from "lodash";
 import {Auth} from "aws-amplify";
+import { SafeAreaView } from "react-native-safe-area-context";
 
+interface AllergySelectionListProps {
+    onConfirm?: any,
+    update?: boolean,
+    customSelection?: any,
+    setCustomSelection?: any
+}
 
-function AllergySelectionList({onConfirm}) {
+function AllergySelectionList({onConfirm = null, update = true, customSelection = null, setCustomSelection = null} : AllergySelectionListProps) {
     const dispatch = useAppDispatch();
     const username = useAppSelector(state => state.user.username);
     const email = useAppSelector(state => state.user.email);
@@ -44,7 +51,7 @@ function AllergySelectionList({onConfirm}) {
                     return true;
                 }
 
-                return allergen.includes(text);
+                return allergen.toLowerCase().includes(text);
             })
         );
     }
@@ -57,55 +64,62 @@ function AllergySelectionList({onConfirm}) {
     // });
 
     useEffect(() => {
-        if (user?.allergens.size > 0) {
-            setSelection(new Set([...user.allergens]))
+        if (customSelection == null && user?.allergens.length > 0) {
+            setSelection(new Set([...user?.allergens]))
         }
     }, [])
 
     return (
-        <>
+        <SafeAreaView style={{flex: 1}}>
+        
             <FlatList
                 style={styles.list}
                 stickyHeaderIndices={[0]}
                 ListHeaderComponentStyle={{backgroundColor: "white", borderWidth: 0.25, borderColor: "lightgrey"}}
-                ListHeaderComponent={<SearchBar placeholder={"Search allergies"} handler={searchHandler}/>}
+                ListHeaderComponent={<SearchBar placeholder={"Search allergies"} onChangeText={searchHandler}/>}
                 keyExtractor={allergen => allergen}
                 data={filteredData}
                 renderItem={
                     (item) => (
                         <AllergySelectionItem
-                            selection={selection}
-                            setSelection={setSelection}
+                            selection={customSelection == null ? selection : customSelection}
+                            setSelection={customSelection == null ? setSelection : setCustomSelection}
                         >
                             {item}
                         </AllergySelectionItem>
                     )
                 }
             />
+            {onConfirm !== null &&
+                <View style={styles.confirmBtn}>
 
-            <View style={styles.confirmBtn}>
-                <Button title={"Confirm"} color={"green"} onPress={() => {
-                    onConfirm()
-                    console.log("curr_username:", username);
-                    console.log("curr_email:", email);
-                    console.log("allergens selected:", [...selection]);
-                    console.log("scans:", user.scans);
-                    let userObj : User = {username: username, deviceEndpoint: deviceEndpoint, email: email, allergens: [...selection], scans: user.scans}
-                    dispatch(updateAllergens(userObj));
+                    <Button title={"Confirm"} color={"green"} onPress={() => {
+                        onConfirm()
+
+                        if (update) {
+                            console.log("curr_username:", username);
+                            console.log("curr_email:", email);
+                            console.log("allergens selected:", [...selection]);
+                            console.log("scans:", user.scans);
+                            let userObj : User = {username: username, deviceEndpoint: deviceEndpoint, email: email, allergens: [...selection], scans: user.scans}
+                            dispatch(updateAllergens(userObj));
+                            
+                            // if hasCompletedSetup is false then create new user in DynamoDB via API
+                            if (!user.hasCompletedSetup) {
+                                postNewUser(userObj);
+                                console.log("attempting to create new user");
+                            } else {
+                                // else, user is already created, so updateUser
+                                updateUser(userObj);
+                                console.log("hasCompletedSetup = true in redux.");
+                            }
+                        }
+                        
+                    }}/>
                     
-                    // if hasCompletedSetup is false then create new user in DynamoDB via API
-                    if (!user.hasCompletedSetup) {
-                        postNewUser(userObj);
-                        console.log("attempting to create new user");
-                    } else {
-                        // else, user is already created, so updateUser
-                        updateUser(userObj);
-                        console.log("hasCompletedSetup = true in redux.");
-                    }
-
-                }}/>
-            </View>
-        </>
+                </View>
+            }
+        </SafeAreaView>
     )
 }
 

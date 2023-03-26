@@ -21,7 +21,7 @@ import { onChange, runOnJS } from 'react-native-reanimated';
 import ImagePicker from 'react-native-image-crop-picker';
 import {readFile, readFileAssets, TemporaryDirectoryPath, unlink, writeFile} from "react-native-fs";
 
-enum ScanMode {
+export enum ScanMode {
   Text = 'TEXT',
   Barcode = 'BARCODE',
   Detect = 'DETECT'
@@ -36,12 +36,12 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   const dispatch = useAppDispatch();
   const user = useAppSelector(state => state.user);
   const scans = useAppSelector(state => state.appData.accounts[user.username]?.scans);
+  const scanMode = useAppSelector(state => state.ui.scanMode);
   const navigation = useNavigation(); // 
   const Stack = createNativeStackNavigator();
   const devices = useCameraDevices();
   const device = devices.back;
   const camera = useRef<Camera>(null);
-  const [scanMode, setScanMode] = useState<ScanMode>(ScanMode.Detect);
   const isFocused = useIsFocused();
   const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState<boolean>(false);
   const [isOcrModalOpen, setIsOcrModalOpen] = useState<boolean>(false);
@@ -52,21 +52,23 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   const [ocrResult, setOcrResult] = useState({});
   const [ingredientsFound, setIngredientsFound] = useState(false);
 
+  const foodBarcodeFormats = [BarcodeFormat.EAN_13, BarcodeFormat.UPC_A, BarcodeFormat.UPC_E, BarcodeFormat.EAN_8] 
+
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet';
     
-    const barcodesDetected = scanBarcodes(frame, [BarcodeFormat.EAN_13], {checkInverted: true});
+    const barcodesDetected = scanBarcodes(frame, foodBarcodeFormats, {checkInverted: true});
     const ocrScan = scanOCR(frame);
 
-    if (ocrScan.result.blocks.length > 0) {
-      setScanMode(ScanMode.Text);
-    }
-    else if (barcodesDetected.length > 0) {
-      setScanMode(ScanMode.Barcode);
-    }
-    else {
-      setScanMode(ScanMode.Detect);
-    }
+    // if (ocrScan.result.blocks.length > 0) {
+    //   setScanMode(ScanMode.Text);
+    // }
+    // else if (barcodesDetected.length > 0) {
+    //   setScanMode(ScanMode.Barcode);
+    // }
+    // else {
+    //   setScanMode(ScanMode.Detect);
+    // }
 
     runOnJS(setOcrResult)(ocrScan);
     runOnJS(setBarcodes)(barcodesDetected);

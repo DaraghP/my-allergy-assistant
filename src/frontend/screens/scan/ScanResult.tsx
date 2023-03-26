@@ -18,8 +18,8 @@ function ScanResult({navigation, route}) {
 
     const username = useAppSelector(state => state.user.username);
     const email = useAppSelector(state => state.user.email);
-    const usersScanHistory = useAppSelector(state => state.appData.accounts[username].scans);
-    // im getting new error: cannot read property 'scans' of undefined in Scanner.tsx
+    const usersScanHistory = useAppSelector(state => state.appData.accounts[username]?.scans);
+
     const deviceEndpoint = useAppSelector(state => state.user.deviceEndpoint); // 
     const user = useAppSelector(state => state.appData.accounts[username]);
     const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
@@ -81,28 +81,8 @@ function ScanResult({navigation, route}) {
             <Text style={{fontSize: 30, fontWeight: 'bold', margin:'3.5%', flexWrap: "wrap", textAlign: 'center'}}>
                 {scan?.product_display_name}
             </Text>
-            {/* the way we could do notifications: 
-            reporter POSTS to lambda function report which puts something in db, then publishes to a topic,
-            another lambda function which has a trigger using that topic gets messages from the report publish, message could be stringified json can include product id, users waiting to be notified etc,
-            when the lambda function retrieves it, it will go through each user and notify them */}
 
-            {/* 1 just for the lambda function that will notify, it will trigger whenever the reporter publishes to the topic, then the other lambda function will look at the json message and notify the users */}
-            {/* the topic is just for the other lambda function to trigger/start,  
-
-                so user submits report in app, report gets added to dynamo through api lambda1 call, when get 200 response that dynamo was updated
-                another lambda function2 is called with json in message, which sends the notifications to users
-
-                report is now created in dynamo when user submits report through app
-                -- atm only works for POST, need to work on PUT still to append report to existing product_id
-
-
-                ok i'm gonna find out how to set up device tokens and send them to sns locally,
-                back, almost have it, will continue looking into it, may have to go before 6 as well btw 
-                
-            */}
             <View style={{display:"flex", justifyContent:"space-between", marginLeft: 20}}>
-                {/*//, flexDirection: "row"}}>*/}
-                {/* {console.log("")} */}
                 {(!scan?.ingredients_complete_boolean) && (!scan?.ingredients_text)
                     ?
                     <Text style={{alignSelf: "flex-start", paddingBottom: 20}}>

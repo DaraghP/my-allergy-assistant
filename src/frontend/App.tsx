@@ -135,7 +135,6 @@ const App = (props) => {
                         </View>
                     )
                 }}
-                children={<AuthenticatedApp/>}
             />
             :
             <AuthenticatedApp/>
