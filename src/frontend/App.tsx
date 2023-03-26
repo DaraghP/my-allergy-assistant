@@ -14,6 +14,7 @@ import {useAppDispatch, useAppSelector} from "./hooks";
 import {createAccount, updateAccounts} from "./reducers/app-data-reducer";
 import {updateUsername, updateEmail} from "./reducers/user-reducer";
 import { getSingleUser } from './api';
+import LoadingScreen from './screens/LoadingScreen';
 
 
 // Amplify documentation: https://docs.amplify.aws/lib/auth/social/q/platform/react-native/#full-samples
@@ -45,22 +46,30 @@ const App = (props) => {
   const dispatch = useAppDispatch();
   const accounts = useAppSelector(state => state.appData.accounts);
   const [authStatus, setAuthStatus] = useState('unauthenticated');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => {
     // documentation: https://docs.amplify.aws/guides/authentication/listening-for-auth-events/q/platform/js/
     let clearListener = Hub.listen('auth', (data) => {
       switch (data.payload.event) {
           case 'signIn':
+              console.log("signIn")
+              setIsLoggingIn(true);
+            // navigation.navigate(Loading, {text: "Logging in..."});
+            // dispatch(updateLoadingState());
             // getSingleUser from DynamoDB
             Auth.currentAuthenticatedUser().then((user) => {
                 dispatch(updateEmail(user.attributes.email))
                 
                 getSingleUser({username: data.payload.data.username, email: user.attributes.email}).then((res) => {
-                    console.log("user -> ", res)
+                    console.log("user -> ", Object.keys(res)[0]);
+                    console.log("userAccountData -> ", Object.values(res)[0]);
+                    // if user not in dynamo
                     if (Object.keys(res).length > 0) {
                         console.log("user found! update redux");
-                        dispatch(updateAccounts(res));
+                        dispatch(updateAccounts({username:Object.keys(res)[0], data: Object.values(res)[0]}));
                     }
+                    //
                     else {
                         console.log("user not found in dynamo, create new account/select allergens");
                         dispatch(createAccount(data.payload.data));
@@ -68,12 +77,13 @@ const App = (props) => {
                     
                     setAuthStatus('authenticated');
                     dispatch(updateUsername(data.payload.data.username));
-                    dispatch(updateEmail(user.attributes.email))                    
+                    dispatch(updateEmail(user.attributes.email))
+                    setIsLoggingIn(false);
                 })
             })
 
             break;
-        case 'signUp':
+        case 'signUp'://
             console.log("signUp block executed", data.payload.data);
             dispatch(createAccount({username: data.payload.data.userSub}));
             dispatch(updateUsername(data.payload.data.userSub));
@@ -98,9 +108,11 @@ const App = (props) => {
     // automatic sign-in
     Auth.currentAuthenticatedUser().then((user) => {
         if (user) {
+            setIsLoggingIn(true);
             setAuthStatus("authenticated");
             dispatch(updateUsername(user.username));
             dispatch(updateEmail(user.attributes.email))
+            setIsLoggingIn(false);
         }
     })
 
@@ -113,12 +125,17 @@ const App = (props) => {
   useEffect(() => {
       console.log("Accounts", accounts)
   }, [accounts])
-  
-  
 
   return (
       <>
-          {authStatus != "authenticated" ?
+          {/* there was a brief bit where it had loading screen above authenticator so gonna put it as ? : instead of &&
+              ned to set logginIn when automatically signing in
+
+          */}
+          {isLoggingIn ?
+              <LoadingScreen/>
+          :
+          authStatus != "authenticated" ?
             <Authenticator
                 Header={() => <Text style={{...styles.centerText, fontSize: 25}}>MyAllergyAssistant</Text>}
                 Footer={() => {
@@ -136,6 +153,9 @@ const App = (props) => {
                     )
                 }}
             />
+
+              // {isLoggingIn && <LoadingScreen/>}
+
             :
             <AuthenticatedApp/>
           }

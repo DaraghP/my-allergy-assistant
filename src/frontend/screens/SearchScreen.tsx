@@ -6,11 +6,14 @@ import { FlatList, SafeAreaView, StyleSheet, Text, TouchableNativeFeedback, Touc
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { updateLoadingState, updateDidSearch, updateCurrentPage } from "../reducers/ui-reducer";
 import { useNavigation } from "@react-navigation/native";
+import { storeScan } from "../components/Scanner";
 
 
 function SearchScreen({route}) {
     const {height, width} = Dimensions.get("window");
     const dispatch = useAppDispatch();
+    const user = useAppSelector(state => state.user);
+    const scans = useAppSelector(state => state.appData.accounts[user.username]?.scans);
     const navigation = useNavigation();
     const currentPage = useAppSelector(state => state.ui.currentPage);
     const [data, setData] = useState(route.params?.data);
@@ -32,7 +35,10 @@ function SearchScreen({route}) {
                 data={data?.products}
                 keyExtractor={product => product.barcode}
                 renderItem={(product) => (
-                    <TouchableNativeFeedback onPress={() => {navigation.navigate("Scan", { scan: product.item.productResults, data: data })}}>
+                    <TouchableNativeFeedback onPress={() => {
+                        storeScan(product.item.barcode, product.item.productResults, scans, dispatch, user);
+                        navigation.navigate("Scan", { scan: product.item.productResults, data: data })
+                    }}>
                         <View style={styles.item}>
                             <View style={{height: height * 0.18, alignSelf: "center", marginRight: 10, borderWidth: 10, borderColor: "#f1f1f1", backgroundColor: "#f1f1f1", borderRadius: 10}}>
                                 <View style={{width: width * 0.18, height: height * 0.15, justifyContent: "center"}}>

@@ -166,7 +166,6 @@ export async function getSingleUser({username, email} : User) {
     .catch(err => {
       console.log(err);
       console.log(err.response.data);
-      
     })
   )
 }
@@ -194,11 +193,12 @@ export async function getAllUsers() {
 
 export interface Report {
   productId: string,
+  productName: string,
   username?: string,
   suspectedAllergens?: Array<string>,
 }
 
-export async function addReportToDynamo({productId, username, suspectedAllergens} : Report) {
+export async function addReportToDynamo({productId, productName, username, suspectedAllergens} : Report) {
   // check if product already has been reported
   let reportObj2 : Report = {productId: productId};
   let getReportsResponse = await getProductReports(reportObj2);
@@ -212,7 +212,7 @@ export async function addReportToDynamo({productId, username, suspectedAllergens
   if (Object.keys(getReportsResponse).length == 0){
     API.post('myAPI', '/reportsLambda-dev', {
       body: {
-        Item: {product_id: productId, reports: [{suspected_allergens: suspectedAllergens, user_id: username}]},
+        Item: {product_id: productId, product_name: productName, reports: [{suspected_allergens: suspectedAllergens, user_id: username}]},
       },
       headers: {
         'Content-Type': 'application/json',
@@ -256,24 +256,22 @@ export async function addReportToDynamo({productId, username, suspectedAllergens
         headers: {
           'Content-Type': 'application/json',
           Authorization: `${(await Auth.currentSession())
-            .getIdToken()
-            .getJwtToken()}`,
+              .getIdToken()
+              .getJwtToken()}`,
         },
       })
-        .then(res => {
-          console.log('SUCCESS 200 Report updated');
-          console.log(res);
-        })
-        .catch(err => {
-          console.log(err);
-          console.log(err.response.data);
-        });
+          .then(res => {
+            console.log('SUCCESS 200 Report updated');
+            console.log(res);
+          })
+          .catch(err => {
+            console.log(err);
+            console.log(err.response.data);
+          });
     }
-  
-
   }
 }
-  
+
 export async function getProductReports({productId} : Report) {
   console.log('get report from dynamoDB...');
   return (
@@ -327,7 +325,7 @@ export async function addNotificationsToDynamo({productId, user_endpoint} : Upda
       body: {
         Item: {product_id: productId, user_endpoints: [user_endpoint]},
       },
-      headers: {
+      headers: { //
         'Content-Type': 'application/json',
         Authorization: `${(await Auth.currentSession())
           .getIdToken()
@@ -527,8 +525,8 @@ const compileBarcodeResult = (data : object, barcodeText : string | null = null)
     "product_code": barcodeText == null ? data?.product?.code : barcodeText,
     "product_name": data?.product?.product_name,
     "product_image": data?.product?.image_front_url,
-    "ingredients_image": data?.product.image_ingredients_thumb_url,
-    // "image_size": data?.product  
+    "ingredients_image": data?.product?.image_ingredients_thumb_url,
+    // "image_size": data?.product?.
     "ingredients_text": data?.product?.ingredients_text,
     "ingredients_complete_boolean": data?.product?.states_hierarchy.includes("en:ingredients-completed"),
     // "states_hierarchy": data?.product?.states_hierarchy,

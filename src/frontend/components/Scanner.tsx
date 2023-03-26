@@ -20,6 +20,7 @@ import TextRecognition from '@react-native-ml-kit/text-recognition';
 import { onChange, runOnJS } from 'react-native-reanimated';
 import ImagePicker from 'react-native-image-crop-picker';
 import {readFile, readFileAssets, TemporaryDirectoryPath, unlink, writeFile} from "react-native-fs";
+import { updateLoadingState } from '../reducers/ui-reducer';
 
 export enum ScanMode {
   Text = 'TEXT',
@@ -30,7 +31,20 @@ export enum ScanMode {
 interface ScannerProps {
   barcodeText: string,
   setBarcodeText: object
-} 
+}
+
+export const storeScan = (barcodeText, scan, scans, dispatch, user) => {
+
+    console.log(barcodeText)
+    let scanObj = {[barcodeText]: {product_display_name: scan.product_display_name, date: scan.date, receive_notifications: getInitialNotificationState(barcodeText, scans)}};
+    console.log("\nscanObj -> " + JSON.stringify(scanObj));
+
+    updateUser({username: user.username, deviceEndpoint: user.deviceEndpoint, email: user.email, scan: scanObj});
+
+    // add to redux scans
+    dispatch(updateScans({username: user.username, scan: {...scanObj}}));
+    console.log("\nScanner scan:", scan);
+}
 
 function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   const dispatch = useAppDispatch();
@@ -88,7 +102,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
       if (!image.didCancel) {
         setPhoto(image.assets[0].uri); // 
       
-        // scan barcode from image 
+        // scan barcode from image
         BarcodeScanning.scan(image.assets[0].uri).then(async (res) => {
           if (res.length > 0){
             console.log("res: ", res);
@@ -96,26 +110,38 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
             setBarcodeText(res[0]?.value ?? "");
           } else {
             // scan ingredients text from image
-
-            // TODO: refactor into function
-
-            setIngredientsFound(true);
-            setIsOcrModalOpen(true);
-
-
-            // prepare image for OCR
-            let photoBase64 = await readFile(image.assets[0].uri, "base64");
-            photoBase64 = await ocrPreprocessing(photoBase64);
-            setEditPhoto(`data:image/jpeg;base64,${photoBase64}`);
-            await writeFile(`${TemporaryDirectoryPath}/img.jpg`, photoBase64, "base64");
-
-            const text = await TextRecognition.recognize(`file:///${TemporaryDirectoryPath}/img.jpg`);
-
-            navigation.navigate("ScanResult", { scan: {ocrResult: text} });
+            OCR(image.assets[0].uri, true);
           }
         });
       }
     });
+  }
+
+  const OCR = async (photo, isFromCameraRoll: boolean) => {
+        if (isFromCameraRoll) {
+          setIngredientsFound(true);
+          setIsOcrModalOpen(true);
+        }
+
+        // prepare image for OCR
+        dispatch(updateLoadingState());
+        navigation.navigate("Loading", {text: "Scanning..."});
+        console.log("set loading state");
+        let photoBase64 = await readFile(photo, "base64");
+        photoBase64 = await ocrPreprocessing(photoBase64);
+        setEditPhoto(`data:image/jpeg;base64,${photoBase64}`);
+        await writeFile(`${TemporaryDirectoryPath}/img.jpg`, photoBase64, "base64");
+
+        const text = await TextRecognition.recognize(`file:///${TemporaryDirectoryPath}/img.jpg`);
+
+        if (!isFromCameraRoll) {
+          setIngredientsFound(false);
+          setIsOcrModalOpen(false);
+        }
+
+        dispatch(updateLoadingState());
+        console.log("reset loading state");
+        navigation.navigate("ScanResult", { scan: {ocrResult: text} });
   }
 
   useEffect(() => {
@@ -184,20 +210,17 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                    option1: {
                        onPress: async () => {
                            console.log("Yes pressed. product:", barcodeText);
+                           dispatch(updateLoadingState());
+                           navigation.navigate("Loading", {text: "Scanning..."});
                            let scan = await scanBarcode(barcodeText);
                            // if product found then store scan
-                           if (scan.status == "product found") { 
+
+                           if (scan.status == "product found") {
                              // store scan in dynamoDB table
-                             console.log("\nuser scan history -> " + JSON.stringify(scans));
-                             let scanObj = {[barcodeText]: {product_display_name: scan.product_display_name, date: scan.date, receive_notifications: getInitialNotificationState(barcodeText, scans)}};
-                             console.log("\nscanObj -> " + JSON.stringify(scanObj));
-                            
-                            
-                             //  LOG  user scan history => [object Object]
-                             updateUser({username: user.username, deviceEndpoint: user.deviceEndpoint, email: user.email, scan: scanObj});
-                             // add to redux scans
-                             dispatch(updateScans({username: user.username, scan: {...scanObj}}));
-                             console.log("\nScanner scan:", scan);
+
+                             storeScan(barcodeText, scan, scans, dispatch, user);
+
+                             dispatch(updateLoadingState());
                              navigation.navigate("ScanResult", { scan: scan });
                            } else {
                              //product not found in OFF database
@@ -248,21 +271,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                    option1: {
                        onPress: async () => {
                           console.log("yes pressed.");
-
-                          // TODO: refactor into function
-
-                          // prepare image for OCR
-                          let photoBase64 = await readFile(photo, "base64");
-                          photoBase64 = await ocrPreprocessing(photoBase64);
-                          setEditPhoto(`data:image/jpeg;base64,${photoBase64}`);
-                          await writeFile(`${TemporaryDirectoryPath}/img.jpg`, photoBase64, "base64");
-
-                          const text = await TextRecognition.recognize(`file:///${TemporaryDirectoryPath}/img.jpg`);
-
-                          setIngredientsFound(false);
-                          setIsOcrModalOpen(false);
-
-                          navigation.navigate("ScanResult", { scan: {ocrResult: text} });
+                          OCR(photo, false);
                        },
                        text: "Yes"
                    },

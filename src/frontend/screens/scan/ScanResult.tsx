@@ -207,7 +207,7 @@ function ScanResult({navigation, route}) {
                     },
                     option2: {
                         onPress: () => {
-                            let reportObj : Report = {username: username, productId: scan?.product_code, suspectedAllergens: selectedList}
+                            let reportObj : Report = {username: username, productName: scan?.product_display_name, productId: scan?.product_code, suspectedAllergens: selectedList}
                             addReportToDynamo(reportObj);
                             // let reportObj2 : Report = {productId: scan?.product_code}
                             // let reportsResponse = await getProductReports(reportObj2);
