@@ -46,8 +46,8 @@ function OCRScanResult(scan: object) {
     }, [])
 
     return (
-        <View style={{flexDirection: "column", paddingHorizontal: 30}}>
-            <View style={{flexDirection: "column", justifyContent: "center", alignItems: "center", marginVertical: 50, padding: 25, borderRadius: 5, borderBottomWidth: 25, borderBottomColor: userAllergensFound.length > 0 ? "red" : "green", backgroundColor: "white"}}>
+        <View style={{flexDirection: "column"}}>
+            <View style={{flexDirection: "column", justifyContent: "center", alignItems: "center", padding: 25, borderBottomWidth: 25, borderBottomColor: userAllergensFound.length > 0 ? "red" : "green", backgroundColor: "white"}}>
                 {userAllergensFound?.length == 0 && userMayContain?.length == 0 &&
                     <>
                         <FontAwesome5 color={"green"} style={{marginBottom: 10}} name="check-circle" size={100}/>
@@ -59,7 +59,7 @@ function OCRScanResult(scan: object) {
                     <>
                         <FontAwesome5 color={"red"} style={{marginBottom: 10}} name="times-circle" size={100}/>
                         <Text style={styles.answerText}>Not Safe to eat</Text>
-                    </>           
+                    </>
                 }
 
                 {userAllergensFound?.length == 0 && userMayContain?.length > 0 &&
@@ -70,7 +70,7 @@ function OCRScanResult(scan: object) {
                 }
             </View>
 
-            <View style={{height: "100%", padding: 15, backgroundColor: "white", borderRadius: 5}}>
+            <View style={{height: "auto", padding: 15, backgroundColor: "white",  borderBottomRadius: 5, paddingBottom: 50}}>
                 <Text style={{...styles.resultHeader, marginBottom: 10}}>Results</Text>
                 <Text style={styles.resultSubHeader}>Allergens found based on your profile</Text>
                 {allergensRender(userAllergensFound)}
@@ -81,7 +81,7 @@ function OCRScanResult(scan: object) {
                 <Text style={styles.resultSubHeader}>Other Allergens that may have been found</Text>
                 {allergensRender(mayContain)}
                 
-                <View style={{marginTop: 50}}>
+                <View style={{width: "100%", marginTop: 50}}>
                     <View style={{backgroundColor: "white", width: "auto", paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: "#a1a1a1"}}>
                         <TouchableOpacity onPress={() => {setIsTextOutputCollapsed(!isTextOutputCollapsed)}}>
                             <View style={{flexDirection: "row"}}>
@@ -91,7 +91,7 @@ function OCRScanResult(scan: object) {
                         </TouchableOpacity>
                     </View>
 
-                    <Collapsible collapsed={isTextOutputCollapsed} style={{backgroundColor: "white", padding: 15}}>
+                    <Collapsible collapsed={isTextOutputCollapsed} style={{backgroundColor: "ghostwhite", padding: 15, borderWidth: 0.5, borderBottomLeftRadius: 5, borderBottomRightRadius: 5, borderTopWidth: 0}}>
                         <Text>{scan?.ocrResult?.text}</Text>
                     </Collapsible>
                 </View>
@@ -114,9 +114,13 @@ const styles = StyleSheet.create({
         color: "black" 
     },
     resultSubHeader: {
-        marginVertical: 5,
+        marginVertical: 25,
         fontSize: 20,
-        marginLeft: 5, 
+        marginLeft: 5,
+        backgroundColor: "ghostwhite",
+        padding: 10,
+        borderWidth: 0.5,
+        borderRadius: 5
     }
 })
 

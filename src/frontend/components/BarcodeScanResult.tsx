@@ -100,7 +100,7 @@ function BarcodeScanResult(scan: object) {
                         hasPadding
                     />
                 </View>
-                <View style={{flexDirection: "column", marginTop: 50}}>
+                <View style={{flexDirection: "column", marginVertical: 25}}>
                     <Text style={{maxWidth: "75%"}}>Missing allergens? {"\n"}Issue a report and let others know.</Text>
                     <TouchableOpacity
                         style={{ maxWidth: "50%", marginTop: 10, padding: 10, justifyContent: "center", alignItems:"center", backgroundColor: "red", borderRadius: 10, borderWidth: 0.5, flexDirection: "row"}}

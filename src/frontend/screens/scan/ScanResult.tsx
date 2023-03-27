@@ -8,18 +8,10 @@ import OCRScanResult from "../../components/OCRScanResult";
 
 function ScanResult({navigation, route}) {
     const {height, width} = Dimensions.get("window");
-    const dispatch = useAppDispatch();
     const scan : object = route.params?.scan;
-
-    const possibleAllergens = ALLERGENS.data;
     const username = useAppSelector(state => state.user.username);
-    const email = useAppSelector(state => state.user.email);
-    const usersScanHistory = useAppSelector(state => state.appData.accounts[username]?.scans);
-
-    const deviceEndpoint = useAppSelector(state => state.user.deviceEndpoint); // 
     const user = useAppSelector(state => state.appData.accounts[username]);
-    const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
-    const [selectedList, setSelectedList] = useState([]);
+
     // console.log("myAllergens: " + user?.allergens);
     const reportDropdownData = [
         // {key:'1', value:'Milk'},
@@ -36,7 +28,7 @@ function ScanResult({navigation, route}) {
     // }, [])
     return (
         <>
-            <ScrollView contentContainerStyle={{height: "auto", flexDirection: "column", paddingBottom: 10}} style={styles.container}>
+            <ScrollView contentContainerStyle={{height: "auto", flexDirection: "column"}} style={styles.container}>
                 <View style={{flex: 1,  width: width * 1, height: height * 0.35, justifyContent: "center", alignItems: "center", alignContent: "center", flexDirection: "column", backgroundColor: "#ffffff", padding: 15, borderBottomWidth: 0.5, borderColor: "grey"}}>
                     {scan?.product_image || scan?.ocrImage ?
                         <Image
@@ -45,11 +37,10 @@ function ScanResult({navigation, route}) {
                             style={{resizeMode: "contain", width: width * 1, height: height * 0.35, alignSelf: "center"}}
                         />
                         :
-                        <Text style={{fontWeight: "200", alignSelf: "center", textAlign: "center", fontSize: 25}}>No Image
-                            Available</Text>
+                        <Text style={{fontWeight: "200", alignSelf: "center", textAlign: "center", fontSize: 25}}>No Image Available</Text>
                     }
                 </View>
-                
+
                 {!scan?.ocrResult ? 
                     <BarcodeScanResult scan={scan}/>
                     :
