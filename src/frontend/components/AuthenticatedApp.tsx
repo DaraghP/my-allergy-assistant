@@ -65,7 +65,7 @@ function AuthenticatedApp() {
       Notifications.events().registerNotificationReceivedForeground((notification: Notification, completion) => {
         console.log(typeof notification.payload, notification.payload);//
         console.log(`Foreground notification: ${notification.payload["gcm.notification.title"]} : ${notification.payload["gcm.notification.body"]} : ${notification.payload["gcm.notification.data"]}`);
-        dispatch(addNotification({username: username, notification: notification.payload["gcm.notification.data"]}));
+        dispatch(addNotification({username: username, notificationData: notification.payload["gcm.notification.data"]}));
 
         completion({alert: true, sound: true, badge: true});
       })
@@ -73,7 +73,7 @@ function AuthenticatedApp() {
       Notifications.events().registerNotificationReceivedBackground((notification: Notification, completion : (response: NotificationCompletion) => void) => {
         console.log(`Background notification: ${notification.title} : ${notification.body}`, notification.payload);
 
-        dispatch(addNotification({username: username, notification: notification.payload["gcm.notification.data"]}));
+        dispatch(addNotification({username: username, notificationData: notification.payload["gcm.notification.data"]}));
         // do stuff with notification data
         completion({alert: true, sound: true, badge: true});
       })
@@ -125,16 +125,17 @@ function AuthenticatedApp() {
               {!setupRequired && Auth.user != null &&
                   <Tab.Navigator screenOptions={{tabBarStyle: {display: loading ? "none" : "flex"}}}>
                       <Tab.Screen name="Home" component={HomeScreen} options={{headerShown: false, tabBarIcon: () => <FontAwesome5 name={"home"} size={25}/>}}/>
-                      <Tab.Screen name="Scan" component={ScanNavigator} options={{headerShown: false, tabBarIcon: () => <FontAwesome5 name={"eye"} size={25}/>}}/>
+                      <Tab.Screen name="Scan" component={ScanNavigator} options={{headerShown: false, tabBarIcon: () => <FontAwesome5 name={"camera"} size={25}/>}}/>
 
                       <Tab.Screen name="Search" component={SearchScreen} options={searchTabOptions}/>
 
                       <Tab.Screen name="Alerts" component={AlertScreen} options={{
                           tabBarBadge: notifications?.length > 0 ? notifications.length : undefined,
-                          tabBarIcon: () => <FontAwesome5 name={"bell"} size={25}/>
+                          tabBarBadgeStyle: {borderRadius: 10},
+                          tabBarIcon: () => <FontAwesome5 name={"bell"} solid size={25}/>
                       }}/>
 
-                      <Tab.Screen name="Profile" component={ProfileScreen} options={{tabBarIcon: () => <FontAwesome5 name={"user"} size={25}/>}}/>
+                      <Tab.Screen name="Profile" component={ProfileScreen} options={{tabBarIcon: () => <FontAwesome5 name={"user"} solid size={25}/>}}/>
                       <Tab.Screen
                         name="ScanHistory"
                         component={ScanHistory}

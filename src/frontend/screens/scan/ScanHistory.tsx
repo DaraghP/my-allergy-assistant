@@ -68,7 +68,7 @@ function ScanHistory({navigation}) {
                                                     {label: " ON", customIcon: <FontAwesome5 name={"bell"} size={25}/>, value: 0},
                                                     {label: " OFF", customIcon: <FontAwesome5 name={"bell-slash"} size={25}/>, value: 1}
                                                 ]}
-                                                height={40}
+                                                height={30}
                                                 style={{width:240}}
                                                 buttonMargin={2}
                                                 hasPadding

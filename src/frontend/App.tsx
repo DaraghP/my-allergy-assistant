@@ -114,7 +114,7 @@ const App = (props) => {
             dispatch(updateEmail(user.attributes.email))
             setIsLoggingIn(false);
         }
-    })
+    });
 
     return () => {
         clearListener();

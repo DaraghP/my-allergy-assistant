@@ -252,6 +252,7 @@ export async function addReportToDynamo({productId, productName, username, suspe
             ':emptyReportsList': []
           },
           ReturnValues: 'UPDATED_NEW',
+          ReportData: {product_name: productName, report: {suspected_allergens: suspectedAllergens, user_id: username}}
         },
         headers: {
           'Content-Type': 'application/json',

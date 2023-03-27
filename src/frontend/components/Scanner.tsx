@@ -129,7 +129,8 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
         console.log("set loading state");
         let photoBase64 = await readFile(photo, "base64");
         photoBase64 = await ocrPreprocessing(photoBase64);
-        setEditPhoto(`data:image/jpeg;base64,${photoBase64}`);
+        const ocrImage = `data:image/jpeg;base64,${photoBase64}`;
+        setEditPhoto(ocrImage);
         await writeFile(`${TemporaryDirectoryPath}/img.jpg`, photoBase64, "base64");
 
         const text = await TextRecognition.recognize(`file:///${TemporaryDirectoryPath}/img.jpg`);
@@ -141,7 +142,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
 
         dispatch(updateLoadingState());
         console.log("reset loading state");
-        navigation.navigate("ScanResult", { scan: {ocrResult: text} });
+        navigation.navigate("ScanResult", { scan: {ocrResult: text, ocrImage: photo, ocrImageOutput: ocrImage} });
   }
 
   useEffect(() => {

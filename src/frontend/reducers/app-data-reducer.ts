@@ -1,6 +1,7 @@
 import {createAction, createSlice} from "@reduxjs/toolkit";
 import {createTransform, persistReducer} from "redux-persist";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Notifications } from "aws-amplify";
 
 const transform = createTransform(
     (incomingState, key) => {
@@ -98,17 +99,28 @@ export const AppDataSlice = createSlice({
        add_notification(state, action) {
            const username = action.payload.username;
            console.log(action.payload, "test")
-           const payloadData = JSON.parse(action.payload.notification);
+           const payloadData = JSON.parse(action.payload.notificationData);
            const productID = payloadData.product_id;
            const productName = payloadData.product_name;
-           console.log("data inside notification redux: ", productID, productName);
+           const suspectedAllergens = payloadData.report.suspected_allergens;
+           const reporterID = payloadData.report.user_id;
+        //    console.log("data inside notification redux: ", productID, productName, suspectedAllergens, reporterID);
            if (!("notifications" in state.accounts[username])) {
                state.accounts[username].notifications = [];
            }
-
-           console.log(state.accounts[username].notifications, "state.notifications before adding");
-           state.accounts[username].notifications = [...state.accounts[username].notifications, {productID: productID, productName: productName, isOpened: false}];
-       },
+        //    console.log(state.accounts[username].notifications, "state.notifications before adding");
+           let isDuplicate = false;
+           state.accounts[username].notifications.forEach((noti) => {
+               if ((reporterID === noti.reporterID) && (productID === noti.productID)){
+                   console.log("\n\nreport already in notifications. prevented creating duplicate.\n\n");
+                   isDuplicate = true;
+               }
+           })
+           if (!isDuplicate) {
+               state.accounts[username].notifications = [...state.accounts[username].notifications, {productID: productID, productName: productName, suspectedAllergens: suspectedAllergens, reporterID: reporterID, isOpened: false}];
+           }
+           
+        },
        delete_notification(state, action) {
            const username = action.payload.username;
            const index = action.payload.index;

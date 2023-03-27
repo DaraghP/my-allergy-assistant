@@ -63,18 +63,18 @@ function OFFSearch() {
                     }
                 }}
                 options={[
-                    {label: "Contains", value: 0},
-                    {label: "None", value: 1}
+                    {label: "Specific", value: 0},
+                    {label: "Any", value: 1}
                 ]}
                 style={{width:"50%", marginBottom: 5}}
-                height={25}
+                height={40}
+                buttonMargin={2}
                 hasPadding
                 buttonMargin={1}
             />
 
-            <AllergySelectionList customSelection={selection} setCustomSelection={setSelection}/>
-            
-
+            {/* <AllergySelectionList customSelection={selection} setCustomSelection={setSelection}/> */}
+        
           </View>
         </>
     )

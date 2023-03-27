@@ -105,46 +105,57 @@ function probableAllergens(ingredients) {
 }
 
 function getAllergensFromText(ingredients, user) {
-    ingredients = ingredients?.toLowerCase().split(",");
-    if (ingredients) {
-        let userAllergensSet = new Set([...user.allergens])
+  ingredients = ingredients?.toLowerCase().split(",");
 
-        // go through ocr ingredients, find allergens
-        probableAllergens(ingredients);
-      
-        const intersect = (set1, set2) => {
-          return new Set([...set1].filter(x => set2.has(x)));
-        }
-        
-        // compare allergens list processed from ocr output with user list
-        let userAllergensFound = intersect(userAllergensSet, probableMatchedAllergens);
-        let mayContainUserAllergens = intersect(userAllergensSet, mayContain);
-      
-        // user allergens found
-        userAllergensFound.forEach((allergen) => {
-          console.log("WARNING! Allergen: " + allergen + " detected. User IS allergic. Listed as: " + [...listedAs.get(allergen)])
-        })
-      
-        // user allergens that might have been found
-        mayContainUserAllergens.forEach((allergen) => {
-          console.log("WARNING! May contain allergen: " + allergen + " possibly detected. User IS allergic. Listed as: " + [...listedAs.get(allergen)])
-        })
-        
-        // no user allergens found, log any found
-        probableMatchedAllergens.forEach((allergen) => {
-          if (!userAllergensFound.has(allergen))
-            console.log("WARNING! Allergen: " + allergen + " detected. User NOT allergic. Listed as: " + [...listedAs.get(allergen)])
-        })
-      
-        mayContain.forEach((allergen) => {
-          if (!mayContainUserAllergens.has(allergen))
-            console.log("WARNING! May contain allergen: " + allergen + " possibly detected. User NOT allergic. Listed as: " + [...listedAs.get(allergen)])
-        })
-        
-    }
+  if (ingredients) {
+      let userAllergensSet = new Set([...user.allergens])
 
-    // for now... TODO: have may contain warnings to seperate
-    return [...new Set([...probableMatchedAllergens, ...mayContain])]
+      // console.log("getAllergensFromText ", userAllergensSet)
+      // go through ocr ingredients, find allergens
+      probableAllergens(ingredients);
+    
+      // compare allergens list processed from ocr output with user list
+      console.log("check for match: " + JSON.stringify([...userAllergensSet]) + " || " + JSON.stringify([...probableMatchedAllergens]));
+      let userAllergensFound = intersect(userAllergensSet, probableMatchedAllergens);
+      console.log("matches found: " + JSON.stringify([...userAllergensFound]));
+      let mayContainUserAllergens = intersect(userAllergensSet, mayContain);
+    
+      console.log(userAllergensFound, typeof userAllergensFound)
+      // user allergens found
+      // userAllergensFound.forEach((allergen) => {
+      //   console.log("WARNING! Allergen: " + allergen + " detected. User IS allergic. Listed as: " + [...listedAs.get(allergen)])
+      // })
+    
+      // user allergens that might have been found
+      // mayContainUserAllergens.forEach((allergen) => {
+      //   console.log("WARNING! May contain allergen: " + allergen + " possibly detected. User IS allergic. Listed as: " + [...listedAs.get(allergen)])
+      // })
+      
+      // no user allergens found, log any found
+      probableMatchedAllergens.forEach((allergen) => {
+        if (!userAllergensFound.has(allergen.charAt(0).toUpperCase() + allergen.slice(1)))
+          console.log("WARNING! Allergen: " + allergen + " detected. User NOT allergic. Listed as: " + [...listedAs.get(allergen)])
+      })
+    
+      mayContain.forEach((allergen) => {
+        if (!mayContainUserAllergens.has(allergen.charAt(0).toUpperCase() + allergen.slice(1)))
+          console.log("WARNING! May contain allergen: " + allergen + " possibly detected. User NOT allergic. Listed as: " + [...listedAs.get(allergen)])
+      })
+      
+  }
+
+  return {allergens: [...probableMatchedAllergens], mayContain: [...mayContain], listedAs: listedAs}
+}
+
+
+// helper functions
+export const intersect = (set1, set2) => {
+  return new Set([...set1].filter(x => set2.has(x.toLowerCase())));
+}
+
+export const difference = (set1, set2) => {
+  return new Set([...set1].filter(x => !set2.has(x.toLowerCase())))
 }
 
 export default getAllergensFromText;
+
