@@ -6,7 +6,7 @@ import SwitchSelector from "react-native-switch-selector";
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import AppModal from "./AppModal";
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
-import { Report, addReportToDynamo, updateUser, getInitialNotificationState, addNotificationsToDynamo, deleteNotificationsFromDynamo, UpdatableNotificationObj } from "../api";
+import { extractEnglishAllergens, Report, addReportToDynamo, updateUser, getInitialNotificationState, addNotificationsToDynamo, deleteNotificationsFromDynamo, UpdatableNotificationObj } from "../api";
 import {updateProductNotificationStatus} from "../reducers/app-data-reducer";
 
 function BarcodeScanResult(scan: object) {
@@ -20,13 +20,35 @@ function BarcodeScanResult(scan: object) {
     const scans = useAppSelector(state => state.appData.accounts[username]?.scans);
     const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
     const [selectedList, setSelectedList] = useState([]);
-    const reportDropdownData = [
-        // {key:'1', value:'Milk'},
-        // {key:'2', value:'Hazelnuts'},
-        // {key:'3', value:'Wheat'},
-    ];
+    const reportDropdownData = [];
+    // var translated_allergen_string;
     scan = scan?.scan;
+    // if (scan?.allergens){
+    //     translated_allergen_string = await extractEnglishAllergens(scan?.allergens);
+    // }
+
+    const translateAllergens = async () => {
+        return `${await extractEnglishAllergens(scan?.allergens)}`;
+        // console.log("\n\ntranslated allergens ->" + `${await extractEnglishAllergens(scan?.allergens)}` + "\n\n");
+        // return "dummy allergen"
+    };
+    // translateAllergens
+        // AuthToken().then((res) => {
+        //     console.log(res);
+        // });
     
+    // useEffect(() => {
+    //     if (scans != undefined){
+    //         translateAllergens().then((res) => {
+    //             if (scan!= undefined){
+    //                 scan.allergens = res;
+    //                 console.log("updated allergens to: "+ res);
+    //             }
+    //         })
+    //     }
+    // }, [scans]);
+
+
     if (user?.allergens){
         user?.allergens?.forEach((allergen) => (reportDropdownData.push(allergen)));
     }
@@ -52,19 +74,20 @@ function BarcodeScanResult(scan: object) {
                     <Text style={{alignSelf: "flex-start", paddingBottom: 20}}><Text style={{fontWeight: "bold"}}>Ingredients:</Text>  {scan?.ingredients_text}</Text>
                 }
 
-                {scan?.allergens_from_ingredients == ""
+                {scan?.allergens == ""
                     ?
                     <Text></Text>
                     :
-                    <Text><Text style={{fontWeight: "bold"}}>Allergens:</Text>  {scan?.allergens_from_ingredients}</Text>
+                    <Text><Text style={{fontWeight: "bold"}}>Untranslated Allergens:</Text>{scan?.allergens.split(",")}</Text>
                 }
+                {/* {translateAllergens(scan?.allergens.split(",")).then((res)=>{return "test"})} */}
                 {scan?.traces_tags == ""
                     ?
                     <Text></Text>
                     :
                     <Text><Text style={{fontWeight: "bold"}}>May contain traces of:</Text>  {scan?.traces_tags}</Text>
                 }
-                {scan?.traces_tags == "" && scan?.allergens_from_ingredients == "" &&
+                {scan?.traces_tags == "" && scan?.allergens == "" &&
                     <Text style={{fontWeight: "bold"}}>No allergens detected</Text>
                 }
 

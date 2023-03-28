@@ -23,7 +23,7 @@ function OCRScanResult(scan: object) {
         return (
             allergens.length > 0 ? 
             allergens.map((allergen: string) => (
-                <Text style={{marginLeft: 25}} key={allergen}>{allergen}</Text>)
+                <Text style={{textTransform: "capitalize", marginLeft: 25}} key={allergen}>{allergen}</Text>)
             ) 
             : <Text style={{marginLeft: 25}}>N/A</Text>
         );
@@ -31,19 +31,17 @@ function OCRScanResult(scan: object) {
 
     useEffect(() => {
         const postprocessedResult = getAllergensFromText(scan?.ocrResult?.text, account);
-        const userAllergensSet = new Set(userAllergens);
-        const allergensSet = new Set(postprocessedResult.allergens);
-        const mayContainSet = new Set(postprocessedResult.mayContain);
 
-        setAllergensFound(allergensSet);
-        setMayContain(mayContainSet);
-        setUserAllergensFound([...intersect(userAllergensSet, allergensSet)]);
-        setUserMayContain([...intersect(userAllergensSet, mayContainSet)]);
+        setAllergensFound(postprocessedResult?.allergens);
+        setMayContain(postprocessedResult?.mayContain);
+        setUserAllergensFound(postprocessedResult?.userAllergens);
+        setUserMayContain(postprocessedResult?.mayContainUserAllergens);
         // console.log(postprocessedResult);
-        console.log("USER ALLERGENS FOUND: ", [...intersect(userAllergensSet, allergensSet)])
-        console.log("USER MAY CONTAIN ALLERGENS: ", [...intersect(userAllergensSet, mayContainSet)])
-        console.log()
-    }, [])
+        console.log("USER ALLERGENS FOUND: ", postprocessedResult?.userAllergens)
+        console.log("USER MAY CONTAIN ALLERGENS: ", postprocessedResult?.mayContainUserAllergens);
+        console.log("OTHER ALLERGENS: ", postprocessedResult?.allergens);
+        console.log("OTHER ALLERGENS THAT MAY BE CONTAINED: ", postprocessedResult?.mayContain);
+   }, [])
 
     return (
         <View style={{flexDirection: "column"}}>
@@ -52,6 +50,7 @@ function OCRScanResult(scan: object) {
                     <>
                         <FontAwesome5 color={"green"} style={{marginBottom: 10}} name="check-circle" size={100}/>
                         <Text style={styles.answerText}>Safe to eat</Text>
+                        <Text style={{fontWeight: "200"}}>For assistance only, always verify your result</Text>
                     </>
                 }
 

@@ -2,9 +2,13 @@ import { useAppDispatch, useAppSelector } from "../hooks";
 import { FlatList, SafeAreaView, View, TouchableNativeFeedback, Text, StyleSheet} from "react-native";
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import {useEffect} from "react";
-import { setAutoFreeze } from "immer";
+import { updateLoadingState } from "../reducers/ui-reducer";
+import { useNavigation } from "@react-navigation/native";
+import { scanBarcode } from "../api";
+
 
 function AlertScreen() {
+    const navigation = useNavigation();
     const dispatch = useAppDispatch();
     const userAllergens = useAppSelector(state => state.appData.accounts[state.user.username].allergens);//
     console.log("\n\nuserAllergens: "+ JSON.stringify(userAllergens));
@@ -32,49 +36,59 @@ function AlertScreen() {
 
     return (
         <SafeAreaView style={{flex: 1}}>
-            <FlatList
-                style={{
-                    flex: 1,
-                    borderRadius: 1,
-                    borderWidth: 0.5,
-                    borderColor: "grey",
-                    height: "100%"
-                }}
-                data={notifications}
-                keyExtractor={alert => alert.productID+alert.reporterID}
-                renderItem={(alert) => (
-                    <TouchableNativeFeedback onPress={() => {
-                        console.log("notification ", alert);
-                    }}>
-                        <View style={styles.item}>
-                            <View style={{flexDirection: "column", flexShrink: 1}}>
-                                
-                                <Text style={{marginTop: 5, fontWeight: "bold"}}>
-                                    <FontAwesome5 style={{marginRight: 5}}
-                                        color={containsMatch(userAllergens, alert.item.suspectedAllergens) ? "red" : "orange"} 
-                                        name="exclamation-triangle"
-                                        size={20}/>{"   "}
-                                    Product Reported</Text>
-                                <Text style={{flex: 1, flexWrap: "wrap", marginTop: 5, textTransform: "capitalize"}}>{alert?.item.productName}</Text>
-                                <Text style={{flex: 1, flexWrap: "wrap", marginTop: 5, textTransform: "capitalize"}}> Suspected to contain:{"  "}
-                                    {alert?.item.suspectedAllergens.map((allergen, index) => {
-                                        if (new Set(userAllergens).has(allergen)){
-                                            return <Text style={{fontWeight: "bold"}}>{allergen}  </Text>
-                                        } else {
-                                            return <Text>{allergen}  </Text>
+            {!notifications || notifications?.length == 0 ?
+                <Text style={styles.noAlerts}>No alerts received</Text>
+                :
+                <FlatList
+                    style={{
+                        flex: 1,
+                        borderRadius: 1,
+                        borderWidth: 0.5,
+                        borderColor: "grey",
+                        height: "100%"
+                    }}
+                    data={notifications}
+                    keyExtractor={alert => alert.productID+alert.reporterID}
+                    renderItem={(alert) => (
+                        <TouchableNativeFeedback onPress={async () => {
+                            console.log("notification ", alert.item.productID);
+                            dispatch(updateLoadingState());
+                            navigation.navigate("Loading", {text: "Scanning..."});
+                            let scan = await scanBarcode(alert.item.productID);
+                            navigation.navigate("Scan", {scan: scan, returnTo: "Alerts"})
+                            dispatch(updateLoadingState())
+                        }}>
+                            <View style={styles.item}>
+                                <View style={{flexDirection: "column", flexShrink: 1}}>
+                                    
+                                    <Text style={{marginTop: 5, fontWeight: "bold"}}>
+                                        <FontAwesome5 style={{marginRight: 5}}
+                                            color={containsMatch(userAllergens, alert.item.suspectedAllergens) ? "red" : "orange"} 
+                                            name="exclamation-triangle"
+                                            size={20}/>{"   "}
+                                        Product Reported</Text>
+                                    <Text style={{flex: 1, flexWrap: "wrap", marginTop: 5, textTransform: "capitalize"}}>{alert?.item.productName}</Text>
+                                    <Text style={{flex: 1, flexWrap: "wrap", marginTop: 5, textTransform: "capitalize"}}> Suspected to contain:{"  "}
+                                        {alert?.item.suspectedAllergens.map((allergen, index) => {
+                                            if (new Set(userAllergens).has(allergen)){
+                                                return <Text style={{fontWeight: "bold"}}>{allergen}  </Text>
+                                            } else {
+                                                return <Text>{allergen}  </Text>
+                                            }
                                         }
-                                    }
-                                    )}
-                                </Text>
-                                <View style={{flexDirection: "row", alignItems: "center",}}>
-                                    <FontAwesome5 style={{marginRight: 5}} name="eye" size={25}/>
-                                    <Text>View for more information</Text>
+                                        )}
+                                    </Text>
+                                    <View style={{flexDirection: "row", alignItems: "center",}}>
+                                        <FontAwesome5 style={{marginRight: 5}} name="eye" size={25}/>
+                                        <Text>View for more information</Text>
+                                    </View>
                                 </View>
                             </View>
-                        </View>
-                    </TouchableNativeFeedback>
-                )}
-            />
+                        </TouchableNativeFeedback>
+                    )}
+                />
+
+            }
         </SafeAreaView>
     )
 }
@@ -88,7 +102,12 @@ const styles = StyleSheet.create({
         backgroundColor: "white",
         marginBottom: 1,
         borderColor: "lightgrey",
-        borderWidth: 0.25
+        borderWidth: 0.25    },
+    noAlerts: {
+        fontSize: 25,
+        color: "black",
+        alignSelf: "center",
+        padding: 20
     }
 })
 

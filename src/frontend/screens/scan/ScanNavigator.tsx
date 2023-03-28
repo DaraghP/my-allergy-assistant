@@ -19,7 +19,6 @@ function ScanNavigator({route}) {
         else {
             navigation.navigate("ScanResult", {scan: route.params?.scan})
         }
-
         // console.log(route.params?.data?.products == null, route.params?.scan == null) //
     }, [route.params])
 
@@ -41,15 +40,16 @@ function ScanNavigator({route}) {
                             onPress={() => {
                                 console.log("Back button pressed.");
                                 if (route.params?.data?.products !== undefined) {
-                                    // navigation.navigate("Search", {data: route.params?.products});
-
                                     // if navigated to ScanResult through SearchScreen, then prevent ScanResult screen appearing when wanting to navigate to scanner
                                     navigation.navigate("ScanScreen");
                                     navigation.navigate("Search", {data: route.params?.data});
                                 }
+                                else if (route.params?.returnTo) {
+                                    navigation.navigate("ScanScreen");                                                                                                       
+                                    navigation.navigate(route.params?.returnTo);
+                                }
                                 else {
                                     navigation.navigate("ScanScreen");
-                                    // navigation.goBack()
                                 }
                                 setBarcodeText("");
                             }}

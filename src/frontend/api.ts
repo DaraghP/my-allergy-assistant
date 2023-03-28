@@ -1,5 +1,6 @@
 import {API, Auth} from 'aws-amplify';
 import userReducer from 'reducers/user-reducer';
+import translate from 'google-translate-api-x';
 
 
 /************** USERS API ***************/ 
@@ -518,7 +519,41 @@ const getProductDisplayName = (data) => {
   return productDisplayName;
 }
 
-const compileBarcodeResult = (data : object, barcodeText : string | null = null) => {
+export async function extractEnglishAllergens(allergenList: Array<string>) {
+  if (allergenList) {
+    console.log("allergenList = " + allergenList);
+    let s = "";
+    allergenList.forEach(async (allergen) => {
+      if (allergen.length > 0){
+        console.log(allergen);
+        allergen = allergen.toLowerCase();
+        if (allergen.includes("en:")) {
+          console.log(allergen + " includes en:");
+          if (s.length > 0) {
+            s += ", " + allergen.slice(3).charAt(0).toUpperCase() + allergen.slice(4);
+          } else {
+            s += allergen.slice(3).charAt(0).toUpperCase() + allergen.slice(4)
+          }
+        } else {
+          // allergen is listed not in english, so translate
+          console.log("allergen to be translated: " + allergen.slice(3) + " from '" + allergen.slice(0, 2) + "'");
+          let translated_text = await translate(allergen.slice(3), {from: allergen.slice(0, 2), to: 'en', forceTo: true, autoCorrect: true});
+          console.log("\n\ntranslated "+allergen+" -> "+  JSON.stringify(translated_text));
+          
+          if (s.length > 0) {
+            s+= ", " + translated_text.text.slice(0).toUpperCase() + translated_text.text.slice(1);
+          } else {
+            s+= translated_text.text.slice(0).toUpperCase() + translated_text.text.slice(1);
+          }
+        }
+      }
+    })
+    console.log("allergens_string = " + s);
+    return s;
+  }
+}
+
+function compileBarcodeResult(data : object, barcodeText : string | null = null) {
   return {
     "product_display_name": getProductDisplayName(data),
     "date": new Date().toISOString(),
@@ -531,7 +566,7 @@ const compileBarcodeResult = (data : object, barcodeText : string | null = null)
     "ingredients_text": data?.product?.ingredients_text,
     "ingredients_complete_boolean": data?.product?.states_hierarchy.includes("en:ingredients-completed"),
     // "states_hierarchy": data?.product?.states_hierarchy,
-    "allergens": data?.product?.allergens_hierarchy, //get english only
+    "allergens": data?.product?.allergens, //get english only
     "allergens_from_ingredients": data?.product?.allergens_from_ingredients,
     "may_contain": data?.product?.traces ? data?.product?.traces.replace("en:", "").replace(" ", "") : "",
     "traces_tags": data?.product?.traces_tags.length > 0 ? data?.product.traces_tags[0].replace("en:en-", "").split("-en-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(", ") : "",
@@ -551,7 +586,7 @@ export async function scanBarcode(barcodeText: string) {
     }
   }).then(res => {
     console.log("Response received.");
-    return res.json().then((data) => {
+    return res.json().then(async (data) => {
       // console.log(data);
       return compileBarcodeResult(data, barcodeText); 
     })
@@ -600,7 +635,7 @@ export async function facetedProductSearch({queryString = null, page = 1, search
     }
   }).then(res => {
 
-    return res.json().then((res) => {
+    return res.json().then(async (res) => {
       let products = [];
       for (let product of res?.products) {
         products.push({

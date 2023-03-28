@@ -33,7 +33,7 @@ interface ScannerProps {
   setBarcodeText: object
 }
 
-export const storeScan = (barcodeText, scan, scans, dispatch, user) => {
+export function storeScan(barcodeText, scan, scans, dispatch, user) {
 
     console.log(barcodeText)
     let scanObj = {[barcodeText]: {product_display_name: scan.product_display_name, date: scan.date, receive_notifications: getInitialNotificationState(barcodeText, scans)}};
