@@ -46,6 +46,7 @@ export const updateAllergens = createAction<object>("storage/update_allergens");
 export const updateScans = createAction<object>("storage/update_scans");
 export const setHasCompletedSetup = createAction<string>("storage/set_has_completed_setup") // takes username
 export const addNotification = createAction<object>("storage/add_notification");
+export const openNotification = createAction<object>("storage/set_is_opened");
 
 export const AppDataSlice = createSlice({
    name: "storage",

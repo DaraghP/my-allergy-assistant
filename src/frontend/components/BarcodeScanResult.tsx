@@ -6,7 +6,7 @@ import SwitchSelector from "react-native-switch-selector";
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import AppModal from "./AppModal";
 import { MultipleSelectList } from 'react-native-dropdown-select-list';
-import { extractEnglishAllergens, Report, addReportToDynamo, updateUser, getInitialNotificationState, addNotificationsToDynamo, deleteNotificationsFromDynamo, UpdatableNotificationObj } from "../api";
+import { translateIngredients, extractEnglishAllergens, Report, addReportToDynamo, updateUser, getInitialNotificationState, addNotificationsToDynamo, deleteNotificationsFromDynamo, UpdatableNotificationObj } from "../api";
 import {updateProductNotificationStatus} from "../reducers/app-data-reducer";
 
 function BarcodeScanResult(scan: object) {
@@ -21,17 +21,44 @@ function BarcodeScanResult(scan: object) {
     const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
     const [selectedList, setSelectedList] = useState([]);
     const reportDropdownData = [];
-    // var translated_allergen_string;
+    const [translatedAllergensText, setTranslatedAllergensText] = useState("translating..");
+    const [translatedTracesText, setTranslatedTracesText] = useState("translating..");
+    const [translatedIngredientsText, setTranslatedIngredientsText] = useState("translating..");
     scan = scan?.scan;
-    // if (scan?.allergens){
-    //     translated_allergen_string = await extractEnglishAllergens(scan?.allergens);
-    // }
 
-    const translateAllergens = async () => {
-        return `${await extractEnglishAllergens(scan?.allergens)}`;
-        // console.log("\n\ntranslated allergens ->" + `${await extractEnglishAllergens(scan?.allergens)}` + "\n\n");
-        // return "dummy allergen"
+    const translateIngredientText = async () => {
+        if (translatedIngredientsText === "translating.."){
+            console.log("[1] translated ingredients.");
+            return `${await translateIngredients(scan?.ingredients_text)}`;
+        }
+    }
+    useEffect(() => {
+        if (translatedIngredientsText === "translating.." && scan){
+            translateIngredientText().then((res)=> {
+                setTranslatedIngredientsText(res);
+            })
+        }
+        if (translatedAllergensText === "translating.." && scan){
+            translateAllergens(scan?.allergens).then((res)=> {
+                console.log("[2] translated allergens: ", res);
+                setTranslatedAllergensText(res);
+            })
+        }
+        if (translatedTracesText === "translating.." && scan){
+            translateAllergens(scan?.traces_tags).then((res) => {
+                console.log("[3] translated traces: ", res);
+                setTranslatedTracesText(res);
+            })
+        }
+    }, [])
+
+    const translateAllergens = async (allergenList: Array<string>) => {
+        // let allergenList = scan?.allergens.split(",");
+        // let joinedAllergenList = allergenList?.concat(scan?.allergens_from_ingredients.split(","));
+        // if translatedAllergens
+        return `${await extractEnglishAllergens(allergenList)}`;
     };
+
     // translateAllergens
         // AuthToken().then((res) => {
         //     console.log(res);
@@ -71,21 +98,20 @@ function BarcodeScanResult(scan: object) {
                         Click here
                     </Text> to update the product information via Open Food Facts to inform future scanners.</Text>
                     :
-                    <Text style={{alignSelf: "flex-start", paddingBottom: 20}}><Text style={{fontWeight: "bold"}}>Ingredients:</Text>  {scan?.ingredients_text}</Text>
+                    <Text style={{alignSelf: "flex-start", paddingBottom: 20}}><Text style={{fontWeight: "bold"}}>Ingredients:</Text>  {translatedIngredientsText}</Text>
                 }
 
                 {scan?.allergens == ""
                     ?
                     <Text></Text>
                     :
-                    <Text><Text style={{fontWeight: "bold"}}>Untranslated Allergens:</Text>{scan?.allergens.split(",")}</Text>
+                    <Text><Text style={{fontWeight: "bold"}}>Allergens:</Text>  {translatedAllergensText}</Text>
                 }
-                {/* {translateAllergens(scan?.allergens.split(",")).then((res)=>{return "test"})} */}
                 {scan?.traces_tags == ""
                     ?
                     <Text></Text>
                     :
-                    <Text><Text style={{fontWeight: "bold"}}>May contain traces of:</Text>  {scan?.traces_tags}</Text>
+                    <Text><Text style={{fontWeight: "bold"}}>May contain traces of:</Text>  {translatedTracesText}</Text>
                 }
                 {scan?.traces_tags == "" && scan?.allergens == "" &&
                     <Text style={{fontWeight: "bold"}}>No allergens detected</Text>

@@ -21,7 +21,7 @@ function ScanHistory({navigation}) {
     
     const mySort = (scans) => {
         let scanKeysOrdered = Object.keys(scans).sort((a, b) => {
-            console.log(scans[a].product_display_name, scans[a].date, scans[b].product_display_name, scans[b].date)
+            // console.log(scans[a].product_display_name, scans[a].date, scans[b].product_display_name, scans[b].date)
             return new Date(scans[a].date).getTime() - new Date(scans[b].date).getTime()
         }).reverse();
 
@@ -36,8 +36,8 @@ function ScanHistory({navigation}) {
     useEffect(() => {
         if (scans) {
 
-            console.log("Previous scans => ", scans);
-            console.log("orderedScans => ", orderedScans);
+            // console.log("Previous scans => ", scans);
+            // console.log("orderedScans => ", orderedScans);
 
             setOrderedScans(mySort(scans));
         }

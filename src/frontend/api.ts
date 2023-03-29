@@ -509,53 +509,99 @@ const calculateTotalPages = (totalProducts: number, pageSize: number) => {
   return result;
 }
 
-const getProductDisplayName = (data) => {
-  let productDisplayName = data?.product?.product_name ? data?.product?.product_name : "";
-  productDisplayName += data?.product?.brands ? " - " + data?.product?.brands : "";
-  productDisplayName += data?.product?.quantity ? " - " + data?.product?.quantity.replace(" ", "") : "";
+const getProductDisplayName = (productName: string, brandsList: Array<string>, quantity : string) => {
+  let productDisplayName = "";
+  productDisplayName += productName ? productName : "";
+  if (productDisplayName !== ""){
+    productDisplayName += " - "
+  }
+  if (brandsList?.length > 0){
+    productDisplayName += brandsList[0].charAt(0).toUpperCase() + brandsList[0].slice(1);
+  }
+
+  if (productDisplayName === ""){
+    productDisplayName += "Product Name Unavailable"
+  }
+  productDisplayName += quantity ? " - " + quantity.replace(" ", "") : "";
   //remove unnecessary punctuation from product name
   productDisplayName = productDisplayName.replace(/[.,\/#!$%\^&\*;:{}=\_`~()]/g,"")
       .replace(/\s{2,}/g," ");
   return productDisplayName;
 }
 
+export async function translateIngredients(ingredients: string){
+  if (ingredients?.length > 0){
+    let translatedIngredients = await translate(ingredients, {to: 'en', forceTo: true, autoCorrect: true});
+    // console.log("\n\ntranslatedIngredients:"+JSON.stringify(translatedIngredients)+"\n\n");
+    return translatedIngredients.text;
+  }
+}
+
+function mergeAllergenStringsToList(s1: string, s2: string){
+  // let merged_list;
+  // if (s1+s2===""){
+  //   merged_list=[]
+  // }else{
+  let s1_list= s1 !== "" ? s1.split(",") : [];
+  let s2_list= s2 !== "" ? s2.split(",") : [];
+  let merged_list = s1_list.concat(s2_list)
+  // }
+  return merged_list;
+}
+
 export async function extractEnglishAllergens(allergenList: Array<string>) {
   if (allergenList) {
-    console.log("allergenList = " + allergenList);
-    let s = "";
-    allergenList.forEach(async (allergen) => {
+    // console.log("allergenList = " + allergenList);
+    let translatedAllergens = new Array();
+    let i = 0;
+    while (i < allergenList.length) {
+      let allergen = allergenList[i];
       if (allergen.length > 0){
-        console.log(allergen);
+        // console.log(allergen);
         allergen = allergen.toLowerCase();
         if (allergen.includes("en:")) {
-          console.log(allergen + " includes en:");
-          if (s.length > 0) {
-            s += ", " + allergen.slice(3).charAt(0).toUpperCase() + allergen.slice(4);
-          } else {
-            s += allergen.slice(3).charAt(0).toUpperCase() + allergen.slice(4)
+          // console.log(allergen + " includes en:");
+          // if (translatedAllergens.length > 0) {
+          //   translatedAllergensallergen.slice(3).charAt(0).toUpperCase() + allergen.slice(4);
+          // } else {
+          let englishAllergen = allergen.slice(3).charAt(0).toUpperCase() + allergen.slice(4);
+          if (!translatedAllergens.includes(englishAllergen)){
+            translatedAllergens.push(englishAllergen);
           }
         } else {
           // allergen is listed not in english, so translate
-          console.log("allergen to be translated: " + allergen.slice(3) + " from '" + allergen.slice(0, 2) + "'");
-          let translated_text = await translate(allergen.slice(3), {from: allergen.slice(0, 2), to: 'en', forceTo: true, autoCorrect: true});
-          console.log("\n\ntranslated "+allergen+" -> "+  JSON.stringify(translated_text));
-          
-          if (s.length > 0) {
-            s+= ", " + translated_text.text.slice(0).toUpperCase() + translated_text.text.slice(1);
+          // console.log("allergen to be translated: " + allergen.slice(3) + " from '" + allergen.slice(0, 2) + "'");
+          let translation;
+          if (allergen.charAt(2) === ':'){
+            translation = await translate(allergen.slice(3), {from: allergen.slice(0, 2), to: 'en', forceTo: true, autoCorrect: true});
           } else {
-            s+= translated_text.text.slice(0).toUpperCase() + translated_text.text.slice(1);
+            translation = await translate(allergen, {to: 'en', forceTo: true, autoCorrect: true});
           }
+          if (translation.from.text.didYouMean){
+            translation = await translate(translation.from.text.value.replace(/[[\]]/g,''), {to: 'en', forceTo: true, autoCorrect: true})
+          }
+          // console.log("\n\ntranslated "+allergen+" -> "+  JSON.stringify(translation));
+          // console.log("before: " + s);
+          // if (s.length > 0) {
+            // s+= ", " + translation.text.charAt(0).toUpperCase() + translation.text.slice(1);
+          // } else {
+          let translated_allergen = translation.text.charAt(0).toUpperCase() + translation.text.slice(1);
+          if (!translatedAllergens.includes(translated_allergen)){
+            translatedAllergens.push(translated_allergen);
+          }
+          // console.log("after: " + s);
         }
       }
-    })
-    console.log("allergens_string = " + s);
-    return s;
+      i++;
+    }
+    // console.log("allergens_string = " + s);
+    return translatedAllergens.join(", ");
   }
 }
 
 function compileBarcodeResult(data : object, barcodeText : string | null = null) {
   return {
-    "product_display_name": getProductDisplayName(data),
+    "product_display_name": getProductDisplayName(data?.product?.product_name, data?.product?.brands_tags, data.product?.quantity),
     "date": new Date().toISOString(),
     "status": data?.status_verbose,
     "product_code": barcodeText == null ? data?.product?.code : barcodeText,
@@ -566,10 +612,10 @@ function compileBarcodeResult(data : object, barcodeText : string | null = null)
     "ingredients_text": data?.product?.ingredients_text,
     "ingredients_complete_boolean": data?.product?.states_hierarchy.includes("en:ingredients-completed"),
     // "states_hierarchy": data?.product?.states_hierarchy,
-    "allergens": data?.product?.allergens, //get english only
-    "allergens_from_ingredients": data?.product?.allergens_from_ingredients,
+    "allergens": mergeAllergenStringsToList(data?.product?.allergens, data?.product?.allergens_from_ingredients),
+    // "allergens_from_ingredients": data?.product?.allergens_from_ingredients,
     "may_contain": data?.product?.traces ? data?.product?.traces.replace("en:", "").replace(" ", "") : "",
-    "traces_tags": data?.product?.traces_tags.length > 0 ? data?.product.traces_tags[0].replace("en:en-", "").split("-en-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(", ") : "",
+    "traces_tags": data?.product.traces_tags,//[0].replace("en:en-", "").split("-en-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(", ") : "",
     "missing_ingredients": data?.product?.unknown_ingredients_n,    
     "non_vegan_ingredients": data?.product?.ingredients_analysis?.["en:non-vegan"],
     "vegan_status_unknown_ingredients": data?.product?.ingredients_analysis?.["en:vegan-status-unknown"],
@@ -640,7 +686,7 @@ export async function facetedProductSearch({queryString = null, page = 1, search
       for (let product of res?.products) {
         products.push({
           barcode: product?.code,
-          product_display_name: getProductDisplayName({product: product}),
+          product_display_name: getProductDisplayName(product.product_name, product.brands_tags, product.quantity),
           image_url: product?.image_url,
           productResults: compileBarcodeResult({product: product})
         })
