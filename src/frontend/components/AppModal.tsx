@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { View, Text, Modal, StyleSheet, TouchableOpacity, Button } from "react-native";
+import {BlurView} from "@react-native-community/blur";
 
 interface ModalBtnsConfig {
-    option1: {
+    option1?: {
         onPress: Function,
         text?: string
     },
@@ -23,45 +24,55 @@ interface AppModalProps {
 function AppModal({headerText, modalContent = <></>, modalContentText, modalBtnsConfig, isModalOpen}: AppModalProps) {
 
     return (
-        <Modal animationType="fade" visible={isModalOpen.state} onRequestClose={() => {isModalOpen.setState(!isModalOpen.state)}} transparent>
-            <View style={styles.modal}>
+        <BlurView
+            style={{position: isModalOpen.state ? "absolute" : "relative", top: 0, bottom: 0, left: 0, right: 0}}
+            blurType={"xlight"}
+            blurAmount={1}
+            blurRadius={1}
+            enabled={isModalOpen.state}
+        >
+            <Modal animationType="fade" visible={isModalOpen.state} onRequestClose={() => {isModalOpen.setState(!isModalOpen.state)}} transparent>
+                <View style={styles.modal}>
+                    <Text style={styles.modalHeader}>{headerText}</Text>
 
-                <Text style={styles.modalHeader}>{headerText}</Text>
+                    <View style={styles.modalContent}>
 
-                <View style={styles.modalContent}>
+                        <Text ellipsizeMode={"clip"}>{modalContentText}</Text>
 
-                    <Text>{modalContentText}</Text>
+                        <View style={styles.content}>
+                            {modalContent}
+                        </View>
 
-                    <View style={styles.content}>
-                        {modalContent}
-                    </View>
+                        <View style={styles.modalBtnsContainer}>
+                            {modalBtnsConfig.option1 &&
+                                <TouchableOpacity
+                                    style={styles.modalBtn}
+                                    onPress={() => {
+                                        modalBtnsConfig.option1.onPress()
+                                        isModalOpen.setState(false);
+                                    }}
+                                >
+                                    <Text style={styles.modalBtnText}>{modalBtnsConfig.option1.text}</Text>
+                                </TouchableOpacity>
+                            }
 
-                    <View style={styles.modalBtnsContainer}>
-                        <TouchableOpacity
-                            style={styles.modalBtn}
-                            onPress={() => {
-                                modalBtnsConfig.option1.onPress()
-                                isModalOpen.setState(false);
-                            }}
-                        >
-                            <Text style={styles.modalBtnText}>{modalBtnsConfig.option1.text}</Text>
-                        </TouchableOpacity>
-
-                        {modalBtnsConfig.option2 &&
-                            <TouchableOpacity
-                                style={styles.modalBtn}
-                                onPress={() => {
-                                    modalBtnsConfig.option2?.onPress()
-                                    isModalOpen.setState(false);
-                                }}
-                            >
-                                <Text style={styles.modalBtnText}>{modalBtnsConfig.option2?.text}</Text>
-                            </TouchableOpacity>
-                        }
+                            {modalBtnsConfig.option2 &&
+                                <TouchableOpacity
+                                    style={styles.modalBtn}
+                                    onPress={() => {
+                                        modalBtnsConfig.option2?.onPress()
+                                        isModalOpen.setState(false);
+                                    }}
+                                >
+                                    <Text style={styles.modalBtnText}>{modalBtnsConfig.option2?.text}</Text>
+                                </TouchableOpacity>
+                            }
+                        </View>
                     </View>
                 </View>
-            </View>
-        </Modal>
+            </Modal>
+
+        </BlurView>
     )
 }
 
@@ -72,7 +83,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 5,
         backgroundColor: "white",
         borderWidth: 0.5,
-        borderRadius: 10
+        borderRadius: 10,
     },
     modalHeader: {
         padding: 5,
@@ -84,9 +95,17 @@ const styles = StyleSheet.create({
     },
     modalContent: {
         flex: 1,
+        width: "100%",
         alignItems: "center",
         justifyContent: "center",
-        padding: 20
+        alignSelf: "center",
+        padding: 25,
+        marginTop: 25,
+        backgroundColor: "ghostwhite",
+        maxHeight: "80%",
+        maxWidth: "95%",
+        borderRadius: 5,
+        borderWidth: 0.2
     },
     content: {
         marginVertical: 10
@@ -95,7 +114,7 @@ const styles = StyleSheet.create({
         flexGrow: 0,
         // width: "100%",
         justifyContent: "center",
-        flexDirection: "row"
+        flexDirection: "row",
     },
     modalBtn: {
       flex: 1,

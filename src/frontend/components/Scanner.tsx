@@ -22,6 +22,7 @@ import ImagePicker from 'react-native-image-crop-picker';
 import {readFile, TemporaryDirectoryPath, writeFile} from "react-native-fs";
 import {updateLoadingState, updateScanMode} from '../reducers/ui-reducer';
 import FontAwesome5Icon from "react-native-vector-icons/FontAwesome5";
+import {Image as compressor} from "react-native-compressor";
 
 export enum ScanMode {
   Text = 'TEXT',
@@ -58,6 +59,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   const device = devices.back;
   const camera = useRef<Camera>(null);
   const isFocused = useIsFocused();
+  const [lastBarcodeSeen, setLastBarcodeSeen] = useState<string | null>(null);
   const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState<boolean>(false);
   const [isOcrModalOpen, setIsOcrModalOpen] = useState<boolean>(false);
   const [isProductNotFoundModalOpen, setIsProductNotFoundModalOpen] = useState<boolean>(false);
@@ -129,7 +131,10 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
         // prepare image for OCR
         dispatch(updateLoadingState());
         navigation.navigate("Loading", {text: "Scanning..."});
-        let photoBase64 = await readFile(photo, "base64");
+
+        // compress for AWS Lambda 6mb request limit
+        const compressed = await compressor.compress(photo, {quality: 0.5});
+        let photoBase64 = await readFile(compressed, "base64");
         photoBase64 = await ocrPreprocessing(photoBase64);
         const ocrImage = `data:image/jpeg;base64,${photoBase64}`;
         setEditPhoto(ocrImage);
@@ -143,7 +148,6 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
         }
 
         dispatch(updateLoadingState());
-        console.log("reset loading state");
         navigation.navigate("ScanResult", { scan: {ocrResult: text, ocrImage: photo, ocrImageOutput: ocrImage} });
   }
 
@@ -182,6 +186,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
     }
     else if (barcodeCondition && barcodes.length > 0) {
       setIsDetected(true);
+      setLastBarcodeSeen(barcodes[0].displayValue);
     }
     else {
       setIsDetected(false);
@@ -265,7 +270,6 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                           ImagePicker.openCropper({
                             path: photo,
                             freeStyleCropEnabled: true,
-                            compressImageQuality: 1,
                             enableRotationGesture: true,
                           }).then(image => {
                             setPhoto(image.path);
@@ -327,11 +331,12 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                    if (isDetected) {
                      if (ingredientsFound) {
                         setIsOcrModalOpen(true);
-
                      }
                      else {
                         setIsBarcodeModalOpen(true);
-                        setBarcodeText(barcodes[0].displayValue);
+
+                        // there is a chance that the current barcode may be lost in real-time, then lastBarcodeSeen is taken
+                        setBarcodeText(barcodes[0]?.displayValue || lastBarcodeSeen);
                      }
                    }
                  }}
@@ -341,7 +346,6 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
 
              </View>
              <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
-
                <TouchableOpacity onPress={changeScanModeHandler} style={{justifyContent: "center", alignItems: "center", alignContent: "center"}}>
                   <FontAwesome5Icon
                       color="white"
@@ -350,9 +354,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                       size={25}
                   />
                </TouchableOpacity>
-
              </View>
-
            </View>
          </>
        )}

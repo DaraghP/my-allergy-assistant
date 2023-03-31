@@ -16,11 +16,11 @@ function HomeScreen() {
 
   return (
     <ScrollView contentContainerStyle={{height: "auto", flexDirection: "column"}}>
-      <View style={{width: "100%", justifyContent: "flex-end", alignItems: "flex-end", paddingVertical: 25, marginBottom: 25, backgroundColor: "ghostwhite",  elevation: 20, shadowRadius: 10, shadowColor: "black", borderBottomEndRadius: 20, borderBottomStartRadius: 20}}>
+      <View style={{width: "100%", justifyContent: "flex-end", alignItems: "flex-end", paddingVertical: 25, marginBottom: 25, backgroundColor: "ghostwhite",  elevation: 20, shadowRadius: 10, shadowColor: "black"}}>
         <Image
-              style={{ maxWidth: "100%", maxHeight: "100%", aspectRatio: 6, alignSelf: "center", resizeMode: "contain"}}
+              style={{width: "75%", maxWidth: "100%", maxHeight: "100%", aspectRatio: 6, alignSelf: "center", resizeMode: "contain"}}
               source={require("../assets/maaLogoTransparent.png")}
-          />
+        />
       </View>
 
       <View style={{flexDirection: "column"}}>
@@ -28,7 +28,7 @@ function HomeScreen() {
           <View style={styles.boxesContainer}>
             <View style={styles.boxContainer}>
               <TouchableOpacity style={{backgroundColor: "red", ...styles.box}} onPress={() => {navigation.navigate("Scan"); dispatch(updateScanMode(ScanMode.Barcode)); }}>
-                <FontAwesome5Icon  name={"barcode"} size={50} color={"white"} />
+                <FontAwesome5Icon name={"barcode"} size={50} color={"white"} />
               </TouchableOpacity>
 
               <Text style={styles.boxTitle}>Scan Barcode</Text>

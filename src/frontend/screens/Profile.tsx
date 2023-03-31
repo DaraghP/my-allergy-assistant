@@ -7,6 +7,8 @@ import {useAppDispatch, useAppSelector} from "../hooks";
 import { deleteAccount } from "../reducers/app-data-reducer";
 import AppModal from "../components/AppModal";
 import { useNavigation } from "@react-navigation/native";
+import Accordion from "../components/Accordion";
+import FontAwesome5Icon from "react-native-vector-icons/FontAwesome5";
 // import { BlurView } from "@react-native-community/blur";
 
 function ProfileScreen() {// s
@@ -14,56 +16,40 @@ function ProfileScreen() {// s
     let dispatch = useAppDispatch();
     let user = useAppSelector(state => state.user);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-    // const AuthToken = async () => {
-    //     return `${(await Auth.currentSession()).getIdToken().getJwtToken()}`
-    // };
-    // AuthToken().then((res) => {
-    //     console.log(res);
-    // });
-    const LogOut = () => {
-        return (
-            <Button
-                color={'red'}
-                title={'Log out'}
-                onPress={() => {
-                    Auth.signOut();
-                }}
-            />
-        );
-    };
-
-    const confirmAllergens = () => {
-        // for now will do nothing
-    }
+    const [isAllergySelectionAccordionOpen, setIsAllergySelectionAccordionOpen] = useState<boolean>(false);
 
     return (
         <>
-            <LogOut/>
-
-            {/* TODO: Decide if this needs an accordion*/}
-            <View style={{flex: 1, padding: 5}}>
-                <Text style={styles.heading}>Change your allergies</Text>
-                <AllergySelectionList onConfirm={confirmAllergens}/>
-
-                <Text>{"\n\n"}</Text>
-                <Button
-                    title={"Delete account"}
-                    onPress={() => {
-                        setIsModalOpen(true);
-                        console.log("deleting account!")
-                    }}
+            <View>
+                <Accordion
+                    headerStyle={{paddingVertical: 15}}
+                    headerTextStyle={{...styles.buttonText, marginLeft: 0}}
+                    headerText={"Change Selected Allergies"}
+                    content={<AllergySelectionList onConfirm={() => {}}/>} collapsed={isAllergySelectionAccordionOpen}
+                    setCollapsed={setIsAllergySelectionAccordionOpen}
                 />
-                <Text>{"\n\n"}</Text>
-                <Button
-                    title={"Scan History"}
-                    color={"navy"}
+
+                <TouchableOpacity
+                    style={styles.button}
                     onPress={() => {
-                        console.log("Scan History");
                         navigation.navigate("ScanHistory");
                     }}
-                />
+                >
+                    <FontAwesome5Icon name={"history"} size={25}/>
+                    <Text style={styles.buttonText}>Scan History</Text>
+                </TouchableOpacity>
 
-                {/* <BlurView> */}
+
+                <TouchableOpacity
+                    style={styles.button}
+                    onPress={() => {
+                        setIsModalOpen(true);
+                    }}
+                >
+                    <FontAwesome5Icon color={"red"} name={"times-circle"} size={25}/>
+                    <Text style={styles.buttonText}>Delete Account</Text>
+                </TouchableOpacity>
+
                 <AppModal
                     isModalOpen={{state: isModalOpen, setState: (bool: boolean) => {setIsModalOpen(bool)}}}
                     headerText={"Delete Account"}
@@ -91,15 +77,26 @@ function ProfileScreen() {// s
                         }
                     }}
                 />
-                {/* </BlurView> */}
 
-                <Text>{"\n\n"}</Text>
             </View>
         </>
     )
 }
 
 const styles = StyleSheet.create({
+    button: {
+        flexDirection: "row",
+        backgroundColor: "white",
+        width: "100%",
+        padding: 10,
+        paddingVertical: 15,
+        borderWidth: 0.5,
+    },
+    buttonText: {
+        color: "black",
+        fontSize: 20,
+        marginLeft: 15
+    },
     modal: {
         flex: 1,
         marginVertical: "50%",

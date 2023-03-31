@@ -1,5 +1,5 @@
 import React, {useEffect, useState,} from 'react';
-import {Button, Text, Linking, StyleSheet, View} from 'react-native';
+import {Button, Text, Linking, StyleSheet, View, Image} from 'react-native';
 import {Amplify, Auth} from 'aws-amplify';
 // @ts-ignore
 import {withOAuth} from 'aws-amplify-react-native';
@@ -55,8 +55,6 @@ const App = (props) => {
           case 'signIn':
               console.log("signIn")
               setIsLoggingIn(true);
-            // navigation.navigate(Loading, {text: "Logging in..."});
-            // dispatch(updateLoadingState());
             // getSingleUser from DynamoDB
             Auth.currentAuthenticatedUser().then((user) => {
                 dispatch(updateEmail(user.attributes.email))
@@ -128,16 +126,12 @@ const App = (props) => {
 
   return (
       <>
-          {/* there was a brief bit where it had loading screen above authenticator so gonna put it as ? : instead of &&
-              ned to set logginIn when automatically signing in
-
-          */}
-          {isLoggingIn ?
-              <LoadingScreen/>
+        {isLoggingIn ?
+          <LoadingScreen/>
           :
           authStatus != "authenticated" ?
             <Authenticator
-                Header={() => <Text style={{...styles.centerText, fontSize: 25}}>MyAllergyAssistant</Text>}
+                Header={() => <Image style={{width: "75%", maxWidth: "100%", maxHeight: "100%", aspectRatio: 6, alignSelf: "center", resizeMode: "contain"}} source={require("./assets/maaLogoTransparent.png")}/>}
                 Footer={() => {
                     return (
                         <View style={{marginHorizontal: 30}}>
@@ -153,12 +147,9 @@ const App = (props) => {
                     )
                 }}
             />
-
-              // {isLoggingIn && <LoadingScreen/>}
-
             :
             <AuthenticatedApp/>
-          }
+        }
       </>
   );
 };

@@ -19,6 +19,7 @@ import {updateDeviceEndpoint} from '../reducers/user-reducer';
 import {addNotification} from '../reducers/app-data-reducer';
 import {registerDeviceToken} from "../api";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
+import LogOut from "./LogOut";
 
 function AuthenticatedApp() {
     const dispatch = useAppDispatch();
@@ -28,9 +29,9 @@ function AuthenticatedApp() {
     const deviceEndpoint = useAppSelector(state => state.user.deviceEndpoint);
     const account = useAppSelector(state => state.appData.accounts);
     const didSearch = useAppSelector(state => state.ui.didSearch);
-    const loading = useAppSelector(state => state.ui.loading);// alright try report now
+    const loading = useAppSelector(state => state.ui.loading);
     const username = useAppSelector(state => state.user.username);
-    const notifications = useAppSelector(state => state.appData.accounts[state.user.username].notifications);
+    const notifications = useAppSelector(state => state.appData.accounts[state.user.username]?.notifications);
     const setupRequired = useAppSelector(state => state.user.username in state.appData.accounts ? !state.appData.accounts[state.user.username].hasCompletedSetup : null);
 
     const searchTabOptions = {
@@ -74,7 +75,7 @@ function AuthenticatedApp() {
         console.log(`Background notification: ${notification.title} : ${notification.body}`, notification.payload);
 
         dispatch(addNotification({username: username, notificationData: notification.payload["gcm.notification.data"]}));
-        // do stuff with notification data
+
         completion({alert: true, sound: true, badge: true});
       })
     
@@ -88,26 +89,6 @@ function AuthenticatedApp() {
         console.log("account", JSON.stringify(account));
         console.log("setupRequired -> ", setupRequired);
     }, [setupRequired])
-
-    // useEffect(() => {
-    //   if (didSearch) {
-    //     delete searchTabOptions["tabBarButton"];
-    //     // setSearchTabOptions(searchTabOptions);  
-    //     setSearchTabOptions({
-    //       ...searchTabOptions,       
-    //       headerLeft: (props) => (
-    //         <HeaderBackButton
-    //             {...props}
-    //             onPress={() => {
-    //                 console.log("Back button pressed.");
-    //                 navigationRef.goBack();
-    //             }}
-    //         />
-    //       )
-            
-    //     });
-    //   }
-    // }, [didSearch])
 
     return (
        <>
@@ -135,7 +116,13 @@ function AuthenticatedApp() {
                           tabBarIcon: () => <FontAwesome5 name={"bell"} solid size={25}/>
                       }}/>
 
-                      <Tab.Screen name="Profile" component={ProfileScreen} options={{tabBarIcon: () => <FontAwesome5 name={"user"} solid size={25}/>}}/>
+                      <Tab.Screen
+                          name="Profile" component={ProfileScreen}
+                          options={{
+                              tabBarIcon: () => <FontAwesome5 name={"user"} solid size={25}/>,
+                              headerRight: () => <LogOut style={{marginRight: 25}}/>
+                          }}
+                      />
                       <Tab.Screen
                         name="ScanHistory"
                         component={ScanHistory}
@@ -148,7 +135,7 @@ function AuthenticatedApp() {
                                 {...props}
                                 onPress={() => {
                                     console.log("Back button pressed.");
-                                    navigationRef.goBack();
+                                    navigationRef.navigate("Profile");
                                 }}
                             />
                           )

@@ -15,8 +15,12 @@ def lambda_handler(event, context):
 
     # apply pre-processing techniques
     grayscaled_image = cv2.cvtColor(cv2_image, cv2.COLOR_BGR2GRAY)
-    binarized_image = cv2.threshold(grayscaled_image, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-    denoised_image = cv2.fastNlMeansDenoising(binarized_image, None, 10, 7, 15)
+    dilated_image = cv2.dilate(grayscaled_image, (1, 1), iterations=1)
+    eroded_image = cv2.erode(dilated_image, (1, 1), iterations=1)
+    morph_image = cv2.morphologyEx(eroded_image, cv2.MORPH_CLOSE, (1, 1))
+    smoothed_image = cv2.medianBlur(morph_image, 3)
+    binarized_image = cv2.adaptiveThreshold(smoothed_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 21, 10)
+    denoised_image = cv2.fastNlMeansDenoising(binarized_image, None, 5, 7, 15)
     rotated_image, angle = deskew_image(denoised_image)
 
     buffer = cv2.imencode(".jpg", rotated_image)[1]

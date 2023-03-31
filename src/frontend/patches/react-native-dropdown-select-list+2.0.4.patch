@@ -1,0 +1,66 @@
+diff --git a/node_modules/react-native-dropdown-select-list/components/MultipleSelectList.tsx b/node_modules/react-native-dropdown-select-list/components/MultipleSelectList.tsx
+index 1e8e332..f2434db 100644
+--- a/node_modules/react-native-dropdown-select-list/components/MultipleSelectList.tsx
++++ b/node_modules/react-native-dropdown-select-list/components/MultipleSelectList.tsx
+@@ -17,6 +17,7 @@ type L1Keys = { key?: any; value?: any; disabled?: boolean | undefined }
+ 
+ const MultipleSelectList: React.FC<MultipleSelectListProps> = ({
+         fontFamily,
++        selected,
+         setSelected,
+         placeholder,
+         boxStyles,
+@@ -48,7 +49,7 @@ const MultipleSelectList: React.FC<MultipleSelectListProps> = ({
+     const oldOption = React.useRef(null)
+     const [_firstRender,_setFirstRender] = React.useState<boolean>(true);
+     const [dropdown, setDropdown] = React.useState<boolean>(dropdownShown);
+-    const [selectedval, setSelectedVal] = React.useState<any>([]);
++    const [selectedval, setSelectedVal] = React.useState<any>(selected);
+     const [height,setHeight] = React.useState<number>(350)
+     const animatedvalue = React.useRef(new Animated.Value(0)).current;
+     const [filtereddata,setFilteredData] = React.useState(data);
+@@ -331,32 +332,6 @@ const MultipleSelectList: React.FC<MultipleSelectListProps> = ({
+                                 
+                             </ScrollView>
+ 
+-                                {
+-                                    (selectedval?.length > 0)
+-                                    ?
+-                                        <Pressable>
+-                                            <View style={{flexDirection:'row', justifyContent:'space-between',alignItems:'center',paddingLeft:20}}>
+-                                                <Text style={{marginRight:20,fontWeight:'600',fontFamily}}>Selected</Text>
+-                                                <View style={{height: 1, flex: 1, backgroundColor: 'gray'}} />
+-                                            </View>
+-                                            <View style={{flexDirection:'row',paddingHorizontal:20,marginBottom:20,flexWrap:'wrap'}}>
+-                                            
+-                                                {
+-                                                    selectedval?.map((item,index) => {
+-                                                        return (
+-                                                            <View key={index} style={[{backgroundColor:'gray',paddingHorizontal:20,paddingVertical:5,borderRadius:50,marginRight:10,marginTop:10},badgeStyles]}>
+-                                                                <Text style={[{color:'white',fontSize:12,fontFamily},badgeTextStyles]}>{item}</Text>
+-                                                            </View>
+-                                                        )
+-                                                    })
+-                                                }
+-
+-                                            </View>
+-                                        </Pressable>
+-                                    :
+-                                    null
+-                                }
+-                                
+ 
+                             
+                         </View>
+diff --git a/node_modules/react-native-dropdown-select-list/index.d.ts b/node_modules/react-native-dropdown-select-list/index.d.ts
+index cee3ba0..f8fd979 100644
+--- a/node_modules/react-native-dropdown-select-list/index.d.ts
++++ b/node_modules/react-native-dropdown-select-list/index.d.ts
+@@ -116,6 +116,7 @@ export interface SelectListProps  {
+ 
+ 
+ export interface MultipleSelectListProps  {
++    selected: Array<string>,
+     /**
+     * Fn to set Selected option value which will be stored in your local state
+     */

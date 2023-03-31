@@ -8,7 +8,6 @@ import {updateAllergens} from "../reducers/app-data-reducer";
 import {User, postNewUser, updateUser} from "../api";
 import ALLERGENS from "../allergens.json";
 import _ from "lodash";
-import {Auth} from "aws-amplify";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface AllergySelectionListProps {
@@ -71,7 +70,6 @@ function AllergySelectionList({onConfirm = null, update = true, customSelection 
 
     return (
         <SafeAreaView style={{flex: 1}}>
-        
             <FlatList
                 style={styles.list}
                 stickyHeaderIndices={[0]}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {View, Text, TouchableOpacity, StyleSheet} from "react-native";
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Collapsible from "react-native-collapsible";
+import Accordion from "./Accordion";
 
 function OCRScanResult(scan: object) {
     const account = useAppSelector(state => state.appData.accounts[state.user.username]);
@@ -80,20 +81,13 @@ function OCRScanResult(scan: object) {
                 <Text style={styles.resultSubHeader}>Other Allergens that may have been found</Text>
                 {allergensRender(mayContain)}
                 
-                <View style={{width: "100%", marginTop: 50}}>
-                    <View style={{backgroundColor: "white", width: "auto", paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: "#a1a1a1"}}>
-                        <TouchableOpacity onPress={() => {setIsTextOutputCollapsed(!isTextOutputCollapsed)}}>
-                            <View style={{flexDirection: "row"}}>
-                                <FontAwesome5 style={{marginRight: 15}} name={isTextOutputCollapsed ? "chevron-down" : "chevron-up"} size={25}/>
-                                <Text>View Output Text</Text>
-                            </View>
-                        </TouchableOpacity>
-                    </View>
-
-                    <Collapsible collapsed={isTextOutputCollapsed} style={{backgroundColor: "ghostwhite", padding: 15, borderWidth: 0.5, borderBottomLeftRadius: 5, borderBottomRightRadius: 5, borderTopWidth: 0}}>
-                        <Text>{scan?.ocrResult?.text}</Text>
-                    </Collapsible>
-                </View>
+                <Accordion
+                    style={{width: "100%", marginTop: 50}}
+                    headerText={"View Output Text"}
+                    collapsed={isTextOutputCollapsed}
+                    setCollapsed={setIsTextOutputCollapsed}
+                    content={<Text>{scan?.ocrResult?.text}</Text>}
+                />
             </View>
         </View>
     )

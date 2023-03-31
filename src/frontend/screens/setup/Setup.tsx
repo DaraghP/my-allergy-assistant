@@ -16,7 +16,8 @@ function Setup({route, navigation}) {
 const styles = StyleSheet.create({
     importantText: {
         color: "black",
-        fontWeight: "900"
+        fontWeight: "900",
+        fontSize: 15,
     },
     subheading: {
         marginBottom: 5,

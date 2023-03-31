@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {Dimensions, ScrollView, Text, StyleSheet, View, Image, Button, TouchableOpacity, Modal, Linking} from "react-native";
 import {useAppSelector, useAppDispatch} from "../hooks";
 import ALLERGENS from "../allergens.json";
@@ -20,7 +20,7 @@ function BarcodeScanResult(scan: object) {
     const scans = useAppSelector(state => state.appData.accounts[username]?.scans);
     const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
     const [selectedList, setSelectedList] = useState([]);
-    const reportDropdownData = [];
+    const [viewReportWarning, setViewReportWarning] = useState<boolean>(true);
     const [translatedAllergensText, setTranslatedAllergensText] = useState("translating..");
     const [translatedTracesText, setTranslatedTracesText] = useState("translating..");
     const [translatedIngredientsText, setTranslatedIngredientsText] = useState("translating..");
@@ -74,11 +74,14 @@ function BarcodeScanResult(scan: object) {
     //         })
     //     }
     // }, [scans]);
+    useEffect(() => {
+        // setSelectedList(user?.allergens);
+        console.log("test a")
+    }, [user?.allergens])
 
-
-    if (user?.allergens){
-        user?.allergens?.forEach((allergen) => (reportDropdownData.push(allergen)));
-    }
+    useEffect(() => {
+        console.log(selectedList)
+    }, [selectedList])
 
     return (
         <>
@@ -176,17 +179,45 @@ function BarcodeScanResult(scan: object) {
             <AppModal
                 isModalOpen={{state: isReportModalOpen, setState: (bool: boolean) => {setIsReportModalOpen(bool)}}}
                 headerText={"Are you sure you want to report this product?"}
-                modalContentText={"Only report products if it caused you to have an allergic reaction, and you have consulted with a doctor to ensure you're not allergic to any of the listed ingredients. \n\n This will notify all users who previously scanned this product's barcode. \n A warning will also be displayed on the product page to warn future scanners. \n\n If you are certain what caused your allergic reaction, please select the allergen(s) from the dropdown list:"}
                 modalContent={
-                    <MultipleSelectList
-                        label={'Allergen'}
-                        setSelected={(value)=>setSelectedList(value)}
-                        data={reportDropdownData}
-                        save="value"
-                        // onSelect={()=>alert(selectedList)}
-                    />
+                    <>
+                        {viewReportWarning ?
+                            <>
+                                <Text>
+                                    Only report products if it caused you to have an allergic reaction, and you have
+                                    consulted with a doctor to ensure you're not allergic to any of the listed
+                                    ingredients. {"\n\n"}This will notify all users who previously scanned this product's
+                                    barcode. {"\n\n"}A warning will also be displayed on the product page to warn future
+                                    scanners. {"\n\n"}If you are certain what caused your allergic reaction, please select
+                                    the allergen(s) from the dropdown list:
+                                </Text>
+                                <TouchableOpacity style={{backgroundColor: "red", borderRadius: 50, padding: 10, marginVertical: 20, justifyContent: "center", alignItems: "center"}} onPress={() => {setViewReportWarning(false)}}>
+                                    <Text style={{color: "white"}}>Specify Allergens</Text>
+                                </TouchableOpacity>
+                            </>
+                            :
+                            <TouchableOpacity style={{marginBottom: 10, alignItems: "center"}} onPress={() => {setViewReportWarning(true)}}>
+                                <Text style={{fontWeight: "300", fontSize: 25, color: "grey", textDecorationLine: "underline"}}>Go Back...</Text>
+                            </TouchableOpacity>
+                        }
+                            <View style={{flex: viewReportWarning ? 0 : 1, minWidth: "100%"}} onTouchStart={() => {setViewReportWarning(false)}}>
+                                {!viewReportWarning &&
+                                    <ScrollView>
+                                        <MultipleSelectList
+                                            style={{flex: 1}}
+                                            label={'Allergens Chosen'}
+                                            selected={selectedList}
+                                            setSelected={(value) => setSelectedList(value)}
+                                            data={user?.allergens}
+                                            save="value"
+                                            placeholder={"Reported Allergens"}
+                                        />
+                                    </ScrollView>
+                                }
+                        </View>
+                        </>
                 }
-                modalBtnsConfig={{
+                modalBtnsConfig={viewReportWarning && {
                     option1: {
                         onPress: () => {
                             console.log("report cancelled.")
