@@ -80,9 +80,11 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 project.ext.react = [
     enableHermes: true,  // clean and rebuild if changing
+    entryFile: "index.tsx",
+    enableVmCleanup: false
 ]
 
-apply from: "../../node_modules/react-native/react.gradle"
+// apply from: "../../node_modules/react-native/react.gradle"
 
 /**
  * Set this to true to create two separate APKs instead of one:
@@ -110,7 +112,7 @@ def enableProguardInReleaseBuilds = false
  * give correct results when using with locales other than en-US.  Note that
  * this variant is about 6MiB larger per architecture than default.
  */
-def jscFlavor = 'org.webkit:android-jsc:+'
+def jscFlavor = 'org.webkit:android-jsc-intl:+'
 
 /**
  * Whether to enable the Hermes VM.
@@ -212,6 +214,12 @@ android {
         }
     }
     signingConfigs {
+        release {
+            storeFile file('maa.keystore')
+            storePassword "ca400Allergy"
+            keyAlias "maa"
+            keyPassword "ca400Allergy"
+        }
         debug {
             storeFile file('debug.keystore')
             storePassword 'android'
@@ -226,7 +234,8 @@ android {
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+//             signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
@@ -254,6 +263,8 @@ dependencies {
 
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
+
+    implementation 'com.facebook.soloader:soloader:0.9.0+'
 
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
 
