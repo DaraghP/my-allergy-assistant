@@ -213,7 +213,7 @@ export async function addReportToDynamo({productId, productName, username, suspe
   if (Object.keys(getReportsResponse).length == 0){
     API.post('myAPI', '/reportsLambda-dev', {
       body: {
-        Item: {product_id: productId, product_name: productName, reports: [{suspected_allergens: suspectedAllergens, user_id: username}]},
+        Item: {product_id: productId, product_name: productName, reports: [{suspected_allergens: suspectedAllergens, user_id: username, date: new Date()}]},
       },
       headers: {
         'Content-Type': 'application/json',
@@ -248,12 +248,13 @@ export async function addReportToDynamo({productId, productName, username, suspe
           ExpressionAttributeValues: {
             ':addReport': [{
               "suspected_allergens": suspectedAllergens,
-              "user_id": username
+              "user_id": username,
+              "date": new Date(),
             }],
             ':emptyReportsList': []
           },
           ReturnValues: 'UPDATED_NEW',
-          ReportData: {product_name: productName, report: {suspected_allergens: suspectedAllergens, user_id: username}}
+          ReportData: {product_name: productName, report: {suspected_allergens: suspectedAllergens, user_id: username, date: new Date()}}
         },
         headers: {
           'Content-Type': 'application/json',
@@ -301,6 +302,33 @@ export async function getProductReports({productId} : Report) {
   )
 }
 
+export async function deleteProductReport({productId} : Report, index) {
+  console.log('deleting report from dynamoDB...');
+  API.put('myAPI', '/reportsLambda-dev', {
+    body: {
+      Key: {product_id: productId},
+      UpdateExpression: "REMOVE reports["+index+"]",
+      // ExpressionAttributeValues: {
+      //   ':myIndx': index
+      // },
+      ReturnValues: 'UPDATED_NEW',
+    },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `${(await Auth.currentSession())
+          .getIdToken()
+          .getJwtToken()}`,
+    },
+  })
+      .then(res => {
+        console.log('SUCCESS 200 Report deleted');
+        console.log(res);
+      })
+      .catch(err => {
+        console.log(err);
+        console.log(err.response.data);
+      });
+}
 
 /************** NOTIFICATIONS API ***************/ 
 
