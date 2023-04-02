@@ -33,7 +33,7 @@ backend-test:
   stage: backend-test
   before_script:
     - cd src/backend/lambda_functions
-    - chmod +x ./npm-install.sh
+    - chmod +x ./npm_install.sh
     - ./npm_install.sh
     - cd ../__tests__
     - npm i
