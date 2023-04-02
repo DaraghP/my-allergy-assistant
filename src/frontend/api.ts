@@ -70,7 +70,6 @@ export async function deleteUser({username, email} : User) {
 export async function updateUser({username, email, deviceEndpoint: deviceEndpoint, allergens, scan, receive_notifications, product_id}: UpdatableUserData){// , {allergens = [], scans = []} : UpdatableUserData) {
   let requestBody;
   if (allergens) {
-    // if (typeof allergens[0] == String)
     console.log("data is allergens");
     requestBody = {
       Key: {username: username, email: email},
@@ -96,11 +95,11 @@ export async function updateUser({username, email, deviceEndpoint: deviceEndpoin
     };
   } else if (scan) {
     console.log("data is scan");
-  // user.scans = {'1': {}, '2'={}}
-  // if product_id in user.scans: update that scan
-  // else append to user.scans 
-  // yeah but a user should still be able to use the app without accepting notifications permissions
-    requestBody = { // 
+    // user.scans = {'1': {}, '2'={}}
+    // if product_id in user.scans: update that scan
+    // else append to user.scans
+
+    requestBody = {
       Key: {username: username, email: email},
       UpdateExpression: `set #scans.#product = :scanResult`, // ${scan.product_id}
       ExpressionAttributeValues: {

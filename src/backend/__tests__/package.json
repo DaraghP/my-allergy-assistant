@@ -1,0 +1,22 @@
+{
+  "scripts": {
+    "test": "jest"
+  },
+  "jest": {
+    "preset": "jest-dynalite",
+    "testPathIgnorePatterns": [
+      "jest*",
+      "helperFunctions.js"
+    ]
+  },
+  "devDependencies": {
+    "jest-dynalite": "^3.6.1",
+    "jest-junit": "^15.0.0"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1348.0",
+    "aws-sdk-mock": "^5.8.0",
+    "jest": "^29.5.0",
+    "lambda-local": "^2.0.3"
+  }
+}

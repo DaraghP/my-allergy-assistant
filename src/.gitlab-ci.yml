@@ -3,6 +3,7 @@ image: node:latest
 stages:
   - mobile-build
   - amplify
+  - backend-test
   - ui-test
 
 cache:
@@ -27,6 +28,16 @@ amplify:
     - chmod +x ./amplify-gitlab-ci.sh
     - ./amplify-gitlab-ci.sh
     - mv aws-exports.js frontend/aws-exports.ts
+
+backend-test:
+  stage: backend-test
+  before_script:
+    - cd src/backend/lambda_functions
+    - ./npm_install.sh
+    - cd ../__tests__
+    - npm i
+  script:
+    - npm test
 
 ui-test:
   stage: ui-test

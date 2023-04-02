@@ -86,3 +86,10 @@ amplifytools.xcconfig
 .secret-*
 **.sample
 #amplify-do-not-edit-end
+/backend/DynamoDBLocal_Lib/
+/backend/DynamoDBLocal.jar
+/backend/__tests__/DynamoDBLocal_Lib/
+/backend/amplify/.config/local-aws-info.json
+/backend/amplify/.config/local-env-info.json
+/backend/amplify/backend/amplify-meta.json
+/backend/amplify/#current-cloud-backend/
