@@ -22,7 +22,7 @@ mobile-build:
 amplify:
   stage: amplify
   before_script:
-    - cd src
+    - cd src/backend
   script:
     - npm install -g @aws-amplify/cli
     - chmod +x ./amplify-gitlab-ci.sh
