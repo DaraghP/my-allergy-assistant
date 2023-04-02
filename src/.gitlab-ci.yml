@@ -6,11 +6,11 @@ stages:
   - backend-test
   - ui-test
 
-cache:
-  key: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - src/frontend/node_modules/
-    - src/frontend/aws-exports.ts
+#cache:
+#  key: ${CI_COMMIT_REF_SLUG}
+#  paths:
+#    - src/frontend/node_modules/
+#    - src/frontend/aws-exports.ts
 
 mobile-build:
   stage: mobile-build
