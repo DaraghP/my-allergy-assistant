@@ -9,5 +9,6 @@ do
   echo "$dir"
   [ -d "node_modules" ] && rm -r node_modules
   npm install --no-package-lock
+  ls
   cd -
 done
