@@ -47,6 +47,8 @@ export const updateScans = createAction<object>("storage/update_scans");
 export const setHasCompletedSetup = createAction<string>("storage/set_has_completed_setup") // takes username
 export const addNotification = createAction<object>("storage/add_notification");
 export const openNotification = createAction<object>("storage/set_is_opened");
+export const deleteNotification = createAction<object>("storage/delete_notification");
+// export const deleteReportRedux = createAction<object>("storage/delete_report");
 
 export const AppDataSlice = createSlice({
    name: "storage",
@@ -101,6 +103,7 @@ export const AppDataSlice = createSlice({
            const username = action.payload.username;
            console.log(action.payload, "test")
            const payloadData = JSON.parse(action.payload.notificationData);
+           const date = action.payload.date;
            const productID = payloadData.product_id;
            const productName = payloadData.product_name;
            const suspectedAllergens = payloadData.report.suspected_allergens;
@@ -118,18 +121,32 @@ export const AppDataSlice = createSlice({
                }
            })
            if (!isDuplicate) {
-               state.accounts[username].notifications = [...state.accounts[username].notifications, {productID: productID, productName: productName, suspectedAllergens: suspectedAllergens, reporterID: reporterID, isOpened: false}];
+               state.accounts[username].notifications = [...state.accounts[username].notifications, {productID: productID, productName: productName, suspectedAllergens: suspectedAllergens, reporterID: reporterID, isOpened: false, date: date}];
            }
            
         },
        delete_notification(state, action) {
            const username = action.payload.username;
-           const index = action.payload.index;
-           const currentState = state.accounts[username].notifications;
-
-           delete currentState[index];
-           state.accounts[username].notifications = currentState;
+           const productId = action.payload.productId;
+           let myIndex=-1;
+           console.log("entering loop of alerts");
+           state.accounts[username].notifications.map((noti, index)=>{
+                console.log("productID="+noti.productID+", reporterID="+noti.reporterID);
+                if ((noti.productID === productId) && (noti.reporterID===username)){
+                    console.log("found match");
+                    myIndex = index;
+                }
+           })
+           console.log("index match: "+myIndex);
+           if (myIndex !== -1){
+            state.accounts[username].notifications.splice(myIndex, 1);
+           }
        },
+    //    delete_report(state, action){
+    //         const username = action.payload.username;
+    //         const indx = action.payload.indx;
+    //         state.accounts.username
+    //    },
        set_is_opened(state, action) {
            const username = action.payload.username;
            const index = action.payload.index;

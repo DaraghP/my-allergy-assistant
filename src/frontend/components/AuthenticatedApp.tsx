@@ -66,7 +66,7 @@ function AuthenticatedApp() {
       Notifications.events().registerNotificationReceivedForeground((notification: Notification, completion) => {
         console.log(typeof notification.payload, notification.payload);//
         console.log(`Foreground notification: ${notification.payload["gcm.notification.title"]} : ${notification.payload["gcm.notification.body"]} : ${notification.payload["gcm.notification.data"]}`);
-        dispatch(addNotification({username: username, notificationData: notification.payload["gcm.notification.data"]}));
+        dispatch(addNotification({username: username, notificationData: notification.payload["gcm.notification.data"], date: new Date()}));
 
         completion({alert: true, sound: true, badge: true});
       })
@@ -74,7 +74,7 @@ function AuthenticatedApp() {
       Notifications.events().registerNotificationReceivedBackground((notification: Notification, completion : (response: NotificationCompletion) => void) => {
         console.log(`Background notification: ${notification.title} : ${notification.body}`, notification.payload);
 
-        dispatch(addNotification({username: username, notificationData: notification.payload["gcm.notification.data"]}));
+        dispatch(addNotification({username: username, notificationData: notification.payload["gcm.notification.data"], date: new Date()}));
 
         completion({alert: true, sound: true, badge: true});
       })
@@ -111,7 +111,7 @@ function AuthenticatedApp() {
                       <Tab.Screen name="Search" component={SearchScreen} options={searchTabOptions}/>
 
                       <Tab.Screen name="Alerts" component={AlertScreen} options={{
-                          tabBarBadge: notifications?.length > 0 ? notifications.length : undefined,
+                          tabBarBadge: notifications?.filter(function(alert){return !alert?.isOpened}).length > 0 ? notifications.filter(function(alert){return !alert?.isOpened}).length : undefined,
                           tabBarBadgeStyle: {borderRadius: 10},
                           tabBarIcon: () => <FontAwesome5 name={"bell"} solid size={25}/>
                       }}/>

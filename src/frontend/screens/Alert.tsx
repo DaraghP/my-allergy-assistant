@@ -3,9 +3,10 @@ import { FlatList, SafeAreaView, View, TouchableNativeFeedback, Text, StyleSheet
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import {useEffect} from "react";
 import { updateLoadingState } from "../reducers/ui-reducer";
-import { openNotification } from "../reducers/app-data-reducer";
+import { openNotification, deleteNotification } from "../reducers/app-data-reducer";
 import { useNavigation } from "@react-navigation/native";
 import { scanBarcode } from "../api";
+import moment from 'moment';
 
 
 function AlertScreen() {
@@ -13,7 +14,7 @@ function AlertScreen() {
     const dispatch = useAppDispatch();
     const username = useAppSelector(state => state.user.username);
     const userAllergens = useAppSelector(state => state.appData.accounts[state.user.username].allergens);//
-    console.log("\n\nuserAllergens: "+ JSON.stringify(userAllergens));
+    // console.log("\n\nuserAllergens: "+ JSON.stringify(userAllergens));
     const notifications = useAppSelector(state => state.appData.accounts[state.user.username].notifications);
 
     useEffect(() => {
@@ -38,7 +39,7 @@ function AlertScreen() {
     }
 
     return (
-        <SafeAreaView style={{flex: 1}}>
+        <SafeAreaView style={{flex: 1, backgroundColor: "lightgrey"}}>
             {!notifications || notifications?.length == 0 ?
                 <Text style={styles.noAlerts}>No alerts received</Text>
                 :
@@ -55,9 +56,9 @@ function AlertScreen() {
                         height: "100%"
                     }}
                     data={notifications}
-                    keyExtractor={alert => alert.productID+alert.reporterID}
+                    keyExtractor={(alert, index) => alert.productID+alert.reporterID}
                     renderItem={(alert) => (
-                        <TouchableNativeFeedback onPress={async () => {
+                        <TouchableNativeFeedback key={alert.item.productID+alert.item.reporterID} style={{borderBottomColor: "black", borderBottomWidth: 5}} onPress={async () => {
                             dispatch(openNotification({username: username, index: alert.index}));
                             console.log("notification ", alert);
                             dispatch(updateLoadingState());
@@ -67,31 +68,56 @@ function AlertScreen() {
                             dispatch(updateLoadingState())
                         }}>
                             <View style={styles.item}>
-                                <View style={{flexDirection: "column", flexShrink: 1}}>
+                                {/* <View style={{flexShrink: 1}}> */}
                                     
-                                    <Text style={{marginTop: 5, fontWeight: "bold"}}>
-                                        <FontAwesome5 style={{marginRight: 5}}
-                                            color={containsMatch(userAllergens, alert.item.suspectedAllergens) ? "red" : "orange"} 
-                                            name="exclamation-triangle"
-                                            size={20}/>{"   "}
-                                        Product Reported</Text>
-                                    <Text numberOfLines={1} style={{flex: 1, flexWrap: "wrap", marginTop: 5, textTransform: "capitalize", paddingRight: 50}}>{alert?.item.productName}</Text>
-                                    <Text style={{flex: 1, flexWrap: "wrap", marginTop: 5, textTransform: "capitalize"}}> Suspected to contain:{"  "}
-                                        {alert?.item.suspectedAllergens.map((allergen, index) => {
-                                            if (new Set(userAllergens).has(allergen)){
-                                                return <Text style={{fontWeight: "bold"}}>{allergen}  </Text>
-                                            } else {
-                                                return <Text>{allergen}  </Text>
+                                    {alert.item.reporterID === username
+                                        ?
+                                        <>
+                                        <View style={{flexDirection: "row", justifyContent: "space-between", borderBottomColor: "lightgrey", borderBottomWidth: 1, paddingBottom: 5}}>
+                                        <Text style={{marginTop: 5}}>
+                                            <FontAwesome5 style={{marginRight: 5}}
+                                                color={"green"}
+                                                name={"check-circle"}
+                                                size={20}/>{"  "}We received your report
+                                        </Text>
+                                        <Text style={{alignSelf: "flex-end", textAlign: "right"}}>{moment(alert.item.date).fromNow()}</Text>
+                                        </View>
+                                        <Text numberOfLines={1} style={{fontWeight: "bold", flex: 1, flexWrap: "wrap", marginTop: 5, paddingRight: 50}}>{alert?.item.productName}</Text>
+                                        <Text>Users have been notified. Thanks for your help!</Text>
+                                        <View style={{flexDirection: "row", alignItems: "center",}}>
+                                            <Text>View for more information{"  "}</Text>
+                                            <FontAwesome5 style={{marginRight: 5}} name="info-circle" size={20}/>
+                                        </View>
+                                        </>
+                                        :
+                                        <>
+                                        <View style={{flexDirection: "row", justifyContent: "space-between", borderBottomColor: "lightgrey", borderBottomWidth: 1, paddingBottom: 5}}>
+                                        <Text style={{marginTop: 5}}>
+                                            <FontAwesome5 style={{marginRight: 5}}
+                                                color={containsMatch(userAllergens, alert.item.suspectedAllergens) ? "red" : "orange"} 
+                                                name="exclamation-triangle"
+                                                size={20}/>{"   "}
+                                            Product Reported</Text>
+                                        <Text style={{alignSelf: "flex-end", textAlign: "right"}}>{moment(alert.item.date).fromNow()}</Text>
+                                        </View>
+                                        <Text numberOfLines={1} style={{fontWeight: "bold", flex: 1, flexWrap: "wrap", marginTop: 5, textTransform: "capitalize", paddingRight: 50}}>{alert?.item.productName}</Text>
+                                        <Text style={{flex: 1, flexWrap: "wrap", marginTop: 5}}> Suspected to contain:{"  "}
+                                            {alert?.item.suspectedAllergens.map((allergen, index) => {
+                                                if (new Set(userAllergens).has(allergen)){
+                                                    return <Text style={{fontWeight: "bold"}}>{allergen}  </Text>
+                                                } else {
+                                                    return <Text>{allergen}  </Text>
+                                                }
                                             }
-                                        }
-                                        )}
-                                    </Text>
-                                    <View style={{flexDirection: "row", alignItems: "center",}}>
-                                        <FontAwesome5 style={{marginRight: 5}} name="eye" size={25}/>
-                                        <Text>View for more information</Text>
-                                    </View>
-                                    {/* <Text style={styles.redDot}></Text> */}
-                                </View>
+                                            )}
+                                        </Text>
+                                        <View style={{flexDirection: "row", alignItems: "center",}}>
+                                            <Text>View for more information{"  "}</Text>
+                                            <FontAwesome5 style={{marginRight: 5}} name="info-circle" size={20}/>
+                                        </View>
+                                        </>
+                                    }
+                                {/* </View> */}
                                 {!alert.item.isOpened &&
                                     <View style={{...styles.redDot}}/>
                                 }
@@ -109,12 +135,14 @@ const styles = StyleSheet.create({
     item: {
         width: "100%",
         flex: 1,
-        flexDirection: "row",
+        // flexDirection: "row",
         padding: 10,
         backgroundColor: "white",
         marginBottom: 1,
-        borderColor: "lightgrey",
-        borderWidth: 0.25    }, 
+        borderBottomColor: "lightgrey",
+        borderBottomWidth: 3,
+        borderRadius: 25
+    }, 
     noAlerts: {
         fontSize: 25,
         color: "black",
