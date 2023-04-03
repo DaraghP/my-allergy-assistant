@@ -3,13 +3,14 @@ image: node:latest
 stages:
   - mobile-build
   - amplify
+  - backend-test
   - ui-test
 
-cache:
-  key: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - src/frontend/node_modules/
-    - src/frontend/aws-exports.ts
+#cache:
+#  key: ${CI_COMMIT_REF_SLUG}
+#  paths:
+#    - src/frontend/node_modules/
+#    - src/frontend/aws-exports.ts
 
 mobile-build:
   stage: mobile-build
@@ -21,12 +22,29 @@ mobile-build:
 amplify:
   stage: amplify
   before_script:
-    - cd src
+    - cd src/backend
   script:
     - npm install -g @aws-amplify/cli
     - chmod +x ./amplify-gitlab-ci.sh
     - ./amplify-gitlab-ci.sh
-    - mv aws-exports.js frontend/aws-exports.ts
+    - mv aws-exports.js ../frontend/aws-exports.ts
+
+backend-test:
+  stage: backend-test
+  variables:
+    NODE_ENV: "test"
+  before_script:
+    - echo $NODE_ENV
+    - cd src/backend/lambda_functions
+    - chmod +x ./npm_install.sh
+    - ./npm_install.sh
+    - ls
+    - cd ../__tests__
+    - ls
+    - npm i
+  script:
+    - ls
+    - npm test
 
 ui-test:
   stage: ui-test

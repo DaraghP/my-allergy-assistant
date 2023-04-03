@@ -1,2 +1,5 @@
 node_modules
 .idea
+/src/backend/DynamoDBLocal_Lib/
+/src/backend/__tests__/DynamoDBLocal_Lib/
+/src/backend/__tests__/DynamoDBLocal.jar
