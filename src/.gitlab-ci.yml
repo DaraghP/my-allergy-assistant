@@ -6,11 +6,11 @@ stages:
   - backend-test
   - ui-test
 
-#cache:
-#  key: ${CI_COMMIT_REF_SLUG}
-#  paths:
-#    - src/frontend/node_modules/
-#    - src/frontend/aws-exports.ts
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - src/frontend/node_modules/
+    - src/frontend/aws-exports.ts
 
 mobile-build:
   stage: mobile-build
@@ -31,19 +31,14 @@ amplify:
 
 backend-test:
   stage: backend-test
-  variables:
-    NODE_ENV: "test"
   before_script:
-    - echo $NODE_ENV
     - cd src/backend/lambda_functions
-    - chmod +x ./npm_install.sh
-    - ./npm_install.sh
+    - npm i
     - ls
     - cd ../__tests__
-    - ls
     - npm i
-  script:
     - ls
+  script:
     - npm test
 
 ui-test:

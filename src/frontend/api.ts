@@ -307,9 +307,6 @@ export async function deleteProductReport({productId} : Report, index) {
     body: {
       Key: {product_id: productId},
       UpdateExpression: "REMOVE reports["+index+"]",
-      // ExpressionAttributeValues: {
-      //   ':myIndx': index
-      // },
       ReturnValues: 'UPDATED_NEW',
     },
     headers: {
