@@ -24,13 +24,13 @@ function AlertScreen() {
 
     const containsMatch = (listA, listB) => {
         if (listB) {
-            console.log("listA: " + listA);
-            console.log("listB: " + listB);
+            // console.log("listA: " + listA);
+            // console.log("listB: " + listB);
             let matchFound = false;
             listB.forEach((item) => {
-                console.log("testing if " + item + " in listA");
+                // console.log("testing if " + item + " in listA");
                 if (new Set(listA).has(item)){
-                    console.log("MATCH: "+item);
+                    // console.log("MATCH: "+item);
                     matchFound = true;
                 }
             })
@@ -56,9 +56,9 @@ function AlertScreen() {
                         height: "100%"
                     }}
                     data={notifications}
-                    keyExtractor={(alert, index) => alert.productID+alert.reporterID}
+                    keyExtractor={(alert, index) => {return index.toString()}}
                     renderItem={(alert) => (
-                        <TouchableNativeFeedback key={alert.item.productID+alert.item.reporterID} style={{borderBottomColor: "black", borderBottomWidth: 5}} onPress={async () => {
+                        <TouchableNativeFeedback key={alert.index} style={{borderBottomColor: "black", borderBottomWidth: 5}} onPress={async () => {
                             dispatch(openNotification({username: username, index: alert.index}));
                             console.log("notification ", alert);
                             dispatch(updateLoadingState());
@@ -104,9 +104,9 @@ function AlertScreen() {
                                         <Text style={{flex: 1, flexWrap: "wrap", marginTop: 5}}> Suspected to contain:{"  "}
                                             {alert?.item.suspectedAllergens.map((allergen, index) => {
                                                 if (new Set(userAllergens).has(allergen)){
-                                                    return <Text style={{fontWeight: "bold"}}>{allergen}  </Text>
+                                                    return <Text key={index.toString()} style={{fontWeight: "bold"}}>{allergen}  </Text>
                                                 } else {
-                                                    return <Text>{allergen}  </Text>
+                                                    return <Text key={index.toString()}>{allergen}  </Text>
                                                 }
                                             }
                                             )}

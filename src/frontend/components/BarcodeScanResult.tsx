@@ -9,6 +9,7 @@ import { MultipleSelectList } from 'react-native-dropdown-select-list';
 import { getProductReports, translateIngredients, extractEnglishAllergens, Report, addReportToDynamo, updateUser, getInitialNotificationState, addNotificationsToDynamo, deleteNotificationsFromDynamo, UpdatableNotificationObj, deleteProductReport } from "../api";
 import {updateProductNotificationStatus, deleteNotification} from "../reducers/app-data-reducer";
 import moment from 'moment';
+import _ from "lodash";
 
 function BarcodeScanResult(scan: object) {
     const {height, width} = Dimensions.get("window");
@@ -34,19 +35,20 @@ function BarcodeScanResult(scan: object) {
     scan = scan?.scan;
 
     useEffect(() => {
-        if (scan?.product_code && !haveGotReports){
+        if (scan?.product_code){
             getProductReports({productId: scan?.product_code}).then((res) => {
                 if (res.Item){
-                    setProductReports(res.Item?.reports);
-                        //[{user_id: username, suspectedAllergens: ["Barley", "Ham"]}, {suspectedAllergens: ["Cheese"]}, {suspectedAllergens: ["Milk", "Oats", "Wheat"]}, {suspectedAllergens: ["Barley", "Ham"]}, {suspectedAllergens: ["Cheese"]}, {suspectedAllergens: ["Milk", "Oats", "Wheat"]}, {suspectedAllergens: ["Barley", "Ham"]}, {suspectedAllergens: ["Cheese"]}, {suspectedAllergens: ["Milk", "Oats", "Wheat"]}]);
-                    console.log("Received reports: "+JSON.stringify(res.Item?.reports));
+                    if (!(_.isEqual(productReports, res.Item?.reports))){
+                        console.log("updated reports: " + JSON.stringify(res.Item?.reports));
+                        setProductReports(res.Item?.reports);
+                    }
                 } else {
                     setProductReports([]);
                     console.log("Product has not been reported.");
                 }
                 setHaveGotReports(true);
             })
-        }  
+        }
     }, [])
 
     const translateIngredientText = async () => {
@@ -165,15 +167,15 @@ function BarcodeScanResult(scan: object) {
                         <View style={{backgroundColor: getReportColor(userAllergens, report.item), borderRadius: 10, paddingLeft: 5, paddingRight: 10, paddingBottom: 20, marginRight: 5}}>
                             <Text style={{color: "white", paddingLeft: 5, paddingTop:5, borderBottomWidth: 0.5, borderBottomColor: "white"}}>{report.item.user_id === username ? "My Report:              " : "Reported allergens:"}</Text>
                             <View style={{padding: 5, paddingBottom: 10}}>
-                                {[...report.item.suspected_allergens].map((allergen)=> {
+                                {[...report.item.suspected_allergens].map((allergen, index)=> {
                                     if (userAllergens.includes(allergen) && report.item.user_id !== username){
-                                        return (<Text style={{paddingLeft: "25%", color: "white", fontWeight: "bold"}}> - {allergen}{"  "}
+                                        return (<Text key={index.toString()} style={{paddingLeft: "25%", color: "white", fontWeight: "bold"}}> - {allergen}{"  "}
                                             <FontAwesome5 name={"exclamation-triangle"} size={15} color={"white"}/></Text>)
                                     } else {
                                         if (report.item.user_id === username){
                                             setMyReportIndex(report.index);
                                         }
-                                        return (<Text style={{paddingLeft: "25%", color: "white"}}> - {allergen}</Text>)
+                                        return (<Text key={index.toString()} style={{paddingLeft: "25%", color: "white"}}> - {allergen}</Text>)
                                     }
                                 })}
                             </View>
@@ -324,11 +326,14 @@ function BarcodeScanResult(scan: object) {
                             // console.log(reportsResponse);
                             console.log("sending report to dynamo: " + JSON.stringify(reportObj));
                             if (productReports){
-                                setProductReports(productReports.push({
+                                let tmpReports = productReports;
+                                let newReport = {
                                     user_id: username,
                                     date: new Date(),
                                     suspected_allergens: selectedList.length==0 ? userAllergens : selectedList
-                                }));
+                                };
+                                tmpReports.push(newReport);
+                                setProductReports(tmpReports);
                             } else {
                                 setProductReports([{user_id: username, date: new Date(), suspected_allergens: selectedList.length==0 ? userAllergens : selectedList}]);
                             }
@@ -360,6 +365,7 @@ function BarcodeScanResult(scan: object) {
                             let tmpReports = [...productReports];
                             tmpReports.splice(myReportIndex, 1);
                             setProductReports(tmpReports);
+                            setMyReportIndex(-1);
                         },
                         text: "Yes - Delete Report",
                     }
