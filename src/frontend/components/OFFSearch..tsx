@@ -23,19 +23,18 @@ function OFFSearch() {
             style={{width: "95%", justifyContent: "center", alignSelf: "center"}}
             placeholder={"Enter product name"} 
             onSubmit={(query: string) => {
-                const trim = (str) => {return str.trimStart().trimEnd();}
-                let searchQuery : SearchQuery = {searchTerms: trim(query), brand: trim(brandValue), category: trim(categoryValue), allergens: [...selection], allergensContains: containsAllergenValue}
-                navigation.navigate("Scan"); // gets rid of any previous scan result
-                // navigation.goBack();
                 dispatch(updateLoadingState());
                 navigation.navigate("Loading", {text: "Retrieving Results..."}); // loads loading screen
-
+                const trim = (str) => {return str.trimStart().trimEnd();}
+                let searchQuery : SearchQuery = {searchTerms: trim(query), brand: trim(brandValue), category: trim(categoryValue), allergens: [...selection], allergensContains: containsAllergenValue}
+                // navigation.navigate("Scan"); // gets rid of any previous scan result
+                // navigation.goBack();
                 dispatch(updateCurrentPage(1));
                 facetedProductSearch(searchQuery).then((data) => {
                     dispatch(updateDidSearch());
                     navigation.navigate("Search", {data: data}); // go to search screen
-                    dispatch(updateLoadingState()); // no longer loading
                 });
+                dispatch(updateLoadingState()); // no longer loading
             }}
            />
           
