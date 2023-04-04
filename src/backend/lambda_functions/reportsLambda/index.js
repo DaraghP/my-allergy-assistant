@@ -1,23 +1,31 @@
 const AWS = require('aws-sdk');
+const sns = new AWS.SNS();
 
-let config = {}
 let tableName = "Report";
 if (process.env.ENV && process.env.ENV !== "NONE") {
   tableName = tableName + '-' + process.env.ENV;
 }
 
+
+let dynamo;
+
 // for tests
 if (process.env.MOCK_DYNAMODB_ENDPOINT) {
-  config = {endpoint: process.env.MOCK_DYNAMODB_ENDPOINT, region: "localhost"};
+    dynamo = new AWS.DynamoDB.DocumentClient({endpoint: process.env.MOCK_DYNAMODB_ENDPOINT, region: "localhost"});
+}
+else {
+    dynamo = new AWS.DynamoDB.DocumentClient(); 
 }
 
-const sns = new AWS.SNS();
-const dynamo = new AWS.DynamoDB.DocumentClient(config);
-
 async function notifyUsers(productID, productName, report) {
+    let notificationTable = "Notifications";
+    if (process.env.ENV && process.env.ENV !== "NONE") {
+        notificationTable = notificationTable + '-' + process.env.ENV;
+    }
+
     // call notifications GET
     let customQueryParams = {
-        TableName: "Notifications-dev",
+        TableName: notificationTable,
         Key: {product_id: productID}
     }
     let getNotis = await dynamo.get(customQueryParams).promise();
@@ -43,13 +51,13 @@ async function notifyUsers(productID, productName, report) {
                 }
                 const messageJson = JSON.stringify(data);
                 console.log(messageJson);
-                const testMessage = {
+                const message = {
                     MessageStructure: "json",
                     Message: messageJson,
-                    // Subject: "MyAllergyAssistant",
                     TargetArn: endpoint
                 };
-                let SNSresponse = await sns.publish(testMessage).promise();
+                let SNSresponse = await sns.publish(message).promise();
+                console.log("Full SNS message - " + SNSresponse);
                 console.log("SNS message sent - " + SNSresponse.MessageId);
             } catch(err) {
                 console.log(err);
