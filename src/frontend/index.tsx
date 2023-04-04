@@ -15,16 +15,23 @@ export default function Index() {
 
     useEffect(() => {
         // Request for notifications are required for versions Android 13 and above
-        requestNotifications(["alert", "badge", "sound"]).then(({status, settings}) => {
-            console.log("notifications status:", status);
-        })
-
+        
+        // after loading app
         RNBootSplash.hide({fade: true}).then(async () => {
-            setCameraPerms(await Camera.getCameraPermissionStatus());
-            if (cameraPerms != "authorized") {
-                console.log("test")
-                setCameraPerms(await Camera.requestCameraPermission());
-            }
+            // request notification permissions
+            requestNotifications(["alert", "badge", "sound"]).then(async ({status, settings}) => {
+                console.log("notifications status:", status);
+                // then request camera permissions
+                if (cameraPerms != "authorized") {
+                    console.log("test")
+                    let cameraPermission = await Camera.requestCameraPermission()
+                    console.log("finished waiting.");
+                    setCameraPerms(cameraPermission);
+                    console.log(cameraPermission);
+                } else {
+                    setCameraPerms(await Camera.getCameraPermissionStatus());
+                }
+            });
         })
     }, [])
 

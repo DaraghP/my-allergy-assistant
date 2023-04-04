@@ -33,6 +33,7 @@ function AuthenticatedApp() {
     const username = useAppSelector(state => state.user.username);
     const notifications = useAppSelector(state => state.appData.accounts[state.user.username]?.notifications);
     const setupRequired = useAppSelector(state => state.user.username in state.appData.accounts ? !state.appData.accounts[state.user.username].hasCompletedSetup : null);
+    const [appOpenedFromNotification, setAppOpenedFromNotification] = useState<boolean>(false);
 
     const searchTabOptions = {
       headerTitle: "Search Results", 
@@ -62,7 +63,18 @@ function AuthenticatedApp() {
             })
         })
       }
-      
+      Notifications.getInitialNotification().then((res) => {
+        console.log("getInitial res: ", res);
+        if (res){
+          console.log(typeof res);
+          setAppOpenedFromNotification(true);
+        } else {
+          console.log(typeof res);
+          setAppOpenedFromNotification(false);
+        }
+      });
+      Notifications.isRegisteredForRemoteNotifications().then((res) => console.log("Receiving Notifications: ", res))
+
       Notifications.events().registerNotificationReceivedForeground((notification: Notification, completion) => {
         console.log(typeof notification.payload, notification.payload);//
         console.log(`Foreground notification: ${notification.payload["gcm.notification.title"]} : ${notification.payload["gcm.notification.body"]} : ${notification.payload["gcm.notification.data"]}`);
@@ -71,7 +83,7 @@ function AuthenticatedApp() {
         completion({alert: true, sound: true, badge: true});
       })
 
-      Notifications.events().registerNotificationReceivedBackground((notification: Notification, completion : (response: NotificationCompletion) => void) => {
+      Notifications.events().registerNotificationReceivedBackground((notification: Notification, completion) => {//  : (response: NotificationCompletion) => void)
         console.log(`Background notification: ${notification.title} : ${notification.body}`, notification.payload);
 
         dispatch(addNotification({username: username, notificationData: notification.payload["gcm.notification.data"], date: new Date()}));
@@ -81,6 +93,7 @@ function AuthenticatedApp() {
     
       Notifications.events().registerNotificationOpened((notification: Notification, completion) => {
           console.log("Notification opened: " + notification.payload);
+          setAppOpenedFromNotification(true);
           completion();
       });
     }, [])
@@ -106,11 +119,12 @@ function AuthenticatedApp() {
               {!setupRequired && Auth.user != null &&
                   <Tab.Navigator screenOptions={{tabBarStyle: {display: loading ? "none" : "flex"}}}>
                       <Tab.Screen name="Home" component={HomeScreen} options={{headerShown: false, tabBarIcon: () => <FontAwesome5 name={"home"} size={25}/>}}/>
+                      {/* pass parameter to Home Screen if appOpenedFromNotification, from there navigate to Alerts. */}
                       <Tab.Screen name="Scan" component={ScanNavigator} options={{headerShown: false, tabBarIcon: () => <FontAwesome5 name={"camera"} size={25}/>}}/>
 
                       <Tab.Screen name="Search" component={SearchScreen} options={searchTabOptions}/>
 
-                      <Tab.Screen name="Alerts" component={AlertScreen} options={{
+                      <Tab.Screen name="Alerts" default={true} component={AlertScreen} options={{
                           tabBarBadge: notifications?.filter(function(alert){return !alert?.isOpened}).length > 0 ? notifications.filter(function(alert){return !alert?.isOpened}).length : undefined,
                           tabBarBadgeStyle: {borderRadius: 10},
                           tabBarIcon: () => <FontAwesome5 name={"bell"} solid size={25}/>

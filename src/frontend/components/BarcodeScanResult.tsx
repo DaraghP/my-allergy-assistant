@@ -169,13 +169,13 @@ function BarcodeScanResult(scan: object) {
                             <View style={{padding: 5, paddingBottom: 10}}>
                                 {[...report.item.suspected_allergens].map((allergen, index)=> {
                                     if (userAllergens.includes(allergen) && report.item.user_id !== username){
-                                        return (<Text key={index.toString()} style={{paddingLeft: "25%", color: "white", fontWeight: "bold"}}> - {allergen}{"  "}
+                                        return (<Text key={index.toString()} style={{paddingLeft: "20%", color: "white", fontWeight: "bold"}}> - {allergen}{"  "}
                                             <FontAwesome5 name={"exclamation-triangle"} size={15} color={"white"}/></Text>)
                                     } else {
                                         if (report.item.user_id === username){
                                             setMyReportIndex(report.index);
                                         }
-                                        return (<Text key={index.toString()} style={{paddingLeft: "25%", color: "white"}}> - {allergen}</Text>)
+                                        return (<Text key={index.toString()} style={{paddingLeft: "20%", color: "white"}}> - {allergen}</Text>)
                                     }
                                 })}
                             </View>
