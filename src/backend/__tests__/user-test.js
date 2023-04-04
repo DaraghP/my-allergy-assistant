@@ -4,8 +4,10 @@ const usersLambda = require("../lambda_functions/usersLambda/src/app");
 const {stopDb} = require("jest-dynalite")
 const {addItems, addItem, deleteItem, getAllItems} = require("./helperFunctions");
 
+const table = "User";
 let dynamodb;
 let docClient;
+
 describe("User", () => {
     const setUpUsers = (count) => {
         let users = []
@@ -41,36 +43,36 @@ describe("User", () => {
     })
 
     it("table should be setup", () => {
-        getAllItems(dynamodb, "User").then((items) => {
+        getAllItems(dynamodb, table).then((items) => {
             expect(items).toBeDefined();
         })
     })
 
     it("should add user", async () => {
         let user = setUpUsers(1)[0]
-        await addItem(docClient, "User", user);
+        await addItem(docClient, table, user);
 
-        let res = await getAllItems(dynamodb, "User");
+        let res = await getAllItems(dynamodb, table);
         expect(res.Items.length).toBeGreaterThan(0);
     })
 
     it("should get all users", async () => {
         let numberOfUsers = 5;
         let users = setUpUsers(numberOfUsers);
-        await addItems(docClient, "User", ...users);
+        await addItems(docClient, table, ...users);
 
-        let res = await getAllItems(dynamodb, "User");
+        let res = await getAllItems(dynamodb, table);
         expect(res.Items.length).toEqual(5);
     })
 
     it("should delete user", async () => {
         let user = setUpUsers(1)[0];
 
-        await addItem(docClient, "User", user);
-        let scanBefore = await getAllItems(dynamodb, "User");
+        await addItem(docClient, table, user);
+        let scanBefore = await getAllItems(dynamodb, table);
 
-        await deleteItem(dynamodb, "User", {username: {"S": user.username}}, {email: { "S": user.email}});
-        let scanAfter = await getAllItems(dynamodb, "User");
+        await deleteItem(dynamodb, table, {username: {"S": user.username}}, {email: { "S": user.email}});
+        let scanAfter = await getAllItems(dynamodb, table);
 
         expect(scanBefore.Items.length).toEqual(scanAfter.Items.length + 1)
     })
@@ -79,9 +81,9 @@ describe("User", () => {
         let numberOfUsers = 4
         let users = setUpUsers(numberOfUsers);
 
-        await addItems(docClient, "User", ...users)
+        await addItems(docClient, table, ...users)
 
-        let scan = await getAllItems(dynamodb, "User");
+        let scan = await getAllItems(dynamodb, table);
         let user = scan.Items[2];
 
         expect(user.username.S).toEqual(users[2].username)
@@ -89,11 +91,11 @@ describe("User", () => {
 
     it("should update user information" , async () => {
         let user = setUpUsers(1)[0];
-        await addItem(docClient, "User", user);
-        let userStateBefore = await getAllItems(dynamodb, "User");
+        await addItem(docClient, table, user);
+        let userStateBefore = await getAllItems(dynamodb, table);
         user.allergens = ["Milk"];
         await dynamodb.updateItem({
-            TableName: "User",
+            TableName: table,
             Key: {username: {"S": user.username}, email: { "S": user.email}},
             UpdateExpression: "set allergens = :a",
             ExpressionAttributeValues: {
@@ -102,7 +104,7 @@ describe("User", () => {
             ReturnValues: "ALL_NEW"
         }).promise();
 
-        let userStateAfter = await getAllItems(dynamodb, "User");
+        let userStateAfter = await getAllItems(dynamodb, table);
 
         expect(userStateBefore).not.toEqual(userStateAfter)
         expect(userStateAfter.Items[0].allergens).toEqual({"SS": ["Milk"]})
@@ -127,7 +129,7 @@ describe("User", () => {
     it("lambda should create user", async () => {
         let user = setUpUsers(1)[0]
 
-        const stateBefore = await getAllItems(dynamodb, "User");
+        const stateBefore = await getAllItems(dynamodb, table);
 
         const event = {
             httpMethod: "POST",
@@ -140,7 +142,7 @@ describe("User", () => {
             lambdaHandler: "handler"
         })
 
-        const stateAfter = await getAllItems(dynamodb, "User");
+        const stateAfter = await getAllItems(dynamodb, table);
 
         expect(stateBefore).not.toEqual(stateAfter);
         expect(stateAfter.ScannedCount).toEqual(stateBefore.ScannedCount + 1);
@@ -148,7 +150,7 @@ describe("User", () => {
 
     it("lambda should get user", async () => {
         let user = setUpUsers(1)[0];
-        await addItem(docClient, "User", user)
+        await addItem(docClient, table, user)
 
         const event = {
             httpMethod: "GET",
@@ -191,7 +193,7 @@ describe("User", () => {
 
     it("lambda should get user", async () => {
         let user = setUpUsers(1)[0];
-        await addItem(docClient, "User", user)
+        await addItem(docClient, table, user)
 
         const event = {
             httpMethod: "GET",
@@ -214,7 +216,7 @@ describe("User", () => {
     it("lambda should get all users", async () => {
         let numberOfUsers = 5;
         let users = setUpUsers(numberOfUsers);
-        await addItems(docClient, "User", ...users);
+        await addItems(docClient, table, ...users);
 
         const event = {
             httpMethod: "GET",
@@ -232,9 +234,9 @@ describe("User", () => {
 
     it("lambda should delete user", async () => {
         let user = setUpUsers(1)[0];
-        await addItem(docClient, "User", user)
+        await addItem(docClient, table, user)
 
-        const stateBefore = await getAllItems(dynamodb, "User");
+        const stateBefore = await getAllItems(dynamodb, table);
 
         const event = {
             httpMethod: "DELETE",
@@ -249,14 +251,14 @@ describe("User", () => {
             lambdaHandler: "handler"
         })
 
-        const stateAfter = await getAllItems(dynamodb, "User");
+        const stateAfter = await getAllItems(dynamodb, table);
 
         expect(stateAfter.ScannedCount).toEqual(stateBefore.ScannedCount - 1)
     })
 
     it("lambda should update user allergens", async () => {
         let user = setUpUsers(1)[0];
-        await addItem(docClient, "User", user);
+        await addItem(docClient, table, user);
 
         const event = {
             httpMethod: "PUT",
@@ -276,13 +278,13 @@ describe("User", () => {
             lambdaHandler: "handler"
         })
 
-        const res = await getAllItems(dynamodb, "User");
+        const res = await getAllItems(dynamodb, table);
         expect(res.Items[0].allergens).toEqual({"L": [{"S": "Peanuts"}]})
     })
 
     it("lambda should update user scans", async () => {
         let user = setUpUsers(1)[0];
-        await addItem(docClient, "User", user);
+        await addItem(docClient, table, user);
 
         const scan = {
             "3017620422003": {
@@ -314,13 +316,13 @@ describe("User", () => {
             lambdaHandler: "handler"
         })
 
-        const res = await getAllItems(dynamodb, "User");
+        const res = await getAllItems(dynamodb, table);
         expect(Object.keys(res.Items[0].scans.M)).toContain("3017620422003")
     })
 
     it("lambda should update user receive_notifications value", async () => {
         let user = setUpUsers(1)[0];
-        await addItem(docClient, "User", user);
+        await addItem(docClient, table, user);
 
         const scan = {
             "3017620422003": {
@@ -377,7 +379,7 @@ describe("User", () => {
             lambdaHandler: "handler"
         })
 
-        const res = await getAllItems(dynamodb, "User");
+        const res = await getAllItems(dynamodb, table);
         expect(Object.keys(res.Items[0].scans.M)).toContain(product_id)
         expect(res.Items[0].scans.M[product_id].M.receive_notifications).toBeDefined();
         expect(res.Items[0].scans.M[product_id].M.receive_notifications.BOOL).toEqual(true)

@@ -1,13 +1,15 @@
 const AWS = require("aws-sdk");
+const AWSMock = require("aws-sdk-mock");
 const lambdaLocal = require("lambda-local");
 const reportsLambda = require("../lambda_functions/reportsLambda/index");
 const {stopDb} = require("jest-dynalite")
 const {addItems, addItem, deleteItem, getAllItems} = require("./helperFunctions");
 
-let table = "Report";
+const table = "Report";
 let dynamodb;
 let docClient;
 
+let mockSNSPublishedMessages = [];
 describe("Report", () => {
     const setUpProductReports = (count) => {
         let productReports = []
@@ -26,14 +28,44 @@ describe("Report", () => {
         return data;
     }
 
+    const setUpReportNotification = (userID = 1, productID = "productID", productName = "productName") => {
+        return {
+            "Item": {
+                "product_id": productID,
+                "product_name": productName,
+                "reports": [
+                    {
+                        "suspected_allergens": ["allergen"],
+                        "user_id": userID
+                    }
+                ]
+            }
+        }
+    }
+
     beforeAll(async () => {
         // set up
         dynamodb = new AWS.DynamoDB({endpoint: process.env.MOCK_DYNAMODB_ENDPOINT, sslEnabled: false, region: "localhost"});
         docClient = new AWS.DynamoDB.DocumentClient({endpoint: process.env.MOCK_DYNAMODB_ENDPOINT, region: "localhost", sslEnabled: false});
+
+        // set up mock for SNS
+        AWSMock.setSDKInstance(AWS);
+        AWSMock.mock("SNS", "publish", (params, callback) => {
+            const mockResponse = {
+                "ResponseMetadata": {
+                    "RequestId": "SNSRequestID"
+                },
+                "MessageId": "SNSMessageID"
+            };
+            
+            mockSNSPublishedMessages.push(mockResponse);
+            callback(null, mockResponse)
+        })
     })
 
     afterAll(async () => {
         await stopDb();
+        AWSMock.restore("SNS", "publish");
     })
 
     it("table should be set up", () => {
@@ -45,8 +77,6 @@ describe("Report", () => {
     it("should create first report for a product and get the report", async () => {
         const data = setUpProductReports(1);
 
-        const stateBefore = await getAllItems(dynamodb, table);
-
         await addItem(docClient, table, data);
 
         const stateAfter = await getAllItems(dynamodb, table);
@@ -56,8 +86,6 @@ describe("Report", () => {
 
     it("should create more than one report for the product and get its reports", async () => {
         const data = setUpProductReports(2);
-
-        await getAllItems(dynamodb, table);
 
         await addItem(docClient, table, data);
 
@@ -71,7 +99,6 @@ describe("Report", () => {
         const data = setUpProductReports(2);
 
         const index = 0;
-        const userId = `test${index}_id`;
 
         await addItems(docClient, table, data)
 
@@ -87,5 +114,116 @@ describe("Report", () => {
         const stateAfter = await getAllItems(dynamodb, table);
 
         expect(stateAfter.Items[0].reports.L[0].M.user_id.S).toEqual("test1_id");
+    })
+
+    it("should delete all reports of a product", async () => {
+        const data = setUpProductReports(2);
+  
+        await addItems(docClient, table, data)
+
+        const stateBefore = await getAllItems(dynamodb, table);
+
+        await deleteItem(dynamodb, table, {product_id: {S: "barcode"}});
+
+        const stateAfter = await getAllItems(dynamodb, table);
+        
+        expect(stateAfter.ScannedCount).toEqual(stateBefore.ScannedCount - 1);
+    })
+
+    it("lambda should return unsupported HTTP method", async () => {
+        const event = {
+            httpMethod: "PATCH",
+            body: JSON.stringify({}),
+        }
+
+        const res = await lambdaLocal.execute({
+            event: event,
+            lambdaFunc: reportsLambda,
+            lambdaHandler: "handler",
+        })
+
+        expect(res.statusCode).toEqual("400")
+        expect(res.body).toEqual('"Unsupported method \\\"PATCH\\\"\"')
+    })
+
+    it("lambda create first report for a product and get the report", async () => {
+        const stateBefore = await getAllItems(dynamodb, table);
+
+        const event = {
+            httpMethod: "POST",
+            body: JSON.stringify(setUpReportNotification())
+        }
+
+        await lambdaLocal.execute({
+            event: event,
+            lambdaFunc: reportsLambda,
+            lambdaHandler: "handler"
+        })
+
+        const stateAfter = await getAllItems(dynamodb, table);
+
+        expect(stateBefore).not.toEqual(stateAfter);
+        expect(stateAfter.ScannedCount).toEqual(stateBefore.ScannedCount + 1);        
+    })
+
+    it("lambda should create more than one report for the product and get its reports", async () => {
+        // WIP
+        let event = {
+            httpMethod: "POST",
+            body: JSON.stringify(setUpReportNotification(1))
+        }
+
+        await lambdaLocal.execute({
+            event: event,
+            lambdaFunc: reportsLambda,
+            lambdaHandler: "handler"
+        })
+
+        event = {
+            httpMethod: "PUT", 
+            body: {
+                "Key": {
+                    "product_id": "productID"
+                },
+                "UpdateExpression": "set reports = list_append(if_not_exists(reports, :emptyReportsList), :addReport)",
+                "ExpressionAttributeValues": {
+                    ":addReport": [
+                        {
+                            "suspected_allergens": [
+                                "allergen"
+                            ],
+                            "user_id": "2",
+                            "date": "2023-03-03T10:42:11.220Z"
+                        }
+                    ],
+                    ":emptyReportsList": []
+                },
+                "ReturnValues": "UPDATED_NEW",
+                "ReportData": {
+                    "product_name": "productName",
+                    "report": {
+                        "suspected_allergens": [
+                            "allergen"
+                        ],
+                        "user_id": "2",
+                        "date": "2023-03-03T10:42:11.220Z"
+                    }
+                }
+            }
+        }
+
+        await lambdaLocal.execute({
+            event: event,
+            lambdaFunc: reportsLambda,
+            lambdaHandler: "handler"
+        })
+
+        console.log(event);
+
+        const stateAfter = await getAllItems(dynamodb, table);
+
+        // console.log(stateAfter.Items[0].reports.L)
+        // expect(stateAfter.ScannedCount).toEqual(1)
+        // expect(stateAfter.Items[0].reports.L.length).toEqual(2);
     })
 })
