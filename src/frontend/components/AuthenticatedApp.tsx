@@ -53,49 +53,61 @@ function AuthenticatedApp() {
 
     useEffect(() => {
       // mobile push notifications: https://wix.github.io/react-native-notifications/docs/
-      if (deviceEndpoint == "") {
+      // if (true) {
+      if (deviceEndpoint === ""){
         Notifications.registerRemoteNotifications();
 
         Notifications.events().registerRemoteNotificationsRegistered((event: Registered) => {
             // console.log(`Device token given: ${event.deviceToken}`)
             registerDeviceToken(event.deviceToken).then((res) => {
               dispatch(updateDeviceEndpoint(res.deviceEndpoint));
+              console.log("new endpoint:", res.deviceEndpoint);
             })
         })
       }
-      Notifications.getInitialNotification().then((res) => {
-        console.log("getInitial res: ", res);
-        if (res){
-          console.log(typeof res);
-          setAppOpenedFromNotification(true);
-        } else {
-          console.log(typeof res);
-          setAppOpenedFromNotification(false);
-        }
-      });
-      Notifications.isRegisteredForRemoteNotifications().then((res) => console.log("Receiving Notifications: ", res))
+      // Notifications.getInitialNotification().then((res) => {
+      //   console.log("getInitial res: ", res);
+      //   if (res){
+      //     console.log(typeof res);
+      //     setAppOpenedFromNotification(true);
+      //   } else {
+      //     console.log(typeof res);
+      //     setAppOpenedFromNotification(false);
+      //   }
+      // });
+      // Notifications.isRegisteredForRemoteNotifications().then((res) => console.log("Receiving Notifications: ", res))
 
       Notifications.events().registerNotificationReceivedForeground((notification: Notification, completion) => {
         console.log(typeof notification.payload, notification.payload);//
-        console.log(`Foreground notification: ${notification.payload["gcm.notification.title"]} : ${notification.payload["gcm.notification.body"]} : ${notification.payload["gcm.notification.data"]}`);
-        dispatch(addNotification({username: username, notificationData: notification.payload["gcm.notification.data"], date: new Date()}));
+        console.log(`Foreground notification received: ${notification.title}`);
+        console.log(`     -   Body: ${notification.body}`);
+        console.log(`     -   Payload: ${notification.payload}`);
+        dispatch(addNotification({username: username, notificationData: notification.payload["data"], date: new Date()}));
 
         completion({alert: true, sound: true, badge: true});
       })
 
-      Notifications.events().registerNotificationReceivedBackground((notification: Notification, completion) => {//  : (response: NotificationCompletion) => void)
-        console.log(`Background notification: ${notification.title} : ${notification.body}`, notification.payload);
+      Notifications.events().registerNotificationReceivedBackground((notification: Notification, completion: (response: NotificationCompletion) => void) => {
+        console.log(`Background notification received: ${notification.title}`);
+        console.log(`     -   Body: ${notification.body}`);
+        console.log(`     -   Payload: ${notification.payload}`);
 
-        dispatch(addNotification({username: username, notificationData: notification.payload["gcm.notification.data"], date: new Date()}));
+        dispatch(addNotification({username: username, notificationData: notification.payload["data"], date: new Date()}));
 
         completion({alert: true, sound: true, badge: true});
       })
     
       Notifications.events().registerNotificationOpened((notification: Notification, completion) => {
+          Notifications.removeAllDeliveredNotifications();
           console.log("Notification opened: " + notification.payload);
-          setAppOpenedFromNotification(true);
+          // setAppOpenedFromNotification(true);
           completion();
       });
+
+      Notifications.getInitialNotification().then((notification) => {
+          console.log("Initial notification was:", (notification ? notification.payload : 'N/A'));
+      }).catch((err) => console.error("getInitialNotifiation() failed", err));
+
     }, [])
 
     useEffect(() => {
