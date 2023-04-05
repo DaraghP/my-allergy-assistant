@@ -1,11 +1,10 @@
 import { facetedProductSearch, SearchQuery } from "../api";
 import { useAppDispatch, useAppSelector } from "../hooks";
-import { useState } from "react";
-import { useEffect } from "react";
-import { FlatList, SafeAreaView, StyleSheet, Text, TouchableNativeFeedback, TouchableOpacity, View, Image, Dimensions } from "react-native";
+import {useRef, useState, useEffect} from "react";
+import { FlatList, SafeAreaView, StyleSheet, Text, TouchableNativeFeedback, TouchableOpacity, View, Image, Dimensions, ScrollView } from "react-native";
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { updateLoadingState, updateDidSearch, updateCurrentPage } from "../reducers/ui-reducer";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useIsFocused } from "@react-navigation/native";
 import { storeScan } from "../components/Scanner";
 
 
@@ -17,6 +16,14 @@ function SearchScreen({route}) {
     const navigation = useNavigation();
     const currentPage = useAppSelector(state => state.ui.currentPage);
     const [data, setData] = useState(route.params?.data);
+    const isFocused = useIsFocused();
+    const scrollRef = useRef<FlatList>()
+
+    useEffect(() => {
+        if (isFocused) {
+            scrollRef.current?.scrollToIndex({index: 0, animated: false});
+        }
+    }, [isFocused])
 
     useEffect(() => {
         setData(route.params?.data);
@@ -24,7 +31,9 @@ function SearchScreen({route}) {
 
     return (
         <SafeAreaView style={{flex: 1}}>
-            <FlatList 
+            <FlatList
+                ref={scrollRef}
+
                 style={{
                     flex: 1,
                     borderRadius: 1,

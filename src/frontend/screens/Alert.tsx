@@ -58,7 +58,7 @@ function AlertScreen() {
     // }, [])
 
     return (
-        <SafeAreaView style={{flex: 1, backgroundColor: "lightgrey"}}>
+        <SafeAreaView style={{flex: 1, backgroundColor: "#eee"}}>
             <ScrollView refreshControl={<RefreshControl refreshing={false} onRefresh={() => {setNotificationPerms("");}}/>}>
             {(!notifications || notifications?.length == 0) &&
                 <Text style={styles.noAlerts}>No alerts received</Text>
@@ -69,7 +69,7 @@ function AlertScreen() {
                 ><Text>Enable notifications</Text></TouchableOpacity></Text>
             }
                 <FlatList
-                    inverted={true}
+                    // inverted={true}
                     contentContainerStyle={{
                         flexGrow: 1, justifyContent: 'flex-end',
                     }}

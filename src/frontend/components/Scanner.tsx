@@ -92,6 +92,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
     setBarcodes([]);
     setOcrResult({});
     setBarcodeText("");
+    setLastBarcodeSeen("");
   };
 
   const takePhotoHandler = async () => {
@@ -109,13 +110,15 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
       
         // scan barcode from image
         BarcodeScanning.scan(image.assets[0].uri).then(async (res) => {
-          if (res.length > 0){
+          if (res.length > 0) {
             console.log("res: ", res);
-            console.log(res, res[0]?.value);
-            setBarcodeText(res[0]?.value ?? "");
+            console.log(res, res[0]?.value, lastBarcodeSeen);
+            setBarcodeText(res[0]?.value ?? lastBarcodeSeen);
+            setIsBarcodeModalOpen(true);
           } else {
             // scan ingredients text from image
-            OCR(image.assets[0].uri, true);
+            setIngredientsFound(true);
+            setIsOcrModalOpen(true);
           }
         });
       }
@@ -123,17 +126,14 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   }
 
   const OCR = async (photo, isFromCameraRoll: boolean) => {
-        if (isFromCameraRoll) {
-          setIngredientsFound(true);
-          setIsOcrModalOpen(true);
-        }
 
         // prepare image for OCR
         dispatch(updateLoadingState());
         navigation.navigate("Loading", {text: "Scanning..."});
 
         // compress for AWS Lambda 6mb request limit
-        const compressed = await compressor.compress(photo, {quality: 0.5});
+        // const compressed = await compressor.compress(photo, {quality: 0.5});
+        const compressed = photo;
         let photoBase64 = await readFile(compressed, "base64");
         photoBase64 = await ocrPreprocessing(photoBase64);
         const ocrImage = `data:image/jpeg;base64,${photoBase64}`;
@@ -228,11 +228,10 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                            dispatch(updateLoadingState());
                            navigation.navigate("Loading", {text: "Scanning..."});
                            let scan = await scanBarcode(barcodeText);
-                           // if product found then store scan
 
+                           // if product found then store scan
                            if (scan.status == "product found") {
                              // store scan in dynamoDB table
-
                              storeScan(barcodeText, scan, scans, dispatch, user);
 
                              dispatch(updateLoadingState());
@@ -241,8 +240,10 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                              //product not found in OFF database
                             // display error modal
                             setIsProductNotFoundModalOpen(true);
-
                            }
+
+                           setBarcodeText("");
+                           setLastBarcodeSeen("");
                        },
                        text: "Yes"
                    },
@@ -251,6 +252,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                            console.log("No pressed.");
                            console.log(barcodes, barcodeText)
                            setBarcodeText("");
+                           setLastBarcodeSeen("")
                        },
                        text: "No",
                    }
