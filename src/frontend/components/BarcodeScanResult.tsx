@@ -129,7 +129,7 @@ function BarcodeScanResult(scan: object) {
                     ?
                     <Text style={{alignSelf: "flex-start", paddingBottom: 20}}>
                         Ingredients not available.{"\n"}{"\n"}
-                        Allergen information unavailable{"\n"}{"\n"}
+                        <Text style={{fontWeight: "bold"}}>Allergen information unavailable</Text>{"\n"}{"\n"}
                         <Text style={{color: "blue", textDecorationLine: "underline"}}
                             onPress={() => Linking.openURL(`https://world.openfoodfacts.org/cgi/product.pl?type=edit&code=${scan?.product_code}`)}
                         >
@@ -145,13 +145,10 @@ function BarcodeScanResult(scan: object) {
                     :
                     <Text><Text style={{fontWeight: "bold"}}>Allergens:</Text>  {translatedAllergensText}</Text>
                 }
-                {scan?.traces_tags == ""
-                    ?
-                    <Text></Text>
-                    :
+                {translatedTracesText !== "" &&
                     <Text><Text style={{fontWeight: "bold"}}>May contain traces of:</Text>  {translatedTracesText}</Text>
                 }
-                {scan?.traces_tags == "" && scan?.allergens == "" &&
+                {scan?.ingredients_text && scan?.traces_tags == "" && scan?.allergens == "" &&
                     <Text style={{fontWeight: "bold"}}>No allergens detected</Text>
                 }
                 {productReports && productReports?.length > 0 

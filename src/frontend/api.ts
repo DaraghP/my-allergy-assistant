@@ -536,10 +536,11 @@ const calculateTotalPages = (totalProducts: number, pageSize: number) => {
 const getProductDisplayName = (productName: string, brandsList: Array<string>, quantity : string) => {
   let productDisplayName = "";
   productDisplayName += productName ? productName : "";
-  if (productDisplayName !== ""){
-    productDisplayName += " - "
-  }
+
   if (brandsList?.length > 0){
+    if (productDisplayName !== ""){
+      productDisplayName += " - "
+    }
     productDisplayName += brandsList[0].charAt(0).toUpperCase() + brandsList[0].slice(1);
   }
 
