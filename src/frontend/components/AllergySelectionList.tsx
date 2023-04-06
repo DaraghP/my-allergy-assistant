@@ -17,14 +17,8 @@ interface AllergySelectionListProps {
     setCustomSelection?: any
 }
 
-function AllergySelectionList({onConfirm = null, update = true, customSelection = null, setCustomSelection = null} : AllergySelectionListProps) {
-    const dispatch = useAppDispatch();
-    const username = useAppSelector(state => state.user.username);
-    const email = useAppSelector(state => state.user.email);
-    const deviceEndpoint = useAppSelector(state => state.user.deviceEndpoint);
-    const user = useAppSelector(state => state.appData.accounts[username]);
+export const getAllergensList = () => {
     const AllergenList = ALLERGENS.data;
-
     let allergenArray: Array<string> = [];
     // loop over each allergen
     AllergenList.forEach((allergenObject) => {
@@ -33,6 +27,17 @@ function AllergySelectionList({onConfirm = null, update = true, customSelection 
     });
     //sort alphabetically
     let data = allergenArray.sort();
+    return data
+}
+
+function AllergySelectionList({onConfirm = null, update = true, customSelection = null, setCustomSelection = null} : AllergySelectionListProps) {
+    const dispatch = useAppDispatch();
+    const username = useAppSelector(state => state.user.username);
+    const email = useAppSelector(state => state.user.email);
+    const deviceEndpoint = useAppSelector(state => state.user.deviceEndpoint);
+    const user = useAppSelector(state => state.appData.accounts[username]);
+    let data = getAllergensList();
+
 
     /* TODO:
             on Profile Screen: show user allergens, and button to edit allergens.
@@ -70,11 +75,23 @@ function AllergySelectionList({onConfirm = null, update = true, customSelection 
 
     return (
         <SafeAreaView style={{flex: 1}}>
+            {/*<SearchBar style={{justifyContent: "center"}} placeholder={"Search allergies"} onChangeText={searchHandler}/>*/}
+            {/*{filteredData.map((allergen) => (//hmm i see*/}
+            {/*    <AllergySelectionItem*/}
+            {/*        key={allergen} // */}
+            {/*        selection={customSelection == null ? selection : customSelection}*/}
+            {/*        setSelection={customSelection == null ? setSelection : setCustomSelection}*/}
+            {/*    >*/}
+            {/*            {allergen}*/}
+            {/*    </AllergySelectionItem>*/}
+            {/*))}*/}
             <FlatList
                 style={styles.list}
-                stickyHeaderIndices={[0]}
+                scrollEnabled={true}
+                stickyHeaderIndices={[0]}// could try have it be one of those things from the report specifyallergens modal instead
+                // o
                 ListHeaderComponentStyle={{backgroundColor: "white", borderWidth: 0.25, borderColor: "lightgrey"}}
-                ListHeaderComponent={<SearchBar placeholder={"Search allergies"} onChangeText={searchHandler}/>}
+                ListHeaderComponent={<SearchBar style={{justifyContent: "center"}} placeholder={"Search allergies"} onChangeText={searchHandler}/>}
                 keyExtractor={allergen => allergen}
                 data={filteredData}
                 renderItem={

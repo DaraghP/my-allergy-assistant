@@ -20,7 +20,7 @@ function SearchScreen({route}) {
     const scrollRef = useRef<FlatList>()
 
     useEffect(() => {
-        if (isFocused) {
+        if (isFocused && data.products.length > 0) {
             scrollRef.current?.scrollToIndex({index: 0, animated: false});
         }
     }, [isFocused])
@@ -29,92 +29,98 @@ function SearchScreen({route}) {
         setData(route.params?.data);
     }, [route.params?.data])
 
+    useEffect(() => {
+        console.log(data.products.length, data)
+    }, [data])
+
     return (
         <SafeAreaView style={{flex: 1}}>
-            <FlatList
-                ref={scrollRef}
+            {data.products.length < 1 &&
+                <Text style={styles.noProducts}>No Products Found.</Text>}
 
-                style={{
-                    flex: 1,
-                    borderRadius: 1,
-                    borderWidth: 0.5,
-                    borderColor: "grey",
-                    height: "100%"
-                }}
-                data={data?.products}
-                keyExtractor={product => product.barcode}
-                renderItem={(product) => (
-                    <TouchableNativeFeedback onPress={() => {
-                        storeScan(product.item.barcode, product.item.productResults, scans, dispatch, user);
-                        navigation.navigate("Scan", { scan: product.item.productResults, data: data })
-                    }}>
-                        <View style={styles.item}>
-                            <View style={{height: height * 0.18, alignSelf: "center", marginRight: 10, borderWidth: 10, borderColor: "#f1f1f1", backgroundColor: "#f1f1f1", borderRadius: 10}}>
-                                <View style={{width: width * 0.18, height: height * 0.15, justifyContent: "center"}}>
-
-                                    {product.item.image_url != null && <Image style={{resizeMode: "contain", flex: 1, alignItems: "center", borderRadius: 0}} source={{uri: product.item.image_url}}/>}
-                                    {product.item.image_url == null && <Text style={{fontWeight: "200", alignSelf: "center", textAlign: "center"}}>No Image Available</Text>}
-                                </View>
-
-                            </View>
-                            <View style={{flexDirection: "column", flexShrink: 1}}>
-                                <Text style={{marginTop: 5, fontWeight: "bold"}}>Name</Text>
-                                <Text style={{flex: 1, flexWrap: "wrap", marginTop: 5, textTransform: "capitalize"}}>{product.item.product_display_name}</Text>
-                                <View style={{flexDirection: "row", alignItems: "center",}}>
-                                    <FontAwesome5 style={{marginRight: 5}} name="eye" size={25}/>
-                                    <Text>View for more information</Text>
-                                </View>
-                            </View>
-
-
-                        </View>
-                    </TouchableNativeFeedback>      
-                )}
-            />
-
-            <View style={{width: "100%", flexDirection: "row", justifyContent: "space-around", paddingVertical: 10, backgroundColor: "ghostwhite", borderWidth: 0.5, borderTopLeftRadius: 10, borderTopRightRadius: 10}}>
-                
-                {currentPage > 1 && 
-                    <TouchableOpacity 
-                        onPress={() => {
-                            let searchQuery : SearchQuery = {page: currentPage - 1, queryString: data?.query}
-
-                            dispatch(updateLoadingState());
-                            navigation.navigate("Loading", {text: "Retrieving Results..."});
-                            facetedProductSearch(searchQuery).then((data) => {
-                                dispatch(updateCurrentPage(currentPage - 1))
-                                setData(data);
-                                dispatch(updateLoadingState());
-                                navigation.navigate("Search", {data: data});
-                            });
+                {data.products &&
+                    <FlatList
+                        ref={scrollRef}
+                        style={{
+                            flex: 1,
+                            borderRadius: 1,
+                            borderWidth: 0.5,
+                            borderColor: "grey",
+                            height: "100%"
                         }}
-                    >
-                        <Text>Previous</Text>
-                    </TouchableOpacity>
+                        data={data?.products}
+                        keyExtractor={product => product.barcode}
+                        renderItem={(product) => (
+                            <TouchableNativeFeedback onPress={() => {
+                                storeScan(product.item.barcode, product.item.productResults, scans, dispatch, user);
+                                navigation.navigate("Scan", { scan: product.item.productResults, data: data })
+                            }}>
+                                <View style={styles.item}>
+                                    <View style={{height: height * 0.18, alignSelf: "center", marginRight: 10, borderWidth: 10, borderColor: "#f1f1f1", backgroundColor: "#f1f1f1", borderRadius: 10}}>
+                                        <View style={{width: width * 0.18, height: height * 0.15, justifyContent: "center"}}>
+
+                                            {product.item.image_url != null && <Image style={{resizeMode: "contain", flex: 1, alignItems: "center", borderRadius: 0}} source={{uri: product.item.image_url}}/>}
+                                            {product.item.image_url == null && <Text style={{fontWeight: "200", alignSelf: "center", textAlign: "center"}}>No Image Available</Text>}
+                                        </View>
+
+                                    </View>
+                                    <View style={{flexDirection: "column", flexShrink: 1}}>
+                                        <Text style={{marginTop: 5, fontWeight: "bold"}}>Name</Text>
+                                        <Text style={{flex: 1, flexWrap: "wrap", marginTop: 5, textTransform: "capitalize"}}>{product.item.product_display_name}</Text>
+                                        <View style={{flexDirection: "row", alignItems: "center",}}>
+                                            <FontAwesome5 style={{marginRight: 5}} name="eye" size={25}/>
+                                            <Text>View for more information</Text>
+                                        </View>
+                                    </View>
+
+
+                                </View>
+                            </TouchableNativeFeedback>
+                        )}
+                    />
                 }
+                <View style={{position: "absolute", bottom: 0, width: "100%", flexDirection: "row", justifyContent: "space-around", paddingVertical: 10, backgroundColor: "ghostwhite", borderWidth: 0.5, borderTopLeftRadius: 10, borderTopRightRadius: 10}}>
 
-                <Text>{currentPage} / {data?.pages}</Text>
+                    {currentPage > 1 &&
+                        <TouchableOpacity
+                            onPress={() => {
+                                let searchQuery : SearchQuery = {page: currentPage - 1, queryString: data?.query}
 
-                {currentPage != data?.pages &&
-                    <TouchableOpacity
-                        onPress={() => {
-                            let searchQuery : SearchQuery = {page: currentPage + 1, queryString: data?.query}
-
-                            dispatch(updateLoadingState());
-                            navigation.navigate("Loading", {text: "Retrieving Results..."});
-                            facetedProductSearch(searchQuery).then((data) => {
-                                dispatch(updateCurrentPage(currentPage + 1))
-                                setData(data);
                                 dispatch(updateLoadingState());
-                                navigation.navigate("Search", {data: data});
-                            });
-                        }}
-                    >
-                        <Text style={{alignSelf: "flex-end"}}>Next</Text>
-                    </TouchableOpacity>
-                }
-            </View>
+                                navigation.navigate("Loading", {text: "Retrieving Results..."});
+                                facetedProductSearch(searchQuery).then((data) => {
+                                    dispatch(updateCurrentPage(currentPage - 1))
+                                    setData(data);
+                                    dispatch(updateLoadingState());
+                                    navigation.navigate("Search", {data: data});
+                                });
+                            }}
+                        >
+                            <Text>Previous</Text>
+                        </TouchableOpacity>
+                    }
 
+                    <Text>{currentPage} / {data?.pages}</Text>
+
+                    {currentPage != data?.pages &&
+                        <TouchableOpacity
+                            onPress={() => {
+                                let searchQuery : SearchQuery = {page: currentPage + 1, queryString: data?.query}
+
+                                dispatch(updateLoadingState());
+                                navigation.navigate("Loading", {text: "Retrieving Results..."});
+                                facetedProductSearch(searchQuery).then((data) => {
+                                    dispatch(updateCurrentPage(currentPage + 1))
+                                    setData(data);
+                                    dispatch(updateLoadingState());
+                                    navigation.navigate("Search", {data: data});
+                                });
+                            }}
+                        >
+                            <Text style={{alignSelf: "flex-end"}}>Next</Text>
+                        </TouchableOpacity>
+                    }
+                </View>
         </SafeAreaView>
     );
 }
@@ -129,7 +135,13 @@ const styles = StyleSheet.create({
         marginBottom: 1,
         borderColor: "lightgrey",
         borderWidth: 0.25
-    }
+    },
+    noProducts: {
+        fontSize: 25,
+        color: "black",
+        alignSelf: "center",
+        padding: 20
+    },
 })
 
 export default SearchScreen;

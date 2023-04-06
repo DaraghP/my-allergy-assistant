@@ -523,9 +523,11 @@ export interface SearchQuery {
 
 // for faceted product search pagination
 const calculateTotalPages = (totalProducts: number, pageSize: number) => {
-  const maxOFFPageSize = 1000;// looks good, how are the sizes of the images set atm when
-  const result = Math.ceil(totalProducts / pageSize) + 1; //
- 
+  const maxOFFPageSize = 1000;
+  let result = Math.ceil(totalProducts / pageSize);
+  if (result == 0){
+    result += 1;
+  }
   if (result > maxOFFPageSize) {
     return maxOFFPageSize;
   }
