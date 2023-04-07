@@ -11,7 +11,7 @@ import Accordion from "../components/Accordion";
 import FontAwesome5Icon from "react-native-vector-icons/FontAwesome5";
 // import { BlurView } from "@react-native-community/blur";
 
-function ProfileScreen() {// s
+function ProfileScreen() {
     const navigation = useNavigation();
     let dispatch = useAppDispatch();
     let user = useAppSelector(state => state.user);
@@ -19,67 +19,66 @@ function ProfileScreen() {// s
     const [isAllergySelectionAccordionOpen, setIsAllergySelectionAccordionOpen] = useState<boolean>(false);
 
     return (
-        <>
-            <View>
-                <Accordion
-                    headerStyle={{paddingVertical: 15}}
-                    headerTextStyle={{...styles.buttonText, marginLeft: 0}}
-                    headerText={"Change Selected Allergies"}
-                    content={<AllergySelectionList onConfirm={() => {}}/>} collapsed={isAllergySelectionAccordionOpen}
-                    setCollapsed={setIsAllergySelectionAccordionOpen}
-                />
+        <View style={{ backgroundColor: "#f0f6ff"}}>
+            <Accordion
+                headerStyle={{paddingVertical: 15, paddingLeft:20}}
+                headerTextStyle={{...styles.buttonText, marginLeft: 0}}
+                headerText={"Change Selected Allergies"}
+                content={<AllergySelectionList onConfirm={() => {}}/>} collapsed={isAllergySelectionAccordionOpen}
+                setCollapsed={setIsAllergySelectionAccordionOpen}
+            />
 
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => {
-                        navigation.navigate("ScanHistory");
-                    }}
-                >
-                    <FontAwesome5Icon name={"history"} size={25}/>
-                    <Text style={styles.buttonText}>Scan History</Text>
-                </TouchableOpacity>
+            <TouchableOpacity
+                style={styles.button}
+                onPress={() => {
+                    navigation.navigate("ScanHistory");
+                }}
+            >
+                <FontAwesome5Icon style={styles.buttonIcon} name={"history"} size={25}/>
+                <Text style={styles.buttonText}>Scan History</Text>
+            </TouchableOpacity>
 
 
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => {
-                        setIsModalOpen(true);
-                    }}
-                >
-                    <FontAwesome5Icon color={"red"} name={"times-circle"} size={25}/>
-                    <Text style={styles.buttonText}>Delete Account</Text>
-                </TouchableOpacity>
+            <TouchableOpacity
+                style={styles.button}
+                onPress={() => {
+                    setIsModalOpen(true);
+                }}
+            >
+                <FontAwesome5Icon color={"red"} name={"times-circle"} size={25}/>
+                <Text style={styles.buttonText}>Delete Account</Text>
+            </TouchableOpacity>
 
-                <AppModal
-                    isModalOpen={{state: isModalOpen, setState: (bool: boolean) => {setIsModalOpen(bool)}}}
-                    headerText={"Delete Account"}
-                    modalContentText={"Are you sure you want to delete your account?"}
-                    modalBtnsConfig={{
-                        option1: {
-                            onPress: () => {
-                                console.log("Yes pressed.");
+            <AppModal
+                isModalOpen={{state: isModalOpen, setState: (bool: boolean) => {setIsModalOpen(bool)}}}
+                headerText={"Delete Account"}
+                modalContentText={"You are unable to delete this account during user testing"}//{"Are you sure you want to delete your account?"}
+                modalBtnsConfig={{
+                    // option1: {
+                    //     onPress: () => {
+                    //         console.log("Yes pressed.");
 
-                                // delete user from dynamoDB, delete account in app data, and log out
-                                deleteUser({username: user.username, email: user.email});
+                    //         // delete user from dynamoDB, delete account in app data, and log out
+                    //         deleteUser({username: user.username, email: user.email});
 
-                                // delete user data from redux
-                                dispatch(deleteAccount(user.username));
-                                // delete their account in cognito
-                                Auth.deleteUser();
-                            },
-                            text: "Yes - Delete Account"
+                    //         // delete user data from redux
+                    //         dispatch(deleteAccount(user.username));
+                    //         // delete their account in cognito
+                    //         Auth.deleteUser();
+                    //     },
+                    //     text: "Yes - Delete Account"
+                    // },
+                    option1: {
+                        onPress: () => {
+                            console.log("No pressed.")
                         },
-                        option2: {
-                            onPress: () => {
-                                console.log("No pressed.")
-                            },
-                            text: "No - Cancel",
-                        }
-                    }}
-                />
+                        text: "Cancel",
+                    }
+                }}
+            />
 
-            </View>
-        </>
+        </View>
+
     )
 }
 
@@ -91,11 +90,17 @@ const styles = StyleSheet.create({
         padding: 10,
         paddingVertical: 15,
         borderWidth: 0.5,
+        paddingLeft: 20,
+        alignItems: "center"
     },
     buttonText: {
         color: "black",
         fontSize: 20,
         marginLeft: 15
+    },
+    buttonIcon: {
+        justifyContent: "center",
+        alignItems: "center"
     },
     modal: {
         flex: 1,

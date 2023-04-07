@@ -41,7 +41,7 @@ function OFFSearch() {
                 dispatch(updateLoadingState());
                 navigation.navigate("Loading", {text: "Retrieving Results..."}); // loads loading screen
                 const trim = (str) => {return str.trimStart().trimEnd();}
-                let searchQuery : SearchQuery = {searchTerms: trim(query), brand: trim(brandValue), category: trim(categoryValue), allergens: [...selection], allergensContains: containsAllergenValue}
+                let searchQuery : SearchQuery = {searchTerms: trim(query)}//, brand: trim(brandValue), category: trim(categoryValue), allergensNotContains: [...selectionNotContains], allergensContains: [...selectionContains]}
                 dispatch(updateCurrentPage(1));
                 facetedProductSearch(searchQuery).then((data) => {
                     dispatch(updateDidSearch());
@@ -52,34 +52,36 @@ function OFFSearch() {
             }}
            />
 
-          <View style={{backgroundColor: "#fcfcfc", shadowColor: 1, shadowRadius: 1, elevation: 50, borderRadius: 10, width: "90%", alignSelf: "center", padding: 20}}>
-            <Text style={{marginBottom: 15, textAlign: "left", color: "black", fontSize: 15, fontWeight: "bold"}}>Filter search based on allergens</Text>
-        <View style={{flex: 1, height: "100%"}}>
-            <View style={{paddingBottom: 5}}>
+          {/* <View style={{backgroundColor: "#fcfcfc", shadowColor: 1, shadowRadius: 1, elevation: 50, borderRadius: 10, width: "90%", alignSelf: "center", padding: 20}}>
+            <Text style={{marginBottom: 15, textAlign: "left", color: "black", fontSize: 15, fontWeight: "bold"}}>Filter search based on allergens</Text> */}
+            {/* <View style={{flex: 1, height: "100%"}}>
+                <View style={{paddingBottom: 5}}>
+                    <MultipleSelectList
+                        style={styles.selectionList}//
+                        label={'products not containing: '}
+                        selected={[...selectionNotContains]}
+                        setSelected={(value) => setSelectionNotContains(value)}
+                        data={data}
+                        save="value"
+                        placeholder={'Filter products that do not contain specific allergens'}
+                    />
+                </View>
+
+                <View style={{borderTopWidth: 1, borderTopColor: "lightgrey", paddingVertical: 5}}/>
                 <MultipleSelectList
-                    style={styles.selectionList}//
-                    label={'products not containing: '}
-                    selected={[...selectionNotContains]}
-                    setSelected={(value) => setSelectionNotContains(value)}
+                    style={styles.selectionList}
+                    label={'products containing:'}
+                    selected={[...selectionContains]}
+                    setSelected={(value) => setSelectionContains(value)}
                     data={data}
                     save="value"
-                    placeholder={'Filter products that do not contain specific allergens'}
-                />
-            </View>
-
-            <View style={{borderTopWidth: 1, borderTopColor: "lightgrey", paddingVertical: 5}}/>
-            <MultipleSelectList
-                style={styles.selectionList}
-                label={'products containing:'}
-                selected={[...selectionContains]}
-                setSelected={(value) => setSelectionContains(value)}
-                data={data}
-                save="value"
-                placeholder={'Filter products containing specific allergen'}
-            />
-
-            </View>
-          </View>
+                    placeholder={'Filter products containing specific allergen'}
+                /> 
+           
+                </View>
+          </View> 
+          
+          */}
         </>
     )
 }

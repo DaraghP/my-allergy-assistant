@@ -55,10 +55,10 @@ function AlertScreen() {
     //     setTimeout(() => {
     //         setRefreshing(false);
     //     }, 1000);
-    // }, [])
+    // }, []) 
 
     return (
-        <SafeAreaView style={{flex: 1, backgroundColor: "#eee"}}>
+        <SafeAreaView style={{flex: 1, backgroundColor: "#f0f6ff"}}>
             <ScrollView refreshControl={<RefreshControl refreshing={false} onRefresh={() => {setNotificationPerms("");}}/>}>
             {(!notifications || notifications?.length == 0) &&
                 <Text style={styles.noAlerts}>No alerts received</Text>

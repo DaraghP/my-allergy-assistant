@@ -23,7 +23,7 @@ import {readFile, TemporaryDirectoryPath, writeFile} from "react-native-fs";
 import {updateLoadingState, updateScanMode} from '../reducers/ui-reducer';
 import FontAwesome5Icon from "react-native-vector-icons/FontAwesome5";
 import {Image as compressor} from "react-native-compressor";
-
+// 
 export enum ScanMode {
   Text = 'TEXT',
   Barcode = 'BARCODE',
@@ -160,7 +160,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
         setModeStyle({color: "#F7CC3B", icon: "binoculars"});
         break;
       case ScanMode.Text:
-        setModeStyle({color: "#63C8F2", icon: "list"});
+        setModeStyle({color: "#6200EE", icon: "list"});
         break;
     }
   }, [scanMode]);
@@ -239,6 +239,8 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                            } else {
                              //product not found in OFF database
                             // display error modal
+
+                            dispatch(updateLoadingState());
                             setIsProductNotFoundModalOpen(true);
                            }
 

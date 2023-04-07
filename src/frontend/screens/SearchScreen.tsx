@@ -65,8 +65,8 @@ function SearchScreen({route}) {
 
                                     </View>
                                     <View style={{flexDirection: "column", flexShrink: 1}}>
-                                        <Text style={{marginTop: 5, fontWeight: "bold"}}>Name</Text>
-                                        <Text style={{flex: 1, flexWrap: "wrap", marginTop: 5, textTransform: "capitalize"}}>{product.item.product_display_name}</Text>
+                                        {/* <Text style={{marginTop: 5, fontWeight: "bold"}}>Name</Text> */}
+                                        <Text style={{flex: 1, flexWrap: "wrap", marginTop: 25, textTransform: "capitalize", fontWeight: "bold"}}>{product.item.product_display_name}</Text>
                                         <View style={{flexDirection: "row", alignItems: "center",}}>
                                             <FontAwesome5 style={{marginRight: 5}} name="eye" size={25}/>
                                             <Text>View for more information</Text>

@@ -45,7 +45,7 @@ function CompleteSetup({route, navigation}) {
                 />
                 <View style={{marginVertical: 50}}>
                     <Button
-                        title={"Finish"}
+                        title={"Finish Setup"}
                         color={"red"}
                         onPress={() => {
                             dispatch(setHasCompletedSetup(username));

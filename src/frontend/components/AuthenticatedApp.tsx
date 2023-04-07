@@ -7,6 +7,7 @@ import AlertScreen from "../screens/Alert";
 import ProfileScreen from "../screens/Profile";
 import ScanHistory from '../screens/scan/ScanHistory';
 import {useEffect, useState} from "react";
+import {Dimensions} from "react-native";
 import SetupNavigator from "../screens/setup/SetupNavigator";
 import {useAppSelector} from "../hooks";
 import {HeaderBackButton} from '@react-navigation/elements';
@@ -21,6 +22,7 @@ import {registerDeviceToken} from "../api";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
 import LogOut from "./LogOut";
 
+const {height, width} = Dimensions.get("window");
 function AuthenticatedApp() {
     const dispatch = useAppDispatch();
     const Tab = createBottomTabNavigator();
@@ -129,23 +131,25 @@ function AuthenticatedApp() {
               }
 
               {!setupRequired && Auth.user != null &&
-                  <Tab.Navigator screenOptions={{tabBarStyle: {display: loading ? "none" : "flex"}}}>
-                      <Tab.Screen name="Home" component={HomeScreen} options={{headerShown: false, tabBarIcon: () => <FontAwesome5 name={"home"} size={25}/>}}/>
+                  <Tab.Navigator screenOptions={{tabBarStyle: {display: loading ? "none" : "flex", height: height * 0.075, paddingBottom: 10}}}>
+                      <Tab.Screen name="Home" component={HomeScreen} options={{headerShown: false, tabBarIcon: () => <FontAwesome5 name={"home"} size={height * 0.025}/>}}/>
                       {/* pass parameter to Home Screen if appOpenedFromNotification, from there navigate to Alerts. */}
-                      <Tab.Screen name="Scan" component={ScanNavigator} options={{headerShown: false, tabBarIcon: () => <FontAwesome5 name={"camera"} size={25}/>}}/>
+                      <Tab.Screen name="Scan" component={ScanNavigator} options={{headerShown: false, tabBarIcon: () => <FontAwesome5 name={"camera"} size={height * 0.025}/>}}/>
 
                       <Tab.Screen name="Search" component={SearchScreen} options={searchTabOptions}/>
-
+                      {/*  */}
                       <Tab.Screen name="Alerts" default={true} component={AlertScreen} options={{
+                          headerTitleAlign: "center",
                           tabBarBadge: notifications?.filter(function(alert){return !alert?.isOpened}).length > 0 ? notifications.filter(function(alert){return !alert?.isOpened}).length : undefined,
                           tabBarBadgeStyle: {borderRadius: 10},
-                          tabBarIcon: () => <FontAwesome5 name={"bell"} solid size={25}/>
+                          tabBarIcon: () => <FontAwesome5 name={"bell"} solid size={height * 0.025}/>
                       }}/>
 
                       <Tab.Screen
                           name="Profile" component={ProfileScreen}
                           options={{
-                              tabBarIcon: () => <FontAwesome5 name={"user"} solid size={25}/>,
+                              headerTitleAlign: "center",
+                              tabBarIcon: () => <FontAwesome5 name={"user"} solid size={height * 0.025}/>,
                               headerRight: () => <LogOut style={{marginRight: 25}}/>
                           }}
                       />

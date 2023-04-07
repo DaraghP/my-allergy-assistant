@@ -515,10 +515,8 @@ export interface SearchQuery {
   queryString?: string | null,
   page?: number,
   searchTerms?: string,
-  brand?: string,
-  category?: string,
-  allergens?: Array<string>,
-  allergensContains?: boolean,
+  allergensContains?: Array<string>,
+  allergensNotContains?: Array<string>
 }
 
 // for faceted product search pagination
@@ -669,7 +667,7 @@ export async function scanBarcode(barcodeText: string) {
     });
 }
 
-export async function facetedProductSearch({queryString = null, page = 1, searchTerms = "", brand = "", category = "", allergens, allergensContains}: SearchQuery) {
+export async function facetedProductSearch({queryString = null, page = 1, searchTerms = "", allergensContains, allergensNotContains}: SearchQuery) {
   let OFFSearchQueryUrl : string;
   let parameters = ""
   let tagCount = 0;  
@@ -679,20 +677,26 @@ export async function facetedProductSearch({queryString = null, page = 1, search
       parameters += `&search_terms2=${searchTerms}`;
     }
 
-    if (brand !== "") {
-      parameters += `&tagtype_${tagCount}=brands&tag_contains_${tagCount}=contains&tag_${tagCount}=${brand}`;
-      tagCount++;
-    }
+    // if (brand !== "") {
+    //   parameters += `&tagtype_${tagCount}=brands&tag_contains_${tagCount}=contains&tag_${tagCount}=${brand}`;
+    //   tagCount++;
+    // }
 
-    if (category !== "") {
-      parameters += `&tagtype_${tagCount}=categories&tag_contains_${tagCount}=contains&tag_${tagCount}=${category}`;
-      tagCount++;
-    }
-    
-    for (let allergen of allergens) {
-      parameters += `&tagtype_${tagCount}=allergens&tag_contains_${tagCount}=${allergensContains ? "contains" : "does_not_contain"}&tag_${tagCount}=${allergen}`
-      tagCount++;
-    }
+    // if (category !== "") {
+    //   parameters += `&tagtype_${tagCount}=categories&tag_contains_${tagCount}=contains&tag_${tagCount}=${category}`;
+    //   tagCount++;
+    // } 
+    // https://world.openfoodfacts.org/cgi/search.pl?action=process&tagtype_0=allergens&tag_contains_0=contains&tag_0=milk&sort_by=unique_scans_n&page_size=20
+    // https://world.openfoodfacts.org/cgi/search.pl?action=process&tagtype_0=allergens&tag_does_not_contain_0=does_not_contain&tag_0=Milk&page_size=25&json=true
+
+    // for (let allergenContains of allergensContains) {
+    //   parameters += `&tagtype_${tagCount}=allergens&tag_contains_${tagCount}=contains&tag_${tagCount}=${allergenContains}`
+    //   tagCount++;
+    // }
+    // for (let allergenNotContains of allergensNotContains) {
+    //   parameters += `&tagtype_${tagCount}=allergens&tag_does_not_contain_${tagCount}=does_not_contain&tag_${tagCount}=${allergenNotContains}`
+    //   tagCount++;
+    // }
 
     OFFSearchQueryUrl = `https://world.openfoodfacts.org/cgi/search.pl?action=process${parameters}&page_size=25&json=true`;
   }

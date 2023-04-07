@@ -20,7 +20,7 @@ function Accordion({style = {}, headerStyle = {}, headerTextStyle = {}, contentS
             <View style={{backgroundColor: "white", width: "auto", paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: "#a1a1a1", ...headerStyle}}>
                 <TouchableOpacity onPress={() => {setCollapsed(!collapsed)}}>
                     <View style={{flexDirection: "row"}}>
-                        <FontAwesome5 style={{marginRight: 15}} name={collapsed ? "chevron-down" : "chevron-up"} size={25}/>
+                        <FontAwesome5 style={{marginTop: 5, marginRight: 15}} name={collapsed ? "chevron-down" : "chevron-up"} size={25}/>
                         <Text style={headerTextStyle}>{headerText}</Text>
                     </View>
                 </TouchableOpacity>

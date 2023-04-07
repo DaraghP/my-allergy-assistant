@@ -48,7 +48,7 @@ function ScanHistory({navigation}) {
     }
 
     return (
-        <>
+        <View style={{backgroundColor: "#f0f6ff"}}>
             {scans && Object.keys(scans).length > 0
                 ?
                 <FlatList
@@ -102,7 +102,7 @@ function ScanHistory({navigation}) {
                 <Text style={{textAlign: "center", paddingVertical: 20}}>No scanned products</Text>
             }
             
-        </>
+        </View>
     )
 }
 
