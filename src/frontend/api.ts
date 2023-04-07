@@ -625,28 +625,36 @@ export async function extractEnglishAllergens(allergenList: Array<string>) {
 }
 
 function compileBarcodeResult(data : object, barcodeText : string | null = null) {
-  return {
-    "product_display_name": getProductDisplayName(data?.product?.product_name, data?.product?.brands_tags, data.product?.quantity),
-    "date": new Date().toISOString(),
-    "status": data?.status_verbose,
-    "product_code": barcodeText == null ? data?.product?.code : barcodeText,
-    "product_name": data?.product?.product_name,
-    "product_image": data?.product?.image_front_url,
-    "ingredients_image": data?.product?.image_ingredients_thumb_url,
-    // "image_size": data?.product?.
-    "ingredients_text": data?.product?.ingredients_text,
-    "ingredients_complete_boolean": data?.product?.states_hierarchy.includes("en:ingredients-completed"),
-    // "states_hierarchy": data?.product?.states_hierarchy,
-    "allergens": mergeAllergenStringsToList(data?.product?.allergens, data?.product?.allergens_from_ingredients),
-    // "allergens_from_ingredients": data?.product?.allergens_from_ingredients,
-    "may_contain": data?.product?.traces ? data?.product?.traces.replace("en:", "").replace(" ", "") : "",
-    "traces_tags": data?.product.traces_tags,//[0].replace("en:en-", "").split("-en-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(", ") : "",
-    "missing_ingredients": data?.product?.unknown_ingredients_n,    
-    "non_vegan_ingredients": data?.product?.ingredients_analysis?.["en:non-vegan"],
-    "vegan_status_unknown_ingredients": data?.product?.ingredients_analysis?.["en:vegan-status-unknown"],
-    "vegetarian_status_unkown_ingredients": data?.product?.ingredients_analysis?.["en:vegetarian-status-unknown"],
-  }
-} 
+  
+  if (data?.status_verbose !== "found"){
+    return {
+      "status": data?.status_verbose, 
+      "product_code": barcodeText == null ? data?.product?.code : barcodeText,
+    }
+  } else {
+    return {
+      "product_display_name": getProductDisplayName(data?.product?.product_name, data?.product?.brands_tags, data.product?.quantity),
+      "date": new Date().toISOString(),
+      "status": data?.status_verbose,
+      "product_code": barcodeText == null ? data?.product?.code : barcodeText,
+      "product_name": data?.product?.product_name,
+      "product_image": data?.product?.image_front_url,
+      "ingredients_image": data?.product?.image_ingredients_thumb_url,
+      // "image_size": data?.product?.
+      "ingredients_text": data?.product?.ingredients_text,
+      "ingredients_complete_boolean": data?.product?.states_hierarchy.includes("en:ingredients-completed"),
+      // "states_hierarchy": data?.product?.states_hierarchy,
+      "allergens": mergeAllergenStringsToList(data?.product?.allergens, data?.product?.allergens_from_ingredients),
+      // "allergens_from_ingredients": data?.product?.allergens_from_ingredients,
+      "may_contain": data?.product?.traces ? data?.product?.traces.replace("en:", "").replace(" ", "") : "",
+      "traces_tags": data?.product.traces_tags,//[0].replace("en:en-", "").split("-en-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(", ") : "",
+      "missing_ingredients": data?.product?.unknown_ingredients_n,    
+      "non_vegan_ingredients": data?.product?.ingredients_analysis?.["en:non-vegan"],
+      "vegan_status_unknown_ingredients": data?.product?.ingredients_analysis?.["en:vegan-status-unknown"],
+      "vegetarian_status_unkown_ingredients": data?.product?.ingredients_analysis?.["en:vegetarian-status-unknown"],
+    }
+  } 
+}
 
 export async function scanBarcode(barcodeText: string) {
   console.log("fetching from OFF");

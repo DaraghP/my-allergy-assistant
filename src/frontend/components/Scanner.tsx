@@ -236,16 +236,16 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
 
                              dispatch(updateLoadingState());
                              navigation.navigate("ScanResult", { scan: scan });
+                             setBarcodeText("");
+                             setLastBarcodeSeen("");
                            } else {
                              //product not found in OFF database
                             // display error modal
 
                             dispatch(updateLoadingState());
+                            navigation.navigate("Scan");
                             setIsProductNotFoundModalOpen(true);
                            }
-
-                           setBarcodeText("");
-                           setLastBarcodeSeen("");
                        },
                        text: "Yes"
                    },
@@ -309,9 +309,10 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                modalContentText={"Barcode '" + barcodeText + "' not found in product database.\nTry scan ingredients instead"}
                modalBtnsConfig={{
                    option1: {
-                       onPress: async () => {
+                       onPress: () => {
                         setBarcodeText("");
-                        console.log();
+                        setLastBarcodeSeen("");
+                        navigation.navigate("Scan");
                        },
                        text: "Continue"
                    }
