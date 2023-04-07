@@ -148,7 +148,6 @@ function AuthenticatedApp() {
                       <Tab.Screen
                           name="Profile" component={ProfileScreen}
                           options={{
-                              headerTitleAlign: "center",
                               tabBarIcon: () => <FontAwesome5 name={"user"} solid size={height * 0.025}/>,
                               headerRight: () => <LogOut style={{marginRight: 25}}/>
                           }}
