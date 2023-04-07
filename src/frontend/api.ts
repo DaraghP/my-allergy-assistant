@@ -626,7 +626,7 @@ export async function extractEnglishAllergens(allergenList: Array<string>) {
 
 function compileBarcodeResult(data : object, barcodeText : string | null = null) {
   
-  if (data?.status_verbose !== "product found"){
+  if (data?.status_verbose === "product not found"){
     return {
       "status": data?.status_verbose, 
       "product_code": barcodeText == null ? data?.product?.code : barcodeText,
