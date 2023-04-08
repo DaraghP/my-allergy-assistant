@@ -8,12 +8,21 @@ async function addItems(docClient, table, ...items) {
     }
 }
 
+async function updateItem(docClient, table, queryParams) {
+    await docClient.update({TableName: table, ...queryParams}).promise()
+}
+
+
 async function deleteItem(dynamodb, table, partitionKey, sortKey) {
     await dynamodb.deleteItem({TableName: table, Key: {...partitionKey, ...sortKey}}).promise()
+}
+
+async function getItem(docClient, table, key) {
+    return await docClient.get({TableName: table, Key: key}).promise();
 }
 
 async function getAllItems(ddb, table) {
     return await ddb.scan({TableName: table}).promise();
 }
 
-module.exports = {addItem, addItems, deleteItem, getAllItems}
+module.exports = {addItem, addItems, updateItem, deleteItem, getItem, getAllItems}

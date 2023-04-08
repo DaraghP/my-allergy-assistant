@@ -6,7 +6,6 @@ if (process.env.ENV && process.env.ENV !== "NONE") {
   tableName = tableName + '-' + process.env.ENV;
 }
 
-
 let dynamo;
 
 // for tests
@@ -14,7 +13,7 @@ if (process.env.MOCK_DYNAMODB_ENDPOINT) {
     dynamo = new AWS.DynamoDB.DocumentClient({endpoint: process.env.MOCK_DYNAMODB_ENDPOINT, region: "localhost"});
 }
 else {
-    dynamo = new AWS.DynamoDB.DocumentClient(); 
+    dynamo = new AWS.DynamoDB.DocumentClient();
 }
 
 async function notifyUsers(productID, productName, report) {
@@ -28,12 +27,13 @@ async function notifyUsers(productID, productName, report) {
         TableName: notificationTable,
         Key: {product_id: productID}
     }
+
     let getNotis = await dynamo.get(customQueryParams).promise();
     // console.log("endpointsList: "+ getNotis.Item.user_endpoints.values);
     if (getNotis.Item?.user_endpoints) {
         for (let endpoint of getNotis.Item.user_endpoints.values) {
             // send SNS notification to each user_endpoint to notify about new report.
-            try{
+            try {
                 console.log("publish to : " + endpoint);
                 const GCMdata = {
                     "notification": {
@@ -56,9 +56,11 @@ async function notifyUsers(productID, productName, report) {
                     Message: messageJson,
                     TargetArn: endpoint
                 };
-                let SNSresponse = await sns.publish(message).promise();
-                console.log("Full SNS message - " + SNSresponse);
-                console.log("SNS message sent - " + SNSresponse.MessageId);
+
+
+                await sns.publish(message).promise();
+                // console.log("Full SNS message - " + SNSresponse);
+                // console.log("SNS message sent - " + SNSresponse.MessageId);
             } catch(err) {
                 console.log(err);
             }
@@ -77,8 +79,6 @@ async function notifyUsers(productID, productName, report) {
  * DynamoDB API as a JSON body.
  */
 exports.handler = async (event, context) => {
-    //console.log('Received event:', JSON.stringify(event, null, 2));
-
     let body;
     let statusCode = '200';
     const headers = {
@@ -100,7 +100,7 @@ exports.handler = async (event, context) => {
                     }
                     body = await dynamo.get(queryParams).promise();
                 }
-                else{
+                else {
                     body = await dynamo.scan(queryParams).promise();
                 }
                 break;
@@ -143,3 +143,5 @@ exports.handler = async (event, context) => {
         headers,
     };
 };
+
+exports.notifyUsers = notifyUsers;
