@@ -11,8 +11,6 @@ describe("OCR-postprocessing", () => {
         const ocrAllergensData = readdirSync(path.join(__dirname, "/data/ocr/allergens"));
         for (let i = 0; i < ocrTestData.length; i++) {
             const allergens = readFileSync(path.join(__dirname, `/data/ocr/allergens/${ocrAllergensData[i]}`), "utf-8").split(",")
-            // console.log(ocrAllergensData[i], allergens)
-            // console.log(allergens)
 
             it(`${i + 1 < 10 ? "0" : ""}${i + 1}: getAllergensFromText should contain all of the expected user allergens`, () => {
                 user.allergens = allergens;
@@ -26,6 +24,32 @@ describe("OCR-postprocessing", () => {
 
     afterEach(() => {
         user.allergens = [];
+    })
+
+    it("should identify barley, wheat, and rye in allergens found if gluten in text", () => {
+        const res = getAllergensFromText("gluten", user);
+
+        expect(res.allergens).toEqual(["wheat", "rye", "barley"])
+    })
+
+    it("should identify barley, wheat, and rye in allergens it may contain if 'glutpn' in text", () => {
+        const res = getAllergensFromText("glutin", user);
+        console.log(res)
+
+        expect(res.mayContain).toEqual(["wheat", "rye", "barley"])
+    })
+
+
+    it("should identify user allergens found as barley, wheat, and rye if gluten in text", () => {
+        user.allergens = ["barley", "wheat", "rye"];
+        const res = getAllergensFromText("gluten", user);
+
+        expect(res.userAllergens).toEqual(user.allergens)
+    })
+
+    it("should list butter as milk", () => {
+        const res = getAllergensFromText("butter", user);
+        expect(res.allergens).toContain("milk")
     })
 
     it("should not get allergens from text if ingredients is undefined", () => {
@@ -45,7 +69,6 @@ describe("OCR-postprocessing", () => {
         expect(res.allergens).toEqual([]);
         expect(res.userAllergens).toContain("peanuts")
     })
-
 
     it("should list peanuts as an allergen if spelt as 'penuts'", () => {
         const res = getAllergensFromText("penuts", user);
@@ -74,7 +97,6 @@ describe("OCR-postprocessing", () => {
         expect(res.mayContain).toEqual([]);
         expect(res.mayContainUserAllergens).toContain("peanuts")
     })
-
 
     generatePostProcessingTestCases()
 

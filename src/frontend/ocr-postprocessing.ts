@@ -3,10 +3,28 @@ import ALLERGENS from "./allergens.json";
 import stringSimilarity from "string-similarity";
 
 let possibleAllergens = ALLERGENS.data;
+let possibleAllergensLinks = {};
+let ingredientAllergenLinked = new Map();
 let possibleAllergensSet;
 let possibleAllergensList = []
 _.values(possibleAllergens).forEach(a => {
-  possibleAllergensList.push(..._.values(a)[0])
+  const allergenName = _.keys(a)[0].toLowerCase();
+  const allergenListedAs = _.values(a)[0];
+  allergenListedAs.forEach((allergen) => {
+    if (allergen in possibleAllergensLinks) {
+      // for example when gluten is found from barley, wheat, or rye
+      possibleAllergensLinks[allergen] = [...new Set([...possibleAllergensLinks[allergen], ...allergenListedAs])];
+      possibleAllergensLinks[allergen].splice(possibleAllergensLinks[allergen].indexOf(allergen), 1)
+      ingredientAllergenLinked.set(allergen, null);
+    }
+    else {
+      possibleAllergensLinks[allergen] = allergenListedAs;
+      ingredientAllergenLinked.set(allergen, allergenName);
+    }
+    // possibleAllergensLinks[allergen] = Object.keys(a)[0].toLowerCase();
+  })
+
+  possibleAllergensList.push(...Object.keys(possibleAllergensLinks));
 });
 
 const autocorrect = require("autocorrect")({words: possibleAllergensList});
@@ -16,12 +34,27 @@ let probableMatchedAllergens = new Set();
 let mayContain = new Set();
 let listedAs = new Map();
 
-function addToListedAs(key, ingredient) {
-  if (!listedAs.has(key)) {
-    listedAs.set(key, new Set())
-  }
-  
-  listedAs.get(key).add(ingredient);
+function addAllergensToResultData(set, allergens, actualIngredient, ingredientText) {
+    const mainAllergenName = ingredientAllergenLinked.get(actualIngredient)
+    if (!mainAllergenName) {
+      addArrayToSet(set, allergens);
+      addToListedAs(allergens, ingredientText);
+    }
+    else {
+      set.add(mainAllergenName);
+      addToListedAs([mainAllergenName], ingredientText);
+    }
+}
+
+function addToListedAs(keys, ingredient) {
+  keys.forEach((key) => {
+    if (!listedAs.has(key)) {
+      listedAs.set(key, new Set())
+    }
+
+    listedAs.get(key).add(ingredient);
+
+  })
 }
 
 function addProbableAllergenIfRated(ingredient, match) {
@@ -29,13 +62,15 @@ function addProbableAllergenIfRated(ingredient, match) {
   const P2 = 0.4; // for auto-correction
 
   if (match.rating > P1) {
-    probableMatchedAllergens.add(match.target);
-    addToListedAs(match.target, ingredient);
+    addAllergensToResultData(probableMatchedAllergens, possibleAllergensLinks[match.target], match.target, ingredient);
+    // addArrayToSet(probableMatchedAllergens, possibleAllergensLinks[match.target]);
+    // addToListedAs(possibleAllergensLinks[match.target], ingredient);
   }
   else if (match.rating >= P2 && stringSimilarity.compareTwoStrings(autocorrect(ingredient), match.target) > P1) {
     // in the auto-corrected case, must be added to may contains as its not certain enough
-    mayContain.add(match.target);
-    addToListedAs(match.target, ingredient);
+    addAllergensToResultData(mayContain, possibleAllergensLinks[match.target], match.target, ingredient);
+    // addArrayToSet(mayContain, possibleAllergensLinks[match.target]);
+    // addToListedAs(possibleAllergensLinks[match.target], ingredient);
   }
 }
 
@@ -49,8 +84,13 @@ function exactContains(ingredient) {
   return false;
 }
 
+function addArrayToSet(set, array) {
+  array.forEach(Set.prototype.add, set);
+}
+
 function probableAllergens(ingredients) {
   // exact and fuzzy allergen matching
+  let ingredientAllergens;
   for (let ingredient of ingredients) {
     ingredient = ingredient.trim();
     // compare allergens list to each ingredient, correct them if needed
@@ -59,16 +99,19 @@ function probableAllergens(ingredients) {
     
     // exact match
     if (possibleAllergensSet.has(ingredient)) {
-      probableMatchedAllergens.add(ingredient);
-      addToListedAs(ingredient, ingredient);
+      ingredientAllergens = possibleAllergensLinks[ingredient];
+      addAllergensToResultData(probableMatchedAllergens, ingredientAllergens, ingredient, ingredient)
+      // addArrayToSet(probableMatchedAllergens, ingredientAllergens);
+      // addToListedAs(possibleAllergensLinks[ingredient], ingredient);
       continue;
     }
 
     // exact contains
     let ingredientContainsAllergen = exactContains(ingredient);
     if (ingredientContainsAllergen) {
-      probableMatchedAllergens.add(ingredientContainsAllergen);
-      addToListedAs(ingredientContainsAllergen, ingredient);
+      addAllergensToResultData(probableMatchedAllergens, possibleAllergensLinks[ingredientContainsAllergen], ingredient, ingredient)
+      // addArrayToSet(probableMatchedAllergens, possibleAllergensLinks[ingredientContainsAllergen]);
+      // addToListedAs(possibleAllergensLinks[ingredientContainsAllergen], ingredient);
     }
     else {
       let bestMatch;
@@ -106,7 +149,7 @@ function probableAllergens(ingredients) {
 
 function getAllergensFromText(ingredients, user) {
   ingredients = ingredients?.toLowerCase().split(",");
-
+//
   if (ingredients) {
     let userAllergensSet = new Set([...user.allergens.map((x: string) => x.toLowerCase())])
 

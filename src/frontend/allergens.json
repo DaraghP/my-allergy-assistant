@@ -1,13 +1,13 @@
 {
   "data": [
     {
-      "Wheat": ["wheat"]
+      "Wheat": ["wheat", "gluten"]
     },
     {
-      "Rye": ["rye"]
+      "Rye": ["rye", "gluten"]
     },
     {
-      "Barley": ["barley"]
+      "Barley": ["barley", "gluten"]
     },
     {
       "Oats": ["oats", "oat"]
@@ -44,7 +44,9 @@
     },
     {
       "Milk": [
-        "milk"
+        "milk",
+        "butter",
+        "dairy"
       ]
     },
     {
