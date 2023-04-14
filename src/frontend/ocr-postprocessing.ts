@@ -39,7 +39,7 @@ function addProbableAllergenIfRated(ingredient, match) {
   }
 }
 
-function exactContainsMatch(ingredient) {
+function exactContains(ingredient) {
   possibleAllergensList.forEach((allergen) => {
     if (ingredient.includes(allergen)) {
       return allergen;
@@ -64,8 +64,8 @@ function probableAllergens(ingredients) {
       continue;
     }
 
-    // exact contains/match
-    let ingredientContainsAllergen = exactContainsMatch(ingredient);
+    // exact contains
+    let ingredientContainsAllergen = exactContains(ingredient);
     if (ingredientContainsAllergen) {
       probableMatchedAllergens.add(ingredientContainsAllergen);
       addToListedAs(ingredientContainsAllergen, ingredient);
@@ -106,7 +106,6 @@ function probableAllergens(ingredients) {
 
 function getAllergensFromText(ingredients, user) {
   ingredients = ingredients?.toLowerCase().split(",");
-
 
   if (ingredients) {
     let userAllergensSet = new Set([...user.allergens.map((x: string) => x.toLowerCase())])

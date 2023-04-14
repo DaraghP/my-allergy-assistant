@@ -5,6 +5,7 @@
   "main": "index.js",
   "license": "Apache-2.0",
   "dependencies": {
+    "@aws-sdk/client-sns": "^3.309.0",
     "@types/aws-lambda": "^8.10.92",
     "aws-sdk": "^2.1113.0"
   },

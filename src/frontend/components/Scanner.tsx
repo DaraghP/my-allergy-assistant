@@ -12,7 +12,7 @@ import {ocrPreprocessing, scanBarcode, updateUser, getInitialNotificationState} 
 import ScanResult from '../screens/scan/ScanResult';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { updateScans } from '../reducers/app-data-reducer';
-import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
+import FontAwesome5, {FontAwesome5IconButton} from "react-native-vector-icons/FontAwesome5";
 import {launchImageLibrary} from "react-native-image-picker";
 import BarcodeScanning from '@react-native-ml-kit/barcode-scanning';
 import { scanOCR } from 'vision-camera-ocr';
@@ -132,8 +132,7 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
         navigation.navigate("Loading", {text: "Scanning..."});
 
         // compress for AWS Lambda 6mb request limit
-        // const compressed = await compressor.compress(photo, {quality: 0.5});
-        const compressed = photo;
+        const compressed = await compressor.compress(photo, {quality: 0.66});
         let photoBase64 = await readFile(compressed, "base64");
         photoBase64 = await ocrPreprocessing(photoBase64);
         const ocrImage = `data:image/jpeg;base64,${photoBase64}`;
@@ -354,10 +353,11 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                <TouchableOpacity onPress={changeScanModeHandler} style={{justifyContent: "center", alignItems: "center", alignContent: "center"}}>
                   <FontAwesome5Icon
                       color="white"
-                      style={{...styles.modeButton, backgroundColor: modeStyle.color, borderColor: isDetected ? "#39ff14" : "orange"}}
+                      style={{...styles.modeButton, flexDirection: "column", backgroundColor: modeStyle.color, borderColor: isDetected ? "#39ff14" : "orange"}}
                       name={modeStyle.icon}
                       size={25}
                   />
+
                </TouchableOpacity>
              </View>
            </View>
