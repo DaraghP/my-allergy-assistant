@@ -184,7 +184,7 @@ function getAllergensFromText(ingredients, user) {
     //     console.log("WARNING! May contain allergen: " + allergen + " possibly detected. User NOT allergic. Listed as: " + [...listedAs.get(allergen)])
     // })
 
-    let result = getResult(userAllergensFound, mayContainUserAllergens, probableMatchedAllergens, mayContain)
+    let result = getResult(userAllergensFound, mayContainUserAllergens, probableMatchedAllergens, mayContain, Object.fromEntries([...listedAs]));
 
     probableMatchedAllergens.clear();
     mayContain.clear();
@@ -204,7 +204,7 @@ export const difference = (set1, set2) => {
   return new Set([...set1].filter(x => !set2.has(x.toLowerCase())))
 }
 
-const getResult = (userAllergensFound, mayContainUserAllergens, probableMatchedAllergens, mayContain) => {
+const getResult = (userAllergensFound, mayContainUserAllergens, probableMatchedAllergens, mayContain, listedAs) => {
   return {
     userAllergens: [...userAllergensFound], 
     mayContainUserAllergens: [...mayContainUserAllergens], 
@@ -214,5 +214,5 @@ const getResult = (userAllergensFound, mayContainUserAllergens, probableMatchedA
   }
 }
 
-export default getAllergensFromText;
+export default getAllergensFromText;//
 

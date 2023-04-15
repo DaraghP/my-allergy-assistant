@@ -1,4 +1,4 @@
-import {Alert, Button, FlatList, StyleSheet, View} from "react-native";
+import {Alert, Button, FlatList, StyleSheet, ToastAndroid, View} from "react-native";
 import React, {useEffect, useState} from "react";
 import AllergySelectionItem from "./AllergySelectionItem";
 import SearchBar from "./SearchBar";
@@ -37,13 +37,6 @@ function AllergySelectionList({onConfirm = null, update = true, customSelection 
     const deviceEndpoint = useAppSelector(state => state.user.deviceEndpoint);
     const user = useAppSelector(state => state.appData.accounts[username]);
     let data = getAllergensList();
-
-
-    /* TODO:
-            on Profile Screen: show user allergens, and button to edit allergens.
-            button opens allergySelectionList
-            add 'Couldn't find your allergen?' feature where user can add their custom allergen.
-     */
 
     const [selection, setSelection] = useState<Set<string>>(new Set(user?.allergens));
     const [filteredData, setFilteredData] = useState(data);
@@ -88,8 +81,7 @@ function AllergySelectionList({onConfirm = null, update = true, customSelection 
             <FlatList
                 style={styles.list}
                 scrollEnabled={true}
-                stickyHeaderIndices={[0]}// could try have it be one of those things from the report specifyallergens modal instead
-                // o
+                stickyHeaderIndices={[0]}
                 ListHeaderComponentStyle={{backgroundColor: "white", borderWidth: 0.25, borderColor: "lightgrey"}}
                 ListHeaderComponent={<SearchBar style={{justifyContent: "center"}} placeholder={"Search allergies"} onChangeText={searchHandler}/>}
                 keyExtractor={allergen => allergen}
@@ -112,10 +104,6 @@ function AllergySelectionList({onConfirm = null, update = true, customSelection 
                         onConfirm()
 
                         if (update) {
-                            console.log("curr_username:", username);
-                            console.log("curr_email:", email);
-                            console.log("allergens selected:", [...selection]);
-                            console.log("scans:", user.scans);
                             let userObj : User = {username: username, deviceEndpoint: deviceEndpoint, email: email, allergens: [...selection], scans: user.scans}
                             dispatch(updateAllergens(userObj));
                             
@@ -126,6 +114,7 @@ function AllergySelectionList({onConfirm = null, update = true, customSelection 
                             } else {
                                 // else, user is already created, so updateUser
                                 updateUser(userObj);
+                                ToastAndroid.show("Saving changes...", ToastAndroid.LONG, ToastAndroid.CENTER)
                                 console.log("hasCompletedSetup = true in redux.");
                             }
                         }

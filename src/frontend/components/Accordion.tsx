@@ -1,4 +1,4 @@
-import {Dimensions, Text, TouchableOpacity, View} from "react-native";
+import {Dimensions, ScrollView, Text, TouchableOpacity, View} from "react-native";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import Collapsible from "react-native-collapsible";
 
@@ -15,6 +15,7 @@ interface AccordionProps {
 
 function Accordion({style = {}, headerStyle = {}, headerTextStyle = {}, contentStyle = {}, headerText, content, collapsed, setCollapsed}: AccordionProps) {
     const {height, width} = Dimensions.get("window");
+
     return (
         <View style={style}>
             <View style={{backgroundColor: "white", width: "auto", paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: "#a1a1a1", ...headerStyle}}>

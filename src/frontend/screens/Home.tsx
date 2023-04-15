@@ -16,7 +16,7 @@ function HomeScreen() {
   const dispatch = useAppDispatch();
 
   return (
-    <ScrollView contentContainerStyle={{backgroundColor: "#f0f6ff"}}>
+    <ScrollView contentContainerStyle={{backgroundColor: "#f0f6ff", paddingBottom: 15}}>
       <View style={{width: "100%", justifyContent: "flex-end", alignItems: "flex-end", paddingVertical: 25, marginBottom: 25, backgroundColor: "ghostwhite",  elevation: 20, shadowRadius: 10, shadowColor: "black"}}>
         <Image
               style={{width: "75%", maxWidth: "100%", maxHeight: "100%", aspectRatio: 6, alignSelf: "center", resizeMode: "contain"}}
@@ -28,15 +28,14 @@ function HomeScreen() {
           <View style={{marginVertical: 5, borderBottomWidth: 1, width: "80%", borderBottomColor: "#ccc", alignSelf: "center"}}/>
           <View style={styles.boxesContainer}>
             <View style={styles.boxContainer}>
-              
-              <TouchableOpacity style={{backgroundColor: "red", ...styles.box}} onPress={() => {navigation.navigate("Scan"); dispatch(updateScanMode(ScanMode.Barcode)); }}>
+              <TouchableOpacity style={{backgroundColor: "#FF6961", ...styles.box}} onPress={() => {navigation.navigate("Scan"); dispatch(updateScanMode(ScanMode.Barcode)); }}>
                 <FontAwesome5Icon name={"barcode"} size={height * 0.1} color={"white"} />
                 <Text style={styles.boxTitle}>Scan Barcode</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.boxContainer}>
-              <TouchableOpacity style={{backgroundColor: "#6200EE", ...styles.box}} onPress={() => {navigation.navigate("Scan"); dispatch(updateScanMode(ScanMode.Text)); }}>
+              <TouchableOpacity style={{backgroundColor: "#BEA9DF", ...styles.box}} onPress={() => {navigation.navigate("Scan"); dispatch(updateScanMode(ScanMode.Text)); }}>
                 <FontAwesome5Icon name={"list"} size={height * 0.1} color={"white"} />
                 <Text style={styles.boxTitle}>Scan Ingredients</Text>
               </TouchableOpacity>

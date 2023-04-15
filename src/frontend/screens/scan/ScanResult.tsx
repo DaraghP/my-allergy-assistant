@@ -1,19 +1,44 @@
 import _ from "lodash";
 import React, {useEffect, useState, useRef} from "react";
-import {Dimensions, ScrollView, Text, StyleSheet, View, Image, Button, TouchableOpacity, Modal, Linking} from "react-native";
+import {
+    Dimensions,
+    ScrollView,
+    Text,
+    StyleSheet,
+    View,
+    Image,
+    Button,
+    TouchableOpacity,
+    Modal,
+    Linking,
+    BackHandler
+} from "react-native";
 import {useAppSelector, useAppDispatch} from "../../hooks";
-import ALLERGENS from "../../allergens.json";
 import BarcodeScanResult from "../../components/BarcodeScanResult";
 import OCRScanResult from "../../components/OCRScanResult";
 import { useIsFocused } from "@react-navigation/native";
 
-function ScanResult({navigation, route}) {
+
+function ScanResult({navigation, route, backPressHandler}) {
     const {height, width} = Dimensions.get("window");
     const scan : object = route.params?.scan;
     const username = useAppSelector(state => state.user.username);
     const user = useAppSelector(state => state.appData.accounts[username]);
     const isFocused = useIsFocused();
     const scrollRef = useRef<ScrollView>()
+
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener(
+            "hardwareBackPress",
+            () => {
+                if (backPressHandler)
+                    backPressHandler();
+                return true;
+            }
+        );
+
+        return () => {backHandler.remove()};
+    }, [backPressHandler])
 
     useEffect(() => {
         if (isFocused) {

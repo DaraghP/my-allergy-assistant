@@ -10,6 +10,7 @@ import { getProductReports, translateIngredients, extractEnglishAllergens, Repor
 import {updateProductNotificationStatus, deleteNotification} from "../reducers/app-data-reducer";
 import moment from 'moment';
 import _ from "lodash";
+import TranslatedText from "./TranslatedText";
 
 function BarcodeScanResult(scan: object) {
     const {height, width} = Dimensions.get("window");
@@ -48,6 +49,9 @@ function BarcodeScanResult(scan: object) {
                 }
                 setHaveGotReports(true);
             })
+
+            // notifications are turned on by default
+            notificationStateHandler(0);
         }
     }, [])
 
@@ -78,16 +82,13 @@ function BarcodeScanResult(scan: object) {
     }, [])
 
     const translateAllergens = async (allergenList: Array<string>) => {
-        // let allergenList = scan?.allergens.split(",");
-        // let joinedAllergenList = allergenList?.concat(scan?.allergens_from_ingredients.split(","));
-        // if translatedAllergens
         return `${await extractEnglishAllergens(allergenList)}`;
     };
 
     const getReportColor = (userAllergens, report) => {
-        let flag="orange";
+        let flag = "orange";
         if (report?.user_id === username){
-            flag="green";
+            flag = "green";
             // setMyReport();
         } else {
             report?.suspected_allergens.forEach((allergen)=>{
@@ -98,25 +99,23 @@ function BarcodeScanResult(scan: object) {
         }
         return flag;
     }
-    // useEffect(() => {
-    //     if (scans != undefined){
-    //         translateAllergens().then((res) => {
-    //             if (scan!= undefined){
-    //                 scan.allergens = res;
-    //                 console.log("updated allergens to: "+ res);
-    //             }
-    //         })
-    //     }
-    // }, [scans]);
-    // useEffect(() => {
-        // setSelectedList(user?.allergens);
-        // console.log("test a")
-    // }, [user?.allergens])
 
-    // useEffect(async () => {
-    //     let reports = await getProductReports({productId: scan?.product_code});
-    //     setProductReports(reports?.reports);
-    // }, [selectedList])
+    const notificationStateHandler = (val) => {
+        let bool = val == 0;
+        console.log("set product "+scan?.product_code+" notification_status to " + bool);
+
+        let notifyObj : UpdatableNotificationObj = {productId: scan?.product_code, user_endpoint: deviceEndpoint}
+
+        if (bool) {
+            // add user_endpoint to notifications table in DynamoDB
+            addNotificationsToDynamo(notifyObj);
+        } else {
+            // remove user_endpoint from notifications table in DynamoDB
+            deleteNotificationsFromDynamo(notifyObj);
+        }
+        updateUser({username: username, deviceEndpoint: deviceEndpoint, email: email, product_id: scan?.product_code, receive_notifications: bool})
+        dispatch(updateProductNotificationStatus({username: username, product_id: scan?.product_code, product_notifications_boolean: bool}))
+    }
 
     return (
         <>
@@ -136,17 +135,17 @@ function BarcodeScanResult(scan: object) {
                         Click here
                     </Text> to update the product information via Open Food Facts to inform future scanners.</Text>
                     :
-                    <Text style={{alignSelf: "flex-start", paddingBottom: 20}}><Text style={{fontWeight: "bold"}}>Ingredients:</Text>  {translatedIngredientsText}</Text>
+                    <TranslatedText title={"Ingredients"} originalText={scan?.ingredients_text} translatedText={translatedIngredientsText}/>
                 }
 
                 {scan?.allergens == ""
                     ?
                     <Text></Text>
                     :
-                    <Text><Text style={{fontWeight: "bold"}}>Allergens:</Text>  {translatedAllergensText}</Text>
+                    <TranslatedText title={"Allergens"} originalText={scan?.allergens} translatedText={translatedAllergensText}/>
                 }
                 {translatedTracesText !== "" &&
-                    <Text><Text style={{fontWeight: "bold"}}>May contain traces of:</Text>  {translatedTracesText}</Text>
+                    <TranslatedText title={"May contain traces of"} originalText={scan?.traces_tags} translatedText={translatedTracesText}/>
                 }
                 {scan?.ingredients_text && scan?.traces_tags == "" && scan?.allergens == "" &&
                     <Text style={{fontWeight: "bold"}}>No allergens detected</Text>
@@ -154,31 +153,38 @@ function BarcodeScanResult(scan: object) {
                 {productReports && productReports?.length > 0 
                     ?
                     <View style={{paddingBottom: 5, borderBottomColor: "lightgrey", borderBottomWidth: 2}}>
-                    <View style={{marginTop: 20, flexDirection: "row", marginBottom: 5, borderTopColor: "lightgrey", borderBottomColor: "lightgrey", borderTopWidth: 2, borderBottomWidth: 2, padding: 15}}>
-                        <FontAwesome5 name={"exclamation-triangle"} color={"red"} size={20}/>
-                        <Text style={{paddingLeft: 15}}><Text style={{fontWeight: "bold"}}>Warning:</Text>  Product has been reported.</Text>
-                    </View>
-                    <FlatList contentContainerStyle={{
-                        flexGrow: 1, justifyContent: 'flex-end',
-                      }} inverted={true} keyExtractor={(report, index) => report.user_id+index} showsHorizontalScrollIndicator={true} horizontal={true} data={productReports} renderItem={(report) => (
-                        <View style={{backgroundColor: getReportColor(userAllergens, report.item), borderRadius: 10, paddingLeft: 5, paddingRight: 10, paddingBottom: 20, marginRight: 5}}>
-                            <Text style={{color: "white", paddingLeft: 5, paddingTop:5, borderBottomWidth: 0.5, borderBottomColor: "white"}}>{report.item.user_id === username ? "My Report:              " : "Reported allergens:"}</Text>
-                            <View style={{padding: 5, paddingBottom: 10}}>
-                                {[...report.item.suspected_allergens].map((allergen, index)=> {
-                                    if (userAllergens.includes(allergen) && report.item.user_id !== username){
-                                        return (<Text key={index.toString()} style={{paddingLeft: "20%", color: "white", fontWeight: "bold"}}> - {allergen}{"  "}
-                                            <FontAwesome5 name={"exclamation-triangle"} size={15} color={"white"}/></Text>)
-                                    } else {
-                                        if (report.item.user_id === username){
-                                            setMyReportIndex(report.index);
-                                        }
-                                        return (<Text key={index.toString()} style={{paddingLeft: "20%", color: "white"}}> - {allergen}</Text>)
-                                    }
-                                })}
-                            </View>
-                            <Text style={{borderTopWidth: 0.5, borderTopColor: "white", color: "white", position: "absolute", bottom: 5, right: 5, alignSelf: "flex-end", fontSize: 12}}>{moment(report.item.date).fromNow()}</Text>
+                        <View style={{marginTop: 20, flexDirection: "row", marginBottom: 5, borderTopColor: "lightgrey", borderBottomColor: "lightgrey", borderTopWidth: 2, borderBottomWidth: 2, padding: 15}}>
+                            <FontAwesome5 name={"exclamation-triangle"} color={"red"} size={20}/>
+                            <Text style={{paddingLeft: 15}}><Text style={{fontWeight: "bold"}}>Warning:</Text>  Product has been reported.</Text>
                         </View>
-                    )}/>
+                        <FlatList
+                            contentContainerStyle={{
+                                flexGrow: 1,
+                                justifyContent: 'flex-end',
+                            }}
+                            inverted={true}
+                            keyExtractor={(report, index) => report.user_id+index}
+                            showsHorizontalScrollIndicator={true}
+                            horizontal={true}
+                            data={productReports} renderItem={(report) => (
+                                <View style={{backgroundColor: getReportColor(userAllergens, report.item), borderRadius: 10, paddingLeft: 5, paddingRight: 10, paddingBottom: 20, marginRight: 5}}>
+                                    <Text style={{color: "white", paddingLeft: 5, paddingTop:5, borderBottomWidth: 0.5, borderBottomColor: "white"}}>{report.item.user_id === username ? "My Report:              " : "Reported allergens:"}</Text>
+                                    <View style={{padding: 5, paddingBottom: 10}}>
+                                        {[...report.item.suspected_allergens].map((allergen, index)=> {
+                                            if (userAllergens.includes(allergen) && report.item.user_id !== username){
+                                                return (<Text key={index.toString()} style={{paddingLeft: "20%", color: "white", fontWeight: "bold"}}> - {allergen}{"  "}
+                                                    <FontAwesome5 name={"exclamation-triangle"} size={15} color={"white"}/></Text>)
+                                            } else {
+                                                if (report.item.user_id === username){
+                                                    setMyReportIndex(report.index);
+                                                }
+                                                return (<Text key={index.toString()} style={{paddingLeft: "20%", color: "white"}}> - {allergen}</Text>)
+                                            }
+                                        })}
+                                    </View>
+                                    <Text style={{borderTopWidth: 0.5, borderTopColor: "white", color: "white", position: "absolute", bottom: 5, right: 5, alignSelf: "flex-end", fontSize: 12}}>{moment(report.item.date).fromNow()}</Text>
+                                </View>
+                        )}/>
                     </View>
                     :
                     <View style={{marginTop: 20, flexDirection: "row", borderTopColor: "lightgrey", borderBottomColor: "lightgrey", borderTopWidth: 2, borderBottomWidth: 2, padding: 15}}>
@@ -195,23 +201,7 @@ function BarcodeScanResult(scan: object) {
                     <Text style={{paddingTop: 20, paddingBottom: 10}}>Receive notifications if product is reported?</Text>
                     <SwitchSelector
                         initial={getInitialNotificationState(scan?.product_code, usersScanHistory) ? 0 : 1}
-                        onPress={(val) => {
-                            let bool = (val==0);
-                            console.log("set product "+scan?.product_code+" notification_status to " + bool);
-
-                            let notifyObj : UpdatableNotificationObj = {productId: scan?.product_code, user_endpoint: deviceEndpoint}
-                            //
-                            //
-                            if (bool) {
-                                // add user_endpoint to notifications table in DynamoDB
-                                addNotificationsToDynamo(notifyObj);
-                            } else {
-                                // remove user_endpoint from notifications table in DynamoDB
-                                deleteNotificationsFromDynamo(notifyObj);
-                            }
-                            updateUser({username: username, deviceEndpoint: deviceEndpoint, email: email, product_id: scan?.product_code, receive_notifications: bool})
-                            dispatch(updateProductNotificationStatus({username: username, product_id: scan?.product_code, product_notifications_boolean: bool}))
-                        }}
+                        onPress={(val) => {notificationStateHandler(val)}}
                         options={[
                             {label: " ON", customIcon: <FontAwesome5 name={"bell"} size={25}/>, value: 0},
                             {label: " OFF", customIcon: <FontAwesome5 name={"bell-slash"} size={25}/>, value: 1}
@@ -310,12 +300,6 @@ function BarcodeScanResult(scan: object) {
                 modalBtnsConfig={viewReportWarning && {
                     option1: {
                         onPress: () => {
-                            console.log("report cancelled.")
-                        },
-                        text: "No - Cancel",
-                    },
-                    option2: {
-                        onPress: () => {
                             let reportObj : Report = {username: username, productName: scan?.product_display_name, productId: scan?.product_code, suspectedAllergens: selectedList.length==0 ? userAllergens : selectedList}
                             addReportToDynamo(reportObj);
                             // let reportObj2 : Report = {productId: scan?.product_code}
@@ -337,7 +321,13 @@ function BarcodeScanResult(scan: object) {
                             setSelectedList([]);
                         },
                         text: "Yes - Report Product",
-                    }
+                    },
+                    option2: {
+                        onPress: () => {
+                            console.log("report cancelled.")
+                        },
+                        text: "No - Cancel",
+                    },
                 }}
 
             />

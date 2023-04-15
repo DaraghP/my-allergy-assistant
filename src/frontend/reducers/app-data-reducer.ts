@@ -130,7 +130,7 @@ export const AppDataSlice = createSlice({
            const productId = action.payload.productId;
            let myIndex=-1;
            console.log("entering loop of alerts");
-           state.accounts[username].notifications.map((noti, index)=>{
+           state.accounts[username].notifications?.map((noti, index)=>{
                 console.log("productID="+noti.productID+", reporterID="+noti.reporterID);
                 if ((noti.productID === productId) && (noti.reporterID===username)){
                     console.log("found match");
@@ -149,9 +149,10 @@ export const AppDataSlice = createSlice({
     //    },
        set_is_opened(state, action) {
            const username = action.payload.username;
-           const index = action.payload.index;
-           // in the notifications list, each item will have a index
-           // when we attach it to each item in the list in react using key attribute
+           const productID = action.payload.productID;
+
+           // find notification index of product id
+           const index = [...state.accounts[username].notifications].findIndex(obj => obj.productID === productID);
 
            state.accounts[username].notifications[index] = {...state.accounts[username].notifications[index], isOpened: true};
        }

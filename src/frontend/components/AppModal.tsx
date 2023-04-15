@@ -5,11 +5,11 @@ import {BlurView} from "@react-native-community/blur";
 interface ModalBtnsConfig {
     option1?: {
         onPress: Function,
-        text?: string
+        text?: string,
     },
     option2?: {
         onPress: Function,
-        text?: string
+        text?: string,
     }
 }
 
@@ -36,7 +36,6 @@ function AppModal({headerText, modalContent = <></>, modalContentText, modalBtns
                     <Text style={styles.modalHeader}>{headerText}</Text>
 
                     <View style={styles.modalContent}>
-
                         <Text ellipsizeMode={"clip"}>{modalContentText}</Text>
 
                         <View style={styles.content}>
@@ -46,7 +45,7 @@ function AppModal({headerText, modalContent = <></>, modalContentText, modalBtns
                         <View style={styles.modalBtnsContainer}>
                             {modalBtnsConfig.option1 &&
                                 <TouchableOpacity
-                                    style={styles.modalBtn}
+                                    style={{...styles.modalBtn, backgroundColor: "#0db700"}}
                                     onPress={() => {
                                         modalBtnsConfig.option1.onPress()
                                         isModalOpen.setState(false);
@@ -58,7 +57,7 @@ function AppModal({headerText, modalContent = <></>, modalContentText, modalBtns
 
                             {modalBtnsConfig.option2 &&
                                 <TouchableOpacity
-                                    style={styles.modalBtn}
+                                    style={{...styles.modalBtn, backgroundColor: "#ff5c5c"}}
                                     onPress={() => {
                                         modalBtnsConfig.option2?.onPress()
                                         isModalOpen.setState(false);
@@ -112,23 +111,24 @@ const styles = StyleSheet.create({
     },
     modalBtnsContainer: {
         flexGrow: 0,
-        // width: "100%",
         justifyContent: "center",
         flexDirection: "row",
     },
     modalBtn: {
       flex: 1,
       justifyContent: "center",
-      borderWidth: 1,
+      borderWidth: 0.5,
+      borderColor: "black",
       borderRadius: 5,
       marginTop: 5,
       marginHorizontal: 5,
       padding: 5,
       minWidth: "35%",
-      maxWidth: "45%"
+      maxWidth: "45%",
     },
     modalBtnText: {
-      textAlign: "center"
+      textAlign: "center",
+      color: "white",
     }
 })
 

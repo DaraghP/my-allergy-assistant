@@ -1,5 +1,15 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {StyleSheet, Text, TouchableOpacity, View, Image, FlatList} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Image,
+  FlatList,
+  ToastAndroid,
+  Linking,
+  Dimensions
+} from 'react-native';
 import {
   Camera,
   useCameraDevices, useFrameProcessor
@@ -23,7 +33,7 @@ import {readFile, TemporaryDirectoryPath, writeFile} from "react-native-fs";
 import {updateLoadingState, updateScanMode} from '../reducers/ui-reducer';
 import FontAwesome5Icon from "react-native-vector-icons/FontAwesome5";
 import {Image as compressor} from "react-native-compressor";
-// 
+
 export enum ScanMode {
   Text = 'TEXT',
   Barcode = 'BARCODE',
@@ -48,13 +58,14 @@ export const storeScan = (barcodeText, scan, scans, dispatch, user) => {
     console.log("\nScanner scan:", scan);
 }
 
+
 function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   const dispatch = useAppDispatch();
+  const isAppLoading = useAppSelector(state => state.ui.loading);
   const user = useAppSelector(state => state.user);
   const scans = useAppSelector(state => state.appData.accounts[user.username]?.scans);
   const scanMode = useAppSelector(state => state.ui.scanMode);
-  const navigation = useNavigation(); // 
-  const Stack = createNativeStackNavigator();
+  const navigation = useNavigation();
   const devices = useCameraDevices();
   const device = devices.back;
   const camera = useRef<Camera>(null);
@@ -64,7 +75,6 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   const [isOcrModalOpen, setIsOcrModalOpen] = useState<boolean>(false);
   const [isProductNotFoundModalOpen, setIsProductNotFoundModalOpen] = useState<boolean>(false);
   const [photo, setPhoto] = useState<string>("");
-  const [editPhoto, setEditPhoto] = useState<string>("");
   const [barcodes, setBarcodes] = useState([]);
   const [ocrResult, setOcrResult] = useState({});
   const [ingredientsFound, setIngredientsFound] = useState(false);
@@ -106,15 +116,16 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
 
     launchImageLibrary(options, (image) => {
       if (!image.didCancel) {
-        setPhoto(image.assets[0].uri); // 
+        setPhoto(image.assets[0].uri);
       
         // scan barcode from image
         BarcodeScanning.scan(image.assets[0].uri).then(async (res) => {
           if (res.length > 0) {
             console.log("res: ", res);
             console.log(res, res[0]?.value, lastBarcodeSeen);
-            setBarcodeText(res[0]?.value ?? lastBarcodeSeen);
-            setIsBarcodeModalOpen(true);
+            const barcode = res[0]?.value ?? lastBarcodeSeen;
+            setBarcodeText(barcode);
+            barcodeScan(barcode)
           } else {
             // scan ingredients text from image
             setIngredientsFound(true);
@@ -128,159 +139,162 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
   const OCR = async (photo, isFromCameraRoll: boolean) => {
 
         // prepare image for OCR
-        dispatch(updateLoadingState());
+        // dispatch(updateLoadingState());
         navigation.navigate("Loading", {text: "Scanning..."});
 
-        // compress for AWS Lambda 6mb request limit
-        const compressed = await compressor.compress(photo, {quality: 0.66});
-        let photoBase64 = await readFile(compressed, "base64");
-        photoBase64 = await ocrPreprocessing(photoBase64);
-        const ocrImage = `data:image/jpeg;base64,${photoBase64}`;
-        setEditPhoto(ocrImage);
-        await writeFile(`${TemporaryDirectoryPath}/img.jpg`, photoBase64, "base64");
+        try {
+          // compress for AWS Lambda 6mb request limit
+          const compressed = await compressor.compress(photo, {quality: 0.66});
+          let photoBase64 = await readFile(compressed, "base64");
+          photoBase64 = await ocrPreprocessing(photoBase64);
+          const ocrImage = `data:image/jpeg;base64,${photoBase64}`;
+          await writeFile(`${TemporaryDirectoryPath}/img.jpg`, photoBase64, "base64");
 
-        const text = await TextRecognition.recognize(`file:///${TemporaryDirectoryPath}/img.jpg`);
+          const text = await TextRecognition.recognize(`file:///${TemporaryDirectoryPath}/img.jpg`);
 
-        if (!isFromCameraRoll) {
-          setIngredientsFound(false);
-          setIsOcrModalOpen(false);
+          if (!isFromCameraRoll) {
+            setIngredientsFound(false);
+            setIsOcrModalOpen(false);
+          }
+
+          // dispatch(updateLoadingState());
+          navigation.navigate("ScanResult", {scan: {ocrResult: text, ocrImage: photo, ocrImageOutput: ocrImage}});
         }
+        catch (e) {
+          dispatch(updateLoadingState(false));
+          navigation.navigate("Scan");
+        }
+    }
 
-        dispatch(updateLoadingState());
-        navigation.navigate("ScanResult", { scan: {ocrResult: text, ocrImage: photo, ocrImageOutput: ocrImage} });
+  const barcodeScan = (barcodeText = null) => {
+      const barcode = barcodes[0]?.displayValue ?? barcodeText;
+      setIsDetected(true);
+      setLastBarcodeSeen(barcode);
+      // dispatch(updateLoadingState());
+      console.log(barcode, "TEST TEST")
+      navigation.navigate("Loading", {text: "Scanning..."});
+      scanBarcode(barcode).then((scan) => {
+        // if product found then store scan
+        if (scan.status == "product found") {
+          // store scan in dynamoDB table
+          storeScan(barcode, scan, scans, dispatch, user);
+
+          // dispatch(updateLoadingState());
+          navigation.navigate("ScanResult", { scan: scan });
+          setBarcodeText("");
+          setLastBarcodeSeen("");
+        }
+        else {
+          //product not found in OFF database
+          // display error modal
+
+          // dispatch(updateLoadingState());
+          navigation.navigate("Scan");
+
+          setIsDetected(false);
+          setIsProductNotFoundModalOpen(true);
+        }
+      }).catch((e) => {
+        navigation.navigate("Scan");
+        dispatch(updateLoadingState(false));
+        setIsProductNotFoundModalOpen(true);
+      });
   }
 
   useEffect(() => {
-    switch (scanMode) {
-      case ScanMode.Barcode:
-        setModeStyle({color: "red", icon: "barcode"});
-        break;
-      case ScanMode.Detect:
-        setModeStyle({color: "#F7CC3B", icon: "binoculars"});
-        break;
-      case ScanMode.Text:
-        setModeStyle({color: "#6200EE", icon: "list"});
-        break;
+    if (isFocused) {
+      setIsDetected(false)
     }
-  }, [scanMode]);
+  }, [isFocused])
+
+  useEffect(() => {
+    if (!isAppLoading && isFocused) {
+      switch (scanMode) {
+        case ScanMode.Barcode:
+          setModeStyle({color: "#FF6961", icon: "barcode"});
+          ToastAndroid.show("Scan Barcode", ToastAndroid.SHORT, ToastAndroid.CENTER);
+          break;
+        case ScanMode.Detect:
+          setModeStyle({color: "#F7CC3B", icon: "binoculars"});
+          ToastAndroid.show("Scan Both", ToastAndroid.SHORT, ToastAndroid.CENTER);
+          break;
+        case ScanMode.Text:
+          setModeStyle({color: "#BEA9DF", icon: "list"});
+          ToastAndroid.showWithGravity("Scan Ingredients", ToastAndroid.SHORT, ToastAndroid.CENTER);
+          break;
+      }
+    }
+  }, [scanMode, isFocused]);
 
   useEffect(() => {
     const barcodeCondition = scanMode === ScanMode.Barcode || scanMode === ScanMode.Detect;
+
+    if (barcodeCondition && barcodes.length > 0 && isFocused) {
+      barcodeScan();
+    }
+
+  }, [barcodes]);
+
+  useEffect(() => {
     const ocrCondition = scanMode === ScanMode.Text || scanMode === ScanMode.Detect;
 
-    if (ocrCondition && ocrResult?.result?.blocks?.length > 0) {
-      if (ocrResult.result?.text != "" && ocrResult.result?.text.toLowerCase().includes("ingredients")) {
-        setIsDetected(true)
+    if (ocrCondition && ocrResult?.result?.blocks?.length > 0 && ocrResult.result?.text != "" && ocrResult.result?.text.toLowerCase().includes("ingredients")) {
         if (!ingredientsFound) {
           takePhotoHandler().then((photo) => {
             setPhoto("file://" + photo.path)
           }).then(() => {
+            setIsDetected(true)
             setIngredientsFound(true);
           });
         }
-      }
-      else {
-        setIngredientsFound(false);
-      }
-    }
-    else if (barcodeCondition && barcodes.length > 0) {
-      setIsDetected(true);
-      setLastBarcodeSeen(barcodes[0].displayValue);
+        else {
+          setIngredientsFound(false);
+        }
     }
     else {
       setIsDetected(false);
     }
-
-  }, [ocrResult, barcodes]);
+  }, [ocrResult])
 
   return (
     <View style={{flex: 1}}>
        {device !== undefined && (
         <>
-             <Stack.Navigator>
-               <Stack.Screen name="ScanResult" >
-                 {(props) => (
-                     <ScanResult {...props} />
-                 )}
-               </Stack.Screen>
-             </Stack.Navigator>
-
            <Camera
              ref={camera}
              frameProcessor={frameProcessor}
              frameProcessorFps={5}
              photo={true}
              device={device}
-             isActive={!isOcrModalOpen && !isBarcodeModalOpen && isFocused}
+             isActive={!isOcrModalOpen && !isBarcodeModalOpen && !isProductNotFoundModalOpen && isFocused}
              style={StyleSheet.absoluteFill}
              enableZoomGesture
            />
-
-           <AppModal
-               isModalOpen={{state: isBarcodeModalOpen, setState: (bool: boolean) => {setIsBarcodeModalOpen(bool)}}}
-               headerText={"Scan barcode"}
-               modalContentText={"Would you like to scan this product?"}
-               modalBtnsConfig={{
-                   option1: {
-                       onPress: async () => {
-                           console.log("Yes pressed. product:", barcodeText);
-                           dispatch(updateLoadingState());
-                           navigation.navigate("Loading", {text: "Scanning..."});
-                           let scan = await scanBarcode(barcodeText);
-
-                           // if product found then store scan
-                           if (scan.status == "product found") {
-                             // store scan in dynamoDB table
-                             storeScan(barcodeText, scan, scans, dispatch, user);
-
-                             dispatch(updateLoadingState());
-                             navigation.navigate("ScanResult", { scan: scan });
-                             setBarcodeText("");
-                             setLastBarcodeSeen("");
-                           } else {
-                             //product not found in OFF database
-                            // display error modal
-
-                            dispatch(updateLoadingState());
-                            navigation.navigate("Scan");
-                            setIsProductNotFoundModalOpen(true);
-                           }
-                       },
-                       text: "Yes"
-                   },
-                   option2: {
-                       onPress: () => {
-                           console.log("No pressed.");
-                           console.log(barcodes, barcodeText)
-                           setBarcodeText("");
-                           setLastBarcodeSeen("")
-                       },
-                       text: "No",
-                   }
-               }}
-          />
 
           <AppModal
                isModalOpen={{state: isOcrModalOpen, setState: (bool: boolean) => {setIsOcrModalOpen(bool)}}}
                headerText={"Scan Ingredients"}
                modalContent={
                   <>
-                    <Image style={{height: 200, width: 200}} source={{uri: photo}} />
-                    <TouchableOpacity
-                        activeOpacity={0.5}
-                        style={styles.crop}
-                        onPress={() => {
-                          ImagePicker.openCropper({
-                            path: photo,
-                            freeStyleCropEnabled: true,
-                            enableRotationGesture: true,
-                          }).then(image => {
-                            setPhoto(image.path);
-                          });
-                        }}
-                    >
-                      <Text>Crop</Text>
-                    </TouchableOpacity>
+                    <View style={{marginVertical: 15}}>
+                      <Image style={{height: 200, width: 200}} source={{uri: photo}} />
+                      <TouchableOpacity
+                          activeOpacity={0.5}
+                          style={styles.crop}
+                          onPress={() => {
+                            ImagePicker.openCropper({
+                              path: photo,
+                              freeStyleCropEnabled: true,
+                              enableRotationGesture: true,
+                            }).then(image => {
+                              setPhoto(image.path);
+                            });
+                          }}
+                      >
+                        <Text>Crop</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <Text style={{alignItems: "center", justifyContent: "center", alignSelf: "center", marginBottom: 3, fontWeight: "200", maxWidth: 200}}>For faster, and better results</Text>
                   </>
                }
                modalContentText={"Would you like to scan this product's ingredients?"}
@@ -305,7 +319,18 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
             <AppModal
                isModalOpen={{state: isProductNotFoundModalOpen, setState: (bool: boolean) => {setIsProductNotFoundModalOpen(bool)}}}
                headerText={"Product NOT FOUND :("}
-               modalContentText={"Barcode '" + barcodeText + "' not found in product database.\nTry scan ingredients instead"}
+               modalContent={
+                  <>
+                    <Text>Barcode '{lastBarcodeSeen ?? 'N/A'}' not found in product database.</Text>
+                    <Text style={{marginTop: 10}}>
+                      Try scan ingredients instead or help future scanners by filling in the product's information via Open Food Facts.
+                    </Text>
+                      <Text style={{marginVertical: 10, color: "blue", textDecorationLine: "underline"}} onPress={() => {Linking.openURL("https://world.openfoodfacts.org/contribute")}}>
+                         Click here to learn more
+                      </Text>
+                  </>
+               }
+               // modalContentText={}
                modalBtnsConfig={{
                    option1: {
                        onPress: () => {
@@ -318,7 +343,8 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
                }}
           />
 
-           <View style={styles.bottomButtonsContainer}>
+          <View style={{flex: 1, minHeight: "75%"}}/>
+          <View style={styles.bottomButtonsContainer}>
              <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
 
                <FontAwesome5.Button backgroundColor={"rgba(0,0,0,0)"} color={"white"} name={"images"} size={50} onPress={
@@ -331,21 +357,14 @@ function Scanner({barcodeText, setBarcodeText}: ScannerProps) {
 
              <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
                <TouchableOpacity
+                 activeOpacity={100}
                  onPress={() => {
-                   if (isDetected) {
-                     if (ingredientsFound) {
-                        setIsOcrModalOpen(true);
-                     }
-                     else {
-                        setIsBarcodeModalOpen(true);
-
-                        // there is a chance that the current barcode may be lost in real-time, then lastBarcodeSeen is taken
-                        setBarcodeText(barcodes[0]?.displayValue || lastBarcodeSeen);
-                     }
+                   if (isDetected && photo) {
+                     setIsOcrModalOpen(true);
                    }
                  }}
                >
-                 <FontAwesome5Icon color={isDetected ? "red" : "white"} name={isDetected ? "dot-circle" : "circle"} backgroundColor={"rgba(0,0,0,0)"} size={70}/>
+                 <FontAwesome5Icon color={isDetected ? "red" : "rgba(255,255,255,0.5)"} name={isDetected ? "dot-circle" : "circle"} size={70}/>
                </TouchableOpacity>
 
              </View>
@@ -377,7 +396,7 @@ const styles = StyleSheet.create({
   crop: {
     backgroundColor: "ghostwhite",
     borderColor: "lightgrey",
-    borderWidth: 0.2,
+    borderWidth: 1,
     padding: 5,
     alignItems: "center",
     justifyContent: "center"

@@ -7,7 +7,7 @@ import AlertScreen from "../screens/Alert";
 import ProfileScreen from "../screens/Profile";
 import ScanHistory from '../screens/scan/ScanHistory';
 import {useEffect, useState} from "react";
-import {Dimensions} from "react-native";
+import {BackHandler, Dimensions} from "react-native";
 import SetupNavigator from "../screens/setup/SetupNavigator";
 import {useAppSelector} from "../hooks";
 import {HeaderBackButton} from '@react-navigation/elements';
@@ -38,8 +38,8 @@ function AuthenticatedApp() {
     const [appOpenedFromNotification, setAppOpenedFromNotification] = useState<boolean>(false);
 
     const searchTabOptions = {
-      headerTitle: "Search Results", 
-      headerTitleAlign: "center", 
+      headerTitle: "Search Results",
+      headerTitleAlign: "center",
       headerLeft: (props) => (
         <HeaderBackButton
             {...props}
@@ -110,6 +110,14 @@ function AuthenticatedApp() {
           console.log("Initial notification was:", (notification ? notification.payload : 'N/A'));
       }).catch((err) => console.error("getInitialNotifiation() failed", err));
 
+      const backHandler = BackHandler.addEventListener(
+          "hardwareBackPress",
+          () => {
+              return true;
+          }
+      );
+
+      return () => {backHandler.remove()};
     }, [])
 
     useEffect(() => {
@@ -137,7 +145,7 @@ function AuthenticatedApp() {
                       <Tab.Screen name="Scan" component={ScanNavigator} options={{headerShown: false, tabBarIcon: () => <FontAwesome5 name={"camera"} size={height * 0.025}/>}}/>
 
                       <Tab.Screen name="Search" component={SearchScreen} options={searchTabOptions}/>
-                      {/*  */}
+
                       <Tab.Screen name="Alerts" default={true} component={AlertScreen} options={{
                           headerTitleAlign: "center",
                           tabBarBadge: notifications?.filter(function(alert){return !alert?.isOpened}).length > 0 ? notifications.filter(function(alert){return !alert?.isOpened}).length : undefined,

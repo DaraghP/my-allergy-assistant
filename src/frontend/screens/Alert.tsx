@@ -1,7 +1,7 @@
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { FlatList, ScrollView, RefreshControl, SafeAreaView, View, TouchableNativeFeedback, Text, StyleSheet, TouchableOpacity, Linking} from "react-native";
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import {useEffect, useState, useCallback} from "react";
+import {useEffect, useState, useCallback, useMemo} from "react";
 import { updateLoadingState } from "../reducers/ui-reducer";
 import { openNotification, deleteNotification } from "../reducers/app-data-reducer";
 import { useNavigation } from "@react-navigation/native";
@@ -14,11 +14,13 @@ function AlertScreen() {
     const navigation = useNavigation();
     const dispatch = useAppDispatch();
     const username = useAppSelector(state => state.user.username);
-    const userAllergens = useAppSelector(state => state.appData.accounts[state.user.username].allergens);//
-    // console.log("\n\nuserAllergens: "+ JSON.stringify(userAllergens));
+    const userAllergens = useAppSelector(state => state.appData.accounts[state.user.username].allergens);
     const notifications = useAppSelector(state => state.appData.accounts[state.user.username].notifications);
     const [notificationPerms, setNotificationPerms] = useState("");
-    const [refreshing, setRefreshing] = useState(false);
+
+    const sortedNotifications = useMemo(() => {
+        return [...notifications].sort((notification1, notification2) => new Date(notification2.date) - new Date(notification1.date));
+    }, [notifications])
 
     useEffect(() => {
         console.log("my username: " + username);
@@ -50,28 +52,21 @@ function AlertScreen() {
         }
     }
 
-    // const onRefresh = useCallback(() => {
-    //     setRefreshing(true);
-    //     setTimeout(() => {
-    //         setRefreshing(false);
-    //     }, 1000);
-    // }, []) 
-
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: "#f0f6ff"}}>
             <ScrollView refreshControl={<RefreshControl refreshing={false} onRefresh={() => {setNotificationPerms("");}}/>}>
-            {(!notifications || notifications?.length == 0) &&
-                <Text style={styles.noAlerts}>No alerts received</Text>
-            }
-            {notificationPerms === "denied" &&
-             <Text style={styles.noAlerts}>Notification permissions must be enabled to receive alerts.
-                <TouchableOpacity onPress={() => openSettings()}
-                ><Text>Enable notifications</Text></TouchableOpacity></Text>
-            }
+                {(!notifications || notifications?.length == 0) &&
+                    <Text style={styles.noAlerts}>No alerts received</Text>
+                }
+                {notificationPerms === "denied" &&
+                 <Text style={styles.noAlerts}>Notification permissions must be enabled to receive alerts.
+                    <TouchableOpacity onPress={() => openSettings()}
+                    ><Text>Enable notifications</Text></TouchableOpacity></Text>
+                }
                 <FlatList
-                    // inverted={true}
                     contentContainerStyle={{
-                        flexGrow: 1, justifyContent: 'flex-end',
+                        flexGrow: 1,
+                        justifyContent: 'flex-end',
                     }}
                     style={{
                         flex: 1,
@@ -80,17 +75,23 @@ function AlertScreen() {
                         borderColor: "grey",
                         height: "100%"
                     }}
-                    data={notifications}
+                    data={sortedNotifications}
                     keyExtractor={(alert, index) => {return index.toString()}}
                     renderItem={(alert) => (
                         <TouchableNativeFeedback key={alert.index} style={{borderBottomColor: "black", borderBottomWidth: 5}} onPress={async () => {
-                            dispatch(openNotification({username: username, index: alert.index}));
+                            console.log(alert, "alert")
+                            dispatch(openNotification({username: username, productID: alert.item.productID}));
                             console.log("notification ", alert);
-                            dispatch(updateLoadingState());
+                            // dispatch(updateLoadingState());
                             navigation.navigate("Loading", {text: "Scanning..."});
-                            let scan = await scanBarcode(alert.item.productID);
-                            navigation.navigate("Scan", {scan: scan, returnTo: "Alerts"});
-                            dispatch(updateLoadingState())
+                            try {
+                                let scan = await scanBarcode(alert.item.productID);
+                                navigation.navigate("Scan", {scan: scan, returnTo: "Alerts"});
+                            }
+                            catch (e) {
+                                dispatch(updateLoadingState(false));
+                            }
+                            // dispatch(updateLoadingState())
                         }}>
                             <View style={styles.item}>
                                 {/* <View style={{flexShrink: 1}}> */}

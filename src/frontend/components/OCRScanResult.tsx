@@ -3,8 +3,8 @@ import getAllergensFromText, {intersect, difference} from "../ocr-postprocessing
 import { useEffect, useState } from "react";
 import {View, Text, TouchableOpacity, StyleSheet} from "react-native";
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import Collapsible from "react-native-collapsible";
 import Accordion from "./Accordion";
+import { Table, Row, Rows } from "react-native-table-component";
 
 function OCRScanResult(scan: object) {
     const account = useAppSelector(state => state.appData.accounts[state.user.username]);
@@ -13,19 +13,16 @@ function OCRScanResult(scan: object) {
     const [allergensFound, setAllergensFound] = useState([]);
     const [userMayContain, setUserMayContain] = useState([]);
     const [mayContain, setMayContain] = useState([]);
+    const [listedAs, setListedAs] = useState({});
     const [isTextOutputCollapsed, setIsTextOutputCollapsed] = useState<boolean>(true);
     scan = scan?.scan;
 
-    // if any allergens included, show red
-    // if no allergens included, but may contain one/more user allergen, show yellow
-    // else show green
-
     const allergensRender = (allergens) => {
         return (
-            allergens.length > 0 ? 
+            allergens.length > 0 ?
             allergens.map((allergen: string) => (
                 <Text style={{textTransform: "capitalize", marginLeft: 25}} key={allergen}>{allergen}</Text>)
-            ) 
+            )
             : <Text style={{marginLeft: 25}}>N/A</Text>
         );
     }
@@ -37,11 +34,14 @@ function OCRScanResult(scan: object) {
         setMayContain(postprocessedResult?.mayContain);
         setUserAllergensFound(postprocessedResult?.userAllergens);
         setUserMayContain(postprocessedResult?.mayContainUserAllergens);
+        setListedAs(postprocessedResult?.listedAs);
+
         // console.log(postprocessedResult);
         console.log("USER ALLERGENS FOUND: ", postprocessedResult?.userAllergens)
         console.log("USER MAY CONTAIN ALLERGENS: ", postprocessedResult?.mayContainUserAllergens);
         console.log("OTHER ALLERGENS: ", postprocessedResult?.allergens);
         console.log("OTHER ALLERGENS THAT MAY BE CONTAINED: ", postprocessedResult?.mayContain);
+        console.log("ALLERGENS LISTED AS: ", postprocessedResult?.listedAs);
    }, [])
 
     return (
@@ -80,14 +80,35 @@ function OCRScanResult(scan: object) {
                 {allergensRender(allergensFound)}
                 <Text style={styles.resultSubHeader}>Other Allergens that may have been found</Text>
                 {allergensRender(mayContain)}
-                
+
+                <Text style={styles.resultSubHeader}>Allergens listed as...</Text>
+                <View style={{flex: 1, padding: 10}}>
+                    <Table borderStyle={{borderWidth: 1}}>
+                        <Row textStyle={{margin: 8, fontWeight: "bold", color: "black"}} style={{backgroundColor: "#d6e5ff"}} data={["Allergen", "Listed as"]}/>
+                        {Object.entries(listedAs).map((entry) => {
+                            const allergen = `${entry[0].slice(0, 1).toUpperCase()}${entry[0].slice(1)}`;
+                            const allergenListings = [...entry[1]].join(", ");
+                            return <Row key={allergen} textStyle={{margin: 8}} style={{backgroundColor: "white"}} data={[allergen, allergenListings]}/>
+                        })}
+                    </Table>
+                </View>
+                {/*{Object.entries(listedAs).map(([key, value]) => {*/}
+                {/*    return (*/}
+                {/*        <Text style={{marginLeft: 25, marginVertical: 2}}>*/}
+                {/*            <Text style={{color: "black", fontWeight: "bold", textTransform: "capitalize"}}>{key}: </Text>*/}
+                {/*            {[...value].join(", ")}*/}
+                {/*        </Text>*/}
+                {/*    )*/}
+                {/*})}*/}
+
                 <Accordion
-                    style={{width: "100%", marginTop: 50}}
+                    style={{width: "100%", marginVertical: 30}}
                     headerText={"View Output Text"}
                     collapsed={isTextOutputCollapsed}
                     setCollapsed={setIsTextOutputCollapsed}
                     content={<Text>{scan?.ocrResult?.text}</Text>}
                 />
+
             </View>
         </View>
     )

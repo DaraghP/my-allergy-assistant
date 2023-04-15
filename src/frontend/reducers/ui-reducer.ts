@@ -11,7 +11,7 @@ const initialState = {
 
 export const updateScanMode = createAction<string>("ui/update_scan_mode");
 export const updateDidSearch = createAction("ui/update_did_search");
-export const updateLoadingState = createAction("ui/update_loading_state");
+export const updateLoadingState = createAction<boolean>("ui/update_loading_state");
 export const updateCurrentPage = createAction<number>("ui/update_current_page");
 
 export const UISlice = createSlice({
@@ -24,8 +24,8 @@ export const UISlice = createSlice({
        update_did_search(state) {
             state.didSearch = true;
        },
-       update_loading_state(state) {
-            state.loading = !state.loading;
+       update_loading_state(state, action) {
+            state.loading = action.payload;
        },
        update_current_page(state, action) {
             state.currentPage = action.payload;

@@ -733,17 +733,17 @@ export async function facetedProductSearch({queryString = null, page = 1, search
     
       return {query: OFFSearchQueryUrl, pages: calculateTotalPages(res.count, 25), products: products};
     })
-    }).catch(err => {//
-      console.log(err); //
+    }).catch(err => {
+      console.log(err);
       console.log(err.response.data);
     });  
 }
 //
-export function getInitialNotificationState(productId: string, scans: object) { // i'll try using ide
+export function getInitialNotificationState(productId: string, scans: object) {
   if (scans != null && Object.keys(scans).includes(productId)){
       return scans[productId].receive_notifications;
   }
   else {
-      return false;
+      return true;
   }
 }

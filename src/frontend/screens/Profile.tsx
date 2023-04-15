@@ -52,23 +52,22 @@ function ProfileScreen() {
             <AppModal
                 isModalOpen={{state: isModalOpen, setState: (bool: boolean) => {setIsModalOpen(bool)}}}
                 headerText={"Delete Account"}
-                modalContentText={"You are unable to delete this account during user testing"}//{"Are you sure you want to delete your account?"}
+                modalContentText={"Are you sure you want to delete your account?"}
                 modalBtnsConfig={{
-                    // option1: {
-                    //     onPress: () => {
-                    //         console.log("Yes pressed.");
-
-                    //         // delete user from dynamoDB, delete account in app data, and log out
-                    //         deleteUser({username: user.username, email: user.email});
-
-                    //         // delete user data from redux
-                    //         dispatch(deleteAccount(user.username));
-                    //         // delete their account in cognito
-                    //         Auth.deleteUser();
-                    //     },
-                    //     text: "Yes - Delete Account"
-                    // },
                     option1: {
+                        onPress: () => {
+                            // delete user from dynamoDB, delete account in app data, and log out
+                            deleteUser({username: user.username, email: user.email});
+
+                            // delete user data from redux
+                            dispatch(deleteAccount(user.username));
+
+                            // delete their account in cognito
+                            Auth.deleteUser();
+                        },
+                        text: "Yes - Delete Account"
+                    },
+                    option2: {
                         onPress: () => {
                             console.log("No pressed.")
                         },

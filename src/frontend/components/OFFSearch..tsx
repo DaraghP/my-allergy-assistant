@@ -38,16 +38,18 @@ function OFFSearch() {
             style={{width: "auto", justifyContent: "center", alignSelf: "center"}}
             placeholder={"Search for a product"}
             onSubmit={(query: string) => {
-                dispatch(updateLoadingState());
                 navigation.navigate("Loading", {text: "Retrieving Results..."}); // loads loading screen
                 const trim = (str) => {return str.trimStart().trimEnd();}
                 let searchQuery : SearchQuery = {searchTerms: trim(query)}//, brand: trim(brandValue), category: trim(categoryValue), allergensNotContains: [...selectionNotContains], allergensContains: [...selectionContains]}
                 dispatch(updateCurrentPage(1));
                 facetedProductSearch(searchQuery).then((data) => {
                     dispatch(updateDidSearch());
-                    dispatch(updateLoadingState()); // no longer loading
+                    // dispatch(updateLoadingState()); // no longer loading
                     navigation.navigate("Search", {data: data}); // go to search screen
-                });
+                })
+                .catch((e) => {
+                    dispatch(updateLoadingState(false))
+                })
 
             }}
            />
