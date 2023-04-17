@@ -1,0 +1,18 @@
+TEST TITLE: OCR Preprocessing Lambda Function called through API from the app manipulates image
+
+Prerequisites:
+    Have a source of product ingredients text that is in colour
+
+Steps:
+1. Create and login into the app
+2. On home screen, press scan ingredients
+3. You should be in 'Scan', scan the product with you
+4. Wait for the result, you should see a significantly altered image that is black and white
+
+Expected: Image is manipulated, and in black and white
+
+Actual: Image is manipulated, and in black and white
+
+Result: PASS
+
+Date: 17/4/2023

@@ -1,0 +1,19 @@
+TEST TITLE: Create Cognito User
+
+Steps:
+1. Open app
+2. After the bootsplash, press 'Create Account'
+3. Fill in fields with a valid email (must have access) and password, e.g. myallergyassistant@gmail.com
+4. Submit login form
+5. Look at your email, you should receive an email from no-reply@verificationemail.com with 6-digit code
+6. Press Resend Code in the app, you should receive a 2nd code
+7. Add this 2nd code to the 'Confirmation Code' field and press Confirm.
+8. This should bring you to the Setup screen
+
+Expected: Reached Setup Screen
+
+Actual: Reached Setup Screen
+
+Result: PASS
+
+Date: 17/4/2023

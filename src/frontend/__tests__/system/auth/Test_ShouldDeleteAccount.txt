@@ -1,0 +1,17 @@
+TEST TITLE: Delete Account
+
+Steps:
+1. Open app
+2. Login into an account
+3. Press the profile tab to go to profile
+4. Press 'Delete Account'
+5. Press 'Yes - Delete Account'
+6. Try log back into the account
+
+Expected: Cannot log back into account
+
+Actual: Cannot log back into account
+
+Result: PASS
+
+Date: 17/4/2023

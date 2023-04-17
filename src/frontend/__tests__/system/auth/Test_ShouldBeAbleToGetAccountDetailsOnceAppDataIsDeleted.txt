@@ -1,0 +1,18 @@
+TEST TITLE: Should be able to get account details once app data is deleted
+
+Prerequisites:
+    Created and set up account with allergens selected
+
+
+Steps:
+1. On the Android device, go to app settings and clear app data
+2. Try login into account
+3. Go to profile, see allergens selected
+
+Expected: Allergens selected should remain the same as it was before the data on device was cleared
+
+Actual: Allergens selected remained the same
+
+Result: PASS
+
+Date: 17/4/2023

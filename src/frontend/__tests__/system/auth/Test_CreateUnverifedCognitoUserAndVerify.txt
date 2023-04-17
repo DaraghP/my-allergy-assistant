@@ -1,0 +1,20 @@
+TEST TITLE: Create Unverified Cognito User and Verify
+
+Steps:
+1. Open app
+2. After the bootsplash, press 'Create Account'
+3. Fill in fields with a valid email (must have access) and password, e.g. myallergyassistant@gmail.com
+4. Submit login form
+5. Look at your email, you should receive an email from no-reply@verificationemail.com with 6-digit code
+6. Close the app
+7. Login into the account
+8. You should see a confirmation code field, fill it in with the code received from the email and press confirm
+9. This should bring you to the Setup screen
+
+Expected: Reached Setup Screen
+
+Actual: Reached Setup Screen
+
+Result: PASS
+
+Date: 17/4/2023

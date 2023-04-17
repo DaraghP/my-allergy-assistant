@@ -42,7 +42,6 @@ exports.handler = async (event, context) => {
                 break;
             case 'GET':
                 if (event.queryStringParameters != null && "product_id" in event.queryStringParameters) {
-                    // console.log("Getting user to notify of single product");
                     queryParams["Key"] = {
                         product_id: event.queryStringParameters.product_id
                     }

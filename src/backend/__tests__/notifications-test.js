@@ -36,7 +36,6 @@ describe("Notifications", () => {
     })
 
     it("should create new set of user endpoints for a product", async () => {
-        // Item: {product_id: productId, user_endpoints: [user_endpoint]},
         await addItem(docClient, table, {product_id: "productId", user_endpoints: ["endpoint1"]})
         const stateAfter = await getAllItems(dynamodb, table);
         expect(stateAfter.ScannedCount).toEqual(1)
