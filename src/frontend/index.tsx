@@ -14,30 +14,24 @@ export default function Index() {
     const [cameraPerms, setCameraPerms] = useState("");
 
     useEffect(() => {
-        // Request for notifications are required for versions Android 13 and above
+        // Permission request for notifications are required for versions Android 13 and above
         
         // after loading app
         RNBootSplash.hide({fade: true}).then(async () => {
             // request notification permissions
             requestNotifications(["alert", "badge", "sound"]).then(async ({status, settings}) => {
-                console.log("notifications status:", status);
                 // then request camera permissions
                 if (cameraPerms != "authorized") {
-                    console.log("test")
                     let cameraPermission = await Camera.requestCameraPermission()
-                    console.log("finished waiting.");
                     setCameraPerms(cameraPermission);
-                    console.log(cameraPermission);
-                } else {
+                }
+                else {
                     setCameraPerms(await Camera.getCameraPermissionStatus());
                 }
             });
         })
     }, [])
 
-    useEffect(() => {
-        console.log(cameraPerms)
-    }, [cameraPerms])
 
     return (
         <Provider store={store}>

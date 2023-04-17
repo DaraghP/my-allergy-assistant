@@ -101,22 +101,18 @@ export const AppDataSlice = createSlice({
        },
        add_notification(state, action) {
            const username = action.payload.username;
-           console.log(action.payload, "test")
            const payloadData = JSON.parse(action.payload.notificationData);
            const date = action.payload.date;
            const productID = payloadData.product_id;
            const productName = payloadData.product_name;
            const suspectedAllergens = payloadData.report.suspected_allergens;
            const reporterID = payloadData.report.user_id;
-        //    console.log("data inside notification redux: ", productID, productName, suspectedAllergens, reporterID);
            if (!("notifications" in state.accounts[username])) {
                state.accounts[username].notifications = [];
            }
-        //    console.log(state.accounts[username].notifications, "state.notifications before adding");
            let isDuplicate = false;
            state.accounts[username].notifications.forEach((noti) => {
                if ((reporterID === noti.reporterID) && (productID === noti.productID)){
-                   console.log("\n\nreport already in notifications. prevented creating duplicate.\n\n");
                    isDuplicate = true;
                }
            })
@@ -128,16 +124,13 @@ export const AppDataSlice = createSlice({
        delete_notification(state, action) {
            const username = action.payload.username;
            const productId = action.payload.productId;
-           let myIndex=-1;
-           console.log("entering loop of alerts");
-           state.accounts[username].notifications?.map((noti, index)=>{
-                console.log("productID="+noti.productID+", reporterID="+noti.reporterID);
-                if ((noti.productID === productId) && (noti.reporterID===username)){
-                    console.log("found match");
+           let myIndex = -1;
+           state.accounts[username].notifications?.map((noti, index) => {
+                if ((noti.productID === productId) && (noti.reporterID === username)){
                     myIndex = index;
                 }
            })
-           console.log("index match: "+myIndex);
+
            if (myIndex !== -1){
             state.accounts[username].notifications.splice(myIndex, 1);
            }

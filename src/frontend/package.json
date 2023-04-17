@@ -73,6 +73,7 @@
     "@types/lodash.filter": "^4.6.7",
     "@types/react": "^18.0.21",
     "@types/react-native": "^0.70.6",
+    "@types/react-native-table-component": "^1.2.4",
     "@types/react-native-vector-icons": "^6.4.12",
     "@types/react-test-renderer": "^18.0.0",
     "@types/string-similarity": "^4.0.0",

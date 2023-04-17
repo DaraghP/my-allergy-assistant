@@ -4,15 +4,17 @@ import ScanResult from "./ScanResult";
 import ScanScreen from "./ScanScreen";
 import { useNavigation } from "@react-navigation/native";
 import {HeaderBackButton} from '@react-navigation/elements';
-import {useEffect, useState} from "react";
-import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
+import {useEffect} from "react";
 import ScanHelp from "./ScanHelp";
+import HelpButton from "../../components/scan/HelpButton";
+import {useAppSelector} from "../../hooks";
 
 
+// Navigator used from scan tab: ScanResult, ScanHistory, ScanHelp
 function ScanNavigator({route}) {
+    const scan = useAppSelector(state => state.ui.scanResult);
     const navigation = useNavigation();
     const Stack = createNativeStackNavigator();
-    const [barcodeText, setBarcodeText] = useState<string>("");
 
     const backPressHandler = () => {
         if (route.params?.data?.products !== undefined) {
@@ -23,19 +25,19 @@ function ScanNavigator({route}) {
         else if (route.params?.returnTo) {
             navigation.navigate("ScanScreen");
             navigation.navigate(route.params?.returnTo);
+            route.params.returnTo = null;
         }
         else {
             navigation.navigate("ScanScreen");
         }
-        setBarcodeText("");
     }
 
     useEffect(() => {
-        if (route.params?.data?.products == null && route.params?.scan == null) {
+        if (route.params?.data?.products == null && scan == null) {
             navigation.navigate("ScanScreen")
         }
         else {
-            navigation.navigate("ScanResult", {scan: route.params?.scan})
+            navigation.navigate("ScanResult")
         }
     }, [route.params])
 
@@ -46,18 +48,14 @@ function ScanNavigator({route}) {
                 options={{
                     headerTitle: "Scan Product",
                     headerTitleAlign: "center",
-                    headerRight: () => (
-                        <TouchableOpacity onPress={() => {navigation.navigate("ScanHelp")}} style={{flexDirection: "row", justifyContent: "center", alignItems: "center", paddingHorizontal: 5}}>
-                            <FontAwesome5 color={"rgba(61,61,61,0.2)"} solid={true} name={"question-circle"} size={20}/>
-                            <Text style={{fontSize: 18, fontWeight: "200", justifyContent: "center", marginLeft: 5}}>Help</Text>
-                        </TouchableOpacity>
-                    )
+                    headerRight: () => <HelpButton navigation={navigation}/>
                 }}
             >
                 {(props) => (
-                    <ScanScreen {...props} route={route} setBarcodeText={(text: string) => {setBarcodeText(text)}} barcodeText={barcodeText}/>
+                    <ScanScreen {...props} route={route}/>
                 )}
             </Stack.Screen>
+
             <Stack.Screen
                 name={"ScanResult"}
                 options={{
@@ -96,17 +94,5 @@ function ScanNavigator({route}) {
         </Stack.Navigator>
     );
 }
-
-const styles = StyleSheet.create({
-    title: {
-        marginBottom: 10,
-        fontSize: 25,
-        fontWeight: "900"
-    },
-    subheading: {
-        marginBottom: 5,
-        fontWeight: "800"
-    }
-});
 
 export default ScanNavigator;

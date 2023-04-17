@@ -1,4 +1,4 @@
-import {View, Text, ActivityIndicator, TouchableOpacity, BackHandler} from "react-native";
+import {View, Text, ActivityIndicator, TouchableOpacity, BackHandler, StyleSheet} from "react-native";
 import FontAwesome5Icon from "react-native-vector-icons/FontAwesome5";
 import {useIsFocused} from "@react-navigation/native";
 import {useEffect} from "react";
@@ -13,7 +13,7 @@ interface LoadingScreenProps {
 function LoadingScreen({navigation, route}: LoadingScreenProps) {
     const dispatch = useAppDispatch();
 
-    // LoadingScreen can be used outside of a navigator, e.g. login
+    // LoadingScreen can be used outside of a navigator so it may be null, e.g. login
     const isFocused = navigation ? useIsFocused() : null;
 
     useEffect(() => {
@@ -37,11 +37,24 @@ function LoadingScreen({navigation, route}: LoadingScreenProps) {
     }, [isFocused]);
 
     return (
-        <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
+        <View style={styles.container}>
             <ActivityIndicator size="large" />
-            <Text style={{marginTop: 15, color: "black", fontSize: 25}}>{route?.params?.text == null ? "Loading...": route?.params?.text}</Text>
+            <Text style={styles.loadingText}>{route?.params?.text == null ? "Loading...": route?.params?.text}</Text>
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    loadingText: {
+        marginTop: 15,
+        color: "black",
+        fontSize: 25
+    }
+})
 
 export default LoadingScreen;

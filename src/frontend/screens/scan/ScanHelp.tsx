@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import {BackHandler, ScrollView, StyleSheet, Text} from "react-native";
 
+// Instructions to clear up any confusion which will find user when looking for help
 function ScanHelp({navigation}) {
-
     useEffect(() => {
       const backHandler = BackHandler.addEventListener(
           "hardwareBackPress",
@@ -16,14 +16,15 @@ function ScanHelp({navigation}) {
     }, [])
 
     return (
-        <ScrollView contentContainerStyle={{padding: 25}}>
+        <ScrollView contentContainerStyle={styles.container}>
             <Text style={{...styles.header, marginBottom: 25}}>Instructions</Text>
             <Text>
                 Before you start scanning your product, we recommend a well-lit environment with low visibility of glare or shadows appearing on the product while scanning.
                 With these ideal conditions, you can expect significant improvements in your results.
                 {"\n\n"}
-                 If this is not feasible, another option is to scan an image from your gallery, once an image is selected it will automatically scan for your barcode first then any text.
+                If this is not feasible, another option is to scan an image from your gallery, once an image is selected it will automatically scan for your barcode first then any text.
             </Text>
+
             <Text style={{...styles.header, borderBottomWidth: 0}}>Scanning Barcode</Text>
             <Text>
                 First, make sure you're either in Scan Barcode or Scan Both mode, then point your camera at the product's barcode. If the barcode is valid, it should automatically scan the barcode and bring you to your scan result of the product you've scanned.
@@ -43,6 +44,9 @@ function ScanHelp({navigation}) {
 }
 
 const styles = StyleSheet.create({
+    container: {
+        padding: 25
+    },
     header: {
         color: "black",
         fontWeight: "bold",

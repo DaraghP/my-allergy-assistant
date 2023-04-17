@@ -1,7 +1,9 @@
 import _ from "lodash";
 import ALLERGENS from "./allergens.json";
 import stringSimilarity from "string-similarity";
+import {difference, intersect} from "./utils";
 
+// process allergen dataset for use
 let possibleAllergens = ALLERGENS.data;
 let possibleAllergensLinks = {};
 let ingredientAllergenLinked = new Map();
@@ -10,6 +12,8 @@ let possibleAllergensList = []
 _.values(possibleAllergens).forEach(a => {
   const allergenName = _.keys(a)[0].toLowerCase();
   const allergenListedAs = _.values(a)[0];
+
+  // establish links between different allergens
   allergenListedAs.forEach((allergen) => {
     if (allergen in possibleAllergensLinks) {
       // for example when gluten is found from barley, wheat, or rye
@@ -21,7 +25,6 @@ _.values(possibleAllergens).forEach(a => {
       possibleAllergensLinks[allergen] = allergenListedAs;
       ingredientAllergenLinked.set(allergen, allergenName);
     }
-    // possibleAllergensLinks[allergen] = Object.keys(a)[0].toLowerCase();
   })
 
   possibleAllergensList.push(...Object.keys(possibleAllergensLinks));
@@ -59,18 +62,16 @@ function addToListedAs(keys, ingredient) {
 
 function addProbableAllergenIfRated(ingredient, match) {
   const P1 = 0.66; // fine-tuned through testing for normal cases
-  const P2 = 0.4; // for auto-correction
+  const P2 = 0.4; // for auto-correction comparison
 
-  if (match.rating > P1) {
+  if (match.rating > P1) { // for example, 'penuts' instead of 'peanuts' would pass here
     addAllergensToResultData(probableMatchedAllergens, possibleAllergensLinks[match.target], match.target, ingredient);
-    // addArrayToSet(probableMatchedAllergens, possibleAllergensLinks[match.target]);
-    // addToListedAs(possibleAllergensLinks[match.target], ingredient);
   }
+
+  // for severely misspelled words, they must pass a rating of 0.4 and the similarity of the autocorrected spelling and the best matched target word found through our dataset must be greater than a rating of 0.66
   else if (match.rating >= P2 && stringSimilarity.compareTwoStrings(autocorrect(ingredient), match.target) > P1) {
-    // in the auto-corrected case, must be added to may contains as its not certain enough
+    // in the auto-corrected case, it should be added to may contains as its not certain enough to be correct
     addAllergensToResultData(mayContain, possibleAllergensLinks[match.target], match.target, ingredient);
-    // addArrayToSet(mayContain, possibleAllergensLinks[match.target]);
-    // addToListedAs(possibleAllergensLinks[match.target], ingredient);
   }
 }
 
@@ -89,7 +90,8 @@ function addArrayToSet(set, array) {
 }
 
 function probableAllergens(ingredients) {
-  // exact and fuzzy allergen matching
+  // exact and fuzzy allergen matching for allergens in text
+
   let ingredientAllergens;
   for (let ingredient of ingredients) {
     ingredient = ingredient.trim();
@@ -101,8 +103,6 @@ function probableAllergens(ingredients) {
     if (possibleAllergensSet.has(ingredient)) {
       ingredientAllergens = possibleAllergensLinks[ingredient];
       addAllergensToResultData(probableMatchedAllergens, ingredientAllergens, ingredient, ingredient)
-      // addArrayToSet(probableMatchedAllergens, ingredientAllergens);
-      // addToListedAs(possibleAllergensLinks[ingredient], ingredient);
       continue;
     }
 
@@ -110,34 +110,33 @@ function probableAllergens(ingredients) {
     let ingredientContainsAllergen = exactContains(ingredient);
     if (ingredientContainsAllergen) {
       addAllergensToResultData(probableMatchedAllergens, possibleAllergensLinks[ingredientContainsAllergen], ingredient, ingredient)
-      // addArrayToSet(probableMatchedAllergens, possibleAllergensLinks[ingredientContainsAllergen]);
-      // addToListedAs(possibleAllergensLinks[ingredientContainsAllergen], ingredient);
     }
     else {
       let bestMatch;
       let bestMatchTargetTokens;
       let ingredientTokens;
+
       // fuzzy allergen matching
       
       // get best matching allergen with text similarity score 
       bestMatch = stringSimilarity.findBestMatch(ingredient, possibleAllergensList).bestMatch;
       
-      // tokenisation
+      // tokenisation step
       bestMatchTargetTokens = bestMatch.target.split(" ");
       ingredientTokens = ingredient.split(" ");
 
       if (bestMatchTargetTokens.length == ingredientTokens.length) {
-        // tokens of bestMatch ingredient length equals length of tokens of the best matched allergen in the dataset
+        // tokens of the best matched ingredient length equals length of tokens of the best matched allergen in the dataset
         addProbableAllergenIfRated(ingredient, bestMatch);
       }
       else if (bestMatchTargetTokens.length < ingredientTokens.length) {
-        // sub-best match e.g. matching milk in "ilk chocolate"
-        let subBestMatch;
-        
+        // best sub-match e.g. matching milk in "ilk chocolate"
+        let bestSubMatch;
+
         // get best matches of all iterated ingredient tokens with allergens list
         ingredientTokens.forEach((token) => {
-          subBestMatch = stringSimilarity.findBestMatch(token, possibleAllergensList).bestMatch
-          addProbableAllergenIfRated(token, subBestMatch);
+          bestSubMatch = stringSimilarity.findBestMatch(token, possibleAllergensList).bestMatch
+          addProbableAllergenIfRated(token, bestSubMatch);
         })      
       } 
     }
@@ -149,41 +148,18 @@ function probableAllergens(ingredients) {
 
 function getAllergensFromText(ingredients, user) {
   ingredients = ingredients?.toLowerCase().split(",");
-//
+
   if (ingredients) {
     let userAllergensSet = new Set([...user.allergens.map((x: string) => x.toLowerCase())])
 
-    // console.log("getAllergensFromText ", userAllergensSet)
-    // go through ocr ingredients, find allergens
+    // go through OCR ingredients, find allergens
     probableAllergens(ingredients);
   
     // compare allergens list processed from ocr output with user list
-    console.log("check for match: " + JSON.stringify([...userAllergensSet]) + " || " + JSON.stringify([...probableMatchedAllergens]));
     let userAllergensFound = intersect(userAllergensSet, probableMatchedAllergens);
-    console.log("matches found: " + JSON.stringify([...userAllergensFound]));
     let mayContainUserAllergens = intersect(userAllergensSet, mayContain);
 
-    // // user allergens found
-    // userAllergensFound?.forEach((allergen) => {
-    //   console.log("WARNING! Allergen: " + allergen + " detected. User IS allergic." )
-    // })
-  
-    // // user allergens that might have been found
-    // mayContainUserAllergens.forEach((allergen) => {
-    //   console.log("WARNING! May contain allergen: " + allergen + " possibly detected. User IS allergic. Listed as: " + [...listedAs.get(allergen)])
-    // })
-    
-    // // no user allergens found, log any found
-    // probableMatchedAllergens.forEach((allergen) => {
-    //   if (!userAllergensFound.has(allergen.charAt(0).toUpperCase() + allergen.slice(1)))
-    //     console.log("WARNING! Allergen: " + allergen + " detected. User NOT allergic. Listed as: " + [...listedAs.get(allergen)])
-    // })
-  
-    // mayContain.forEach((allergen) => {
-    //   if (!mayContainUserAllergens.has(allergen.charAt(0).toUpperCase() + allergen.slice(1)))
-    //     console.log("WARNING! May contain allergen: " + allergen + " possibly detected. User NOT allergic. Listed as: " + [...listedAs.get(allergen)])
-    // })
-
+    // compile results
     let result = getResult(userAllergensFound, mayContainUserAllergens, probableMatchedAllergens, mayContain, Object.fromEntries([...listedAs]));
 
     probableMatchedAllergens.clear();
@@ -192,16 +168,6 @@ function getAllergensFromText(ingredients, user) {
 
     return result;
   }
-}
-
-
-// helper functions
-export const intersect = (set1, set2) => {
-  return new Set([...set1].filter(x => set2.has(x.toLowerCase())));
-}
-
-export const difference = (set1, set2) => {
-  return new Set([...set1].filter(x => !set2.has(x.toLowerCase())))
 }
 
 const getResult = (userAllergensFound, mayContainUserAllergens, probableMatchedAllergens, mayContain, listedAs) => {
@@ -214,5 +180,5 @@ const getResult = (userAllergensFound, mayContainUserAllergens, probableMatchedA
   }
 }
 
-export default getAllergensFromText;//
+export default getAllergensFromText;
 

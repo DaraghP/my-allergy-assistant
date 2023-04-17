@@ -1,4 +1,4 @@
-import {translateIngredients} from "../api";
+import {translateIngredients} from "../utils";
 import {readdirSync, readFileSync} from "fs";
 import path from "path";
 

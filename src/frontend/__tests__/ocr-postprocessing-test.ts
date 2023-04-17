@@ -34,7 +34,6 @@ describe("OCR-postprocessing", () => {
 
     it("should identify barley, wheat, and rye in allergens it may contain if 'glutpn' in text", () => {
         const res = getAllergensFromText("glutin", user);
-        console.log(res)
 
         expect(res.mayContain).toEqual(["wheat", "rye", "barley"])
     })

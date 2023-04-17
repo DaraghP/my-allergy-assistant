@@ -1,5 +1,5 @@
 import React, {useEffect, useState,} from 'react';
-import {Button, Text, Linking, StyleSheet, View, Image} from 'react-native';
+import {Linking, StyleSheet, View, Image} from 'react-native';
 import {Amplify, Auth} from 'aws-amplify';
 // @ts-ignore
 import {withOAuth} from 'aws-amplify-react-native';
@@ -13,7 +13,7 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import {useAppDispatch, useAppSelector} from "./hooks";
 import {createAccount, updateAccounts} from "./reducers/app-data-reducer";
 import {updateUsername, updateEmail} from "./reducers/user-reducer";
-import { getSingleUser } from './api';
+import {getSingleUser} from './api';
 import LoadingScreen from './screens/LoadingScreen';
 
 
@@ -28,11 +28,9 @@ async function urlOpener(url, redirect) {
     })
 
     if (type == 'success') {
-        // console.log(newUrl)
         Linking.openURL(newUrl);
     }
 }
-
 
 Amplify.configure({
     ...config,
@@ -49,30 +47,26 @@ const App = (props) => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => {
-    // documentation: https://docs.amplify.aws/guides/authentication/listening-for-auth-events/q/platform/js/
+    // Auth hub documentation: https://docs.amplify.aws/guides/authentication/listening-for-auth-events/q/platform/js/
     let clearListener = Hub.listen('auth', (data) => {
       switch (data.payload.event) {
           case 'signIn':
-              console.log("signIn")
-              setIsLoggingIn(true);
-            // getSingleUser from DynamoDB
+            setIsLoggingIn(true);
+
             Auth.currentAuthenticatedUser().then((user) => {
                 dispatch(updateEmail(user.attributes.email))
                 
                 getSingleUser({username: data.payload.data.username, email: user.attributes.email}).then((res) => {
-                    console.log("user -> ", Object.keys(res)[0]);
-                    console.log("userAccountData -> ", Object.values(res)[0]);
-                    // if user not in dynamo
+                    // if user in db
                     if (Object.keys(res).length > 0) {
-                        console.log("user found! update redux");
                         dispatch(updateAccounts({username:Object.keys(res)[0], data: Object.values(res)[0]}));
                     }
-                    //
                     else {
-                        console.log("user not found in dynamo, create new account/select allergens");
+                        // create account if not in db
                         dispatch(createAccount(data.payload.data));
                     }
-                    
+
+                    // set auth status
                     setAuthStatus('authenticated');
                     dispatch(updateUsername(data.payload.data.username));
                     dispatch(updateEmail(user.attributes.email))
@@ -81,12 +75,10 @@ const App = (props) => {
             })
 
             break;
-        case 'signUp'://
-            console.log("signUp block executed", data.payload.data);
+        case 'signUp':
             dispatch(createAccount({username: data.payload.data.userSub}));
             dispatch(updateUsername(data.payload.data.userSub));
             dispatch(updateEmail(data.payload.data.user.username));
-
             break;
         case 'signOut':
             setAuthStatus('unauthenticated')
@@ -117,12 +109,7 @@ const App = (props) => {
     return () => {
         clearListener();
     }
-
   }, [])
-
-  useEffect(() => {
-      console.log("Accounts", accounts)
-  }, [accounts])
 
   return (
       <>
@@ -131,10 +118,10 @@ const App = (props) => {
           :
           authStatus != "authenticated" ?
             <Authenticator
-                Header={() => <Image style={{width: "75%", maxWidth: "100%", maxHeight: "100%", aspectRatio: 6, alignSelf: "center", resizeMode: "contain"}} source={require("./assets/maaLogoTransparent.png")}/>}
+                Header={() => <Image style={styles.logo} source={require("./assets/maaLogoTransparent.png")}/>}
                 Footer={() => {
                     return (
-                        <View style={{marginHorizontal: 30}}>
+                        <View style={styles.footerContainer}>
                             <FontAwesome5.Button
                                 style={{...styles.center, margin: 4}}
                                 name={'google'}
@@ -155,6 +142,17 @@ const App = (props) => {
 };
 
 const styles = StyleSheet.create({
+    footerContainer: {
+        marginHorizontal: 30
+    },
+    logo: {
+        width: "75%",
+        maxWidth: "100%",
+        maxHeight: "100%",
+        aspectRatio: 6,
+        alignSelf: "center",
+        resizeMode: "contain",
+    },
     centerText: {
         textAlign: "center"
     },

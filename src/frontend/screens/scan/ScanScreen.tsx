@@ -1,8 +1,7 @@
-import Scanner, { ScanMode } from "../../components/Scanner";
+import Scanner from "../../components/scan/Scanner";
 
-function ScanScreen({route, barcodeText, setBarcodeText}) {
-
-    return <Scanner barcodeText={barcodeText} setBarcodeText={(text: string) => {setBarcodeText(text)}}/>;
+function ScanScreen() {
+    return <Scanner/>;
 }
 
 export default ScanScreen;

@@ -1,5 +1,4 @@
 import {API, Auth} from 'aws-amplify';
-import userReducer from 'reducers/user-reducer';
 import translate from 'google-translate-api-x';
 
 
@@ -22,7 +21,6 @@ interface UpdatableUserData extends User {
 }
 
 export async function postNewUser({username, deviceEndpoint, email, allergens} : User) {
-  console.log({username: username, deviceEndpoint: deviceEndpoint, email: email, allergens: allergens, hasCompletedSetup: true, scans: {}});
   API.post('myAPI', '/users', {
     body: {
       Item: {username: username, deviceEndpoint: deviceEndpoint, email: email, allergens: allergens, hasCompletedSetup: true, scans: {}},
@@ -35,12 +33,10 @@ export async function postNewUser({username, deviceEndpoint, email, allergens} :
     },
   })
     .then(res => {
-      console.log('SUCCESS 200 USer created');
-      console.log(res);
+      return res;
     })
     .catch(err => {
-      console.log(err);
-      console.log(err.response.data);
+      return err;
     });
 }
 
@@ -57,20 +53,26 @@ export async function deleteUser({username, email} : User) {
     },
   })
     .then(res => {
-      console.log('SUCCESS 200 User deleted');
-      console.log(res);
+      return res;
     })
     .catch(err => {
-      console.log(err);
-      console.log(err.response.data);
+      return err;
     });
 }
 
+export async function updateUser({username, email, allergens, deviceEndpoint, scan, receive_notifications, product_id}: UpdatableUserData){
+  /*
+  * Calls to update user information in dynamodb
+  *
+  * this can be:
+  *   - allergens e.g. changed from profile
+  *   - turning on/off notifications for certain products either from scan result or scan history
+  *   - a new scan result of a product when scanned or read from search results or scan history
+  * */
 
-export async function updateUser({username, email, deviceEndpoint: deviceEndpoint, allergens, scan, receive_notifications, product_id}: UpdatableUserData){// , {allergens = [], scans = []} : UpdatableUserData) {
+
   let requestBody;
   if (allergens) {
-    console.log("data is allergens");
     requestBody = {
       Key: {username: username, email: email},
       UpdateExpression: 'set allergens = :allergen_list',
@@ -79,9 +81,8 @@ export async function updateUser({username, email, deviceEndpoint: deviceEndpoin
       },
       ReturnValues: 'UPDATED_NEW',
     };
-    console.log(requestBody); 
-  } else if (receive_notifications === false || receive_notifications === true){
-    console.log("data is notifications update.. "+ product_id);
+  }
+  else if (receive_notifications === false || receive_notifications === true) {
     requestBody = { 
       Key: {username: username, email: email},
       UpdateExpression: 'set scans.#product.receive_notifications = :new_boolean',
@@ -93,8 +94,8 @@ export async function updateUser({username, email, deviceEndpoint: deviceEndpoin
       },
       ReturnValues: 'UPDATED_NEW',
     };
-  } else if (scan) {
-    console.log("data is scan");
+  }
+  else if (scan) {
     // user.scans = {'1': {}, '2'={}}
     // if product_id in user.scans: update that scan
     // else append to user.scans
@@ -111,13 +112,12 @@ export async function updateUser({username, email, deviceEndpoint: deviceEndpoin
       },
       ReturnValues: 'UPDATED_NEW',
     }
-    console.log(scan);
-    console.log(requestBody);
-  } else {
-    console.log("error");
+  }
+  else {
     return "errorUpdate"
   }
 
+  // update user information based on body
   API.put('myAPI', '/users', {
     body: requestBody,
     headers: {
@@ -128,44 +128,40 @@ export async function updateUser({username, email, deviceEndpoint: deviceEndpoin
     },
   })
     .then(res => {
-      console.log('SUCCESS 200 User updated');
-      // if (res.Item && Object.keys(res.Item).includes("scans")){
-      //   console.log(Object.values(res.Item.scans));
-      // }
+      return res;
     })
     .catch(err => {
-      console.log(err);
-      // console.log(err.response?.data);
+      return err;
     });
 }
 
 export async function getSingleUser({username, email} : User) {
-  console.log('get users from dynamoDB...');
+  /* Gets a single user based on their username and email from dynamodb */
+
   return (
     API.get('myAPI', '/users', {
-    queryStringParameters: {
-      username: username,
-      email: email,
-    },
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `${(await Auth.currentSession())
-        .getIdToken()
-        .getJwtToken()}`,
-    },
+      queryStringParameters: {
+        username: username,
+        email: email,
+      },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `${(await Auth.currentSession())
+          .getIdToken()
+          .getJwtToken()}`,
+      },
     })
     .then(res => {
-      console.log('SUCCESS 200');
       if (Object.keys(res).length > 0){
         delete res.Item.username;
         return {[username]: res.Item};
-      } else {
+      }
+      else {
         return res;
       }
     })
     .catch(err => {
-      console.log(err);
-      console.log(err.response.data);
+      return err;
     })
   )
 }
@@ -180,12 +176,10 @@ export async function getAllUsers() {
     },
   })
   .then(res => {
-    console.log('SUCCESS 200');
-    console.log(res);
+    return res;
   })
   .catch(err => {
-    console.log(err);
-    console.log(err.response.data);
+    return err;
   });
 }
 
@@ -199,16 +193,16 @@ export interface Report {
 }
 
 export async function addReportToDynamo({productId, productName, username, suspectedAllergens} : Report) {
+  /*
+  * Creates a new report of product in DynamooDB within a list if not existing already,
+  * otherwise appends it to the list of reports of the product
+  * */
+
   // check if product already has been reported
-  let reportObj2 : Report = {productId: productId};
-  let getReportsResponse = await getProductReports(reportObj2);
+  let reportObj : Report = {productId: productId};
+  let getReportsResponse = await getProductReports(reportObj);
 
-  // const test = getReportsResponse["Item"]["reports"].length;
-  // console.log("how many reports?  " + test);
-  console.log("getResponse ->  " + JSON.stringify(getReportsResponse));
-  // console.log("\n how many reports? = "+ getReportsResponse["Item"]["reports"]);
-
-  // if product has never been reported before, POST new report new DynamoDB
+  // if product has never been reported before, POST new report to DynamoDB
   if (Object.keys(getReportsResponse).length == 0){
     API.post('myAPI', '/reportsLambda-dev', {
       body: {
@@ -222,24 +216,22 @@ export async function addReportToDynamo({productId, productName, username, suspe
       },
     })
       .then(res => {
-        console.log('SUCCESS 200 Report created');
-        console.log(res);
+        return res;
       })
       .catch(err => {
-        console.log(err);
-        console.log(err.response.data);
+        return err;
       });
   }
-  else{
-    // else, product is already in reports DB, so PUT/append new report
-    console.log("Appending report to DB.");
-    console.log(JSON.stringify(getReportsResponse['Item']['reports']));
+  else {
+    // else, product is already in reports table, so PUT/append new report
+
     // check if user has already submitted a report for this product.
     if (getReportsResponse['Item']['reports'].find(r => r.user_id == username)){
-      console.log("User already reported");
+      // User already reported
+      return;
     }
     else {
-      // add report to DynamoDB
+      // add report to DynamoDB in a list of reports for that product
       API.put('myAPI', '/reportsLambda-dev', {
         body: {
           Key: {product_id: productId},
@@ -262,20 +254,21 @@ export async function addReportToDynamo({productId, productName, username, suspe
               .getJwtToken()}`,
         },
       })
-          .then(res => {
-            console.log('SUCCESS 200 Report updated');
-            console.log(res);
-          })
-          .catch(err => {
-            console.log(err);
-            console.log(err.response.data);
-          });
+      .then(res => {
+        return res;
+      })
+      .catch(err => {
+        return err;
+      });
     }
   }
 }
 
 export async function getProductReports({productId} : Report) {
-  console.log('get report from dynamoDB...');
+  /*
+  * Gets the list of reports of a product based on its id/barcode
+  * */
+
   return (
     API.get('myAPI', '/reportsLambda-dev', {
     queryStringParameters: {
@@ -289,20 +282,18 @@ export async function getProductReports({productId} : Report) {
     },
     })
     .then(res => {
-      console.log('SUCCESS 200');
-      console.log(res);
       return res;
     })
     .catch(err => {
-      console.log(err);
-      console.log(err.response.data);
-      
+      return err;
     })
   )
 }
 
 export async function deleteProductReport({productId} : Report, index) {
-  console.log('deleting report from dynamoDB...');
+  /*
+  * Deletes a single report from the list of reports of a product based on its index in DynamoDB
+  * */
   API.put('myAPI', '/reportsLambda-dev', {
     body: {
       Key: {product_id: productId},
@@ -317,12 +308,10 @@ export async function deleteProductReport({productId} : Report, index) {
     },
   })
       .then(res => {
-        console.log('SUCCESS 200 Report deleted');
-        console.log(res);
+        return res;
       })
       .catch(err => {
-        console.log(err);
-        console.log(err.response.data);
+        return err;
       });
 }
 
@@ -333,25 +322,30 @@ export interface NotificationObj {
   user_endpoint?: string
 }
 
-export interface UpdatableNotificationObj extends NotificationObj{
+export interface UpdatableNotificationObj extends NotificationObj {
   productId: string,
   user_endpoint: string
 }
 
 export async function addNotificationsToDynamo({productId, user_endpoint} : UpdatableNotificationObj) {
+  /*
+  * Adds new notification to in the notifications table based on productId,
+  * used by SNS to publish mobile notifications to each user,
+  * either creating a new row containing a list in dynamodb based on that productId with the user endpoint,
+  * or appending the user endpoint to the list in the row of the productId
+  *  */
+
   // check if product already has been reported
-  let notifyObj2 : NotificationObj = {productId: productId};
-  let notificationResponse = await getProductNotifications(notifyObj2);
+  let notifyObj : NotificationObj = {productId: productId};
+  let notificationResponse = await getProductNotifications(notifyObj);
 
-  console.log("getResponse ->  " + JSON.stringify(notificationResponse));
-
-  // if product isn't in notifications DB yet, POST new to  DynamoDB
+  // if product isn't in notifications table yet, POST new to DynamoDB
   if (Object.keys(notificationResponse).length == 0){
     API.post('myAPI', '/notificationsLambda-dev', {
       body: {
         Item: {product_id: productId, user_endpoints: [user_endpoint]},
       },
-      headers: { //
+      headers: {
         'Content-Type': 'application/json',
         Authorization: `${(await Auth.currentSession())
           .getIdToken()
@@ -359,20 +353,16 @@ export async function addNotificationsToDynamo({productId, user_endpoint} : Upda
       },
     })
       .then(res => {
-        console.log('SUCCESS 200 Notification created');
-        console.log(res);
+        return res;
       })
       .catch(err => {
-        console.log(err);
-        console.log(err.response.data);
+        return err;
       });
   }
   else{
-    // else, product is already in reports DB, so PUT/append new report
-    console.log("Appending new user_endpoint to product notifications DB.");
-    console.log(JSON.stringify(notificationResponse['Item']['user_endpoints']));
+    // else, product is already in notifications table, so PUT/append new user endpoint
     
-    // add user_endpoint to product notifications to DynamoDB
+    // add user_endpoint to product notifications to DynamoDB based on productId
     API.put('myAPI', '/notificationsLambda-dev', {
       body: {
         Key: {product_id: productId},
@@ -390,25 +380,19 @@ export async function addNotificationsToDynamo({productId, user_endpoint} : Upda
       },
     })
       .then(res => {
-        console.log('SUCCESS 200 Notifications updated');
-        console.log(res);
+        return res;
       })
       .catch(err => {
-        console.log(err);
-        console.log(err.response.data);
+        return err;
       });
   }
 }
 
 export async function deleteNotificationsFromDynamo({productId, user_endpoint} : UpdatableNotificationObj) {
-  // check if product already has been reported
-  // let notifyObj2 : NotificationObj = {productId: productId};
-  // let notificationResponse = await getProductNotifications(notifyObj2);
-
-  // console.log("getResponse ->  " + JSON.stringify(notificationResponse));
-
-  console.log("Removing new user_endpoint to product notifications DB.");
-  // console.log(JSON.stringify(notificationResponse['Item']['user_endpoints']));
+  /*
+   * Deletes the user's endpoint from the notifications table for a certain product,
+   * to prevent SNS messaging the user about the product
+  */
   
   // add user_endpoint to product notifications to DynamoDB
   API.put('myAPI', '/notificationsLambda-dev', {
@@ -428,21 +412,22 @@ export async function deleteNotificationsFromDynamo({productId, user_endpoint} :
     },
   })
     .then(res => {
-      console.log('SUCCESS 200 Notifications removed');
-      console.log(res);
+      return res;
     })
     .catch(err => {
-      console.log(err);
-      console.log(err.response.data);
+      return err;
     });
 }
 
 export async function getProductNotifications({productId} : Report) {
-  console.log('get notification endpoints from dynamoDB...');
+  /*
+  * Gets the endpoints subscribed for notifications of a product
+  * */
+
   return (
     API.get('myAPI', '/notificationsLambda-dev', {
     queryStringParameters: {
-      product_id : productId
+      product_id: productId
     },
     headers: {
       'Content-Type': 'application/json',
@@ -452,19 +437,20 @@ export async function getProductNotifications({productId} : Report) {
     },
     })
     .then(res => {
-      console.log('SUCCESS 200');
-      console.log(res);
       return res;
     })
     .catch(err => {
-      console.log(err);
-      console.log(err.response.data);
-      
+      return err;
     })
   )
 }
 
 export async function registerDeviceToken(token: string) {
+  /*
+  * Required for mobile push notifications, device token is retrieved from Firebase Cloud Messaging service,
+  * once the user in the frontend receives it, they will give it to SNS via this API call
+  *  */
+
   return (
     API.post("myAPI", "/register-device-token", {
       headers: {
@@ -476,19 +462,28 @@ export async function registerDeviceToken(token: string) {
       body: {httpMethod: "POST", token: token}
     })
     .then(res => {
-      // console.log("Registered device token!");
-      console.log(res)
       return res;
     })
     .catch(err => {
-      console.log(err);
+      return err;
     })
   )
 }
 
+export function getInitialNotificationState(productId: string, scans: object) {
+  if (scans != null && Object.keys(scans).includes(productId)){
+      return scans[productId].receive_notifications;
+  }
+  else {
+      return true;
+  }
+}
 
-/************** OCR IMAGE PROCESSING ***************/
+
+/************** OCR PRE-PROCESSING ***************/
 export async function ocrPreprocessing(base64Image: string) {
+  /* Sends image retrieved for OCR to a lambda function using opencv via API call for preprocessing */
+
   return (
     API.post("myAPI", "/ocr-preprocessing", {
       headers: {
@@ -500,11 +495,10 @@ export async function ocrPreprocessing(base64Image: string) {
       body: base64Image
     })
     .then(res => {
-      console.log("SUCCESSFUL RESPONSE: ")
       return res.body;
     })
     .catch(err => {
-      console.log(err);
+      return err;
     })
   );
 }
@@ -519,13 +513,18 @@ export interface SearchQuery {
   allergensNotContains?: Array<string>
 }
 
-// for faceted product search pagination
+// OFF helper functions for API calls
+
 const calculateTotalPages = (totalProducts: number, pageSize: number) => {
+  // for search results pagination
+
   const maxOFFPageSize = 1000;
   let result = Math.ceil(totalProducts / pageSize);
+
   if (result == 0){
     result += 1;
   }
+
   if (result > maxOFFPageSize) {
     return maxOFFPageSize;
   }
@@ -534,104 +533,51 @@ const calculateTotalPages = (totalProducts: number, pageSize: number) => {
 }
 
 const getProductDisplayName = (productName: string, brandsList: Array<string>, quantity : string) => {
+  // gets readable name of product
+
   let productDisplayName = "";
   productDisplayName += productName ? productName : "";
 
   if (brandsList?.length > 0){
-    if (productDisplayName !== ""){
+    if (productDisplayName !== "") {
       productDisplayName += " - "
     }
+
     productDisplayName += brandsList[0].charAt(0).toUpperCase() + brandsList[0].slice(1);
   }
 
   if (productDisplayName === ""){
     productDisplayName += "Product Name Unavailable"
   }
+
   productDisplayName += quantity ? " - " + quantity.replace(" ", "") : "";
+
   //remove unnecessary punctuation from product name
   productDisplayName = productDisplayName.replace(/[.,\/#!$%\^&\*;:{}=\_`~()]/g,"")
       .replace(/\s{2,}/g," ");
+
   return productDisplayName;
 }
 
-export async function translateIngredients(ingredients: string){
-  if (ingredients?.length > 0){
-    let translatedIngredients = await translate(ingredients, {to: 'en', forceTo: true, autoCorrect: true});
-    // console.log("\n\ntranslatedIngredients:"+JSON.stringify(translatedIngredients)+"\n\n");
-    return translatedIngredients.text;
-  }
-}
-
 function mergeAllergenStringsToList(s1: string, s2: string){
-  // let merged_list;
-  // if (s1+s2===""){
-  //   merged_list=[]
-  // }else{
-  let s1_list= s1 !== "" ? s1.split(",") : [];
-  let s2_list= s2 !== "" ? s2.split(",") : [];
-  let merged_list = s1_list.concat(s2_list)
-  // }
+  let s1List = s1 !== "" ? s1.split(",") : [];
+  let s2List = s2 !== "" ? s2.split(",") : [];
+  let merged_list = s1List.concat(s2List)
+
   return merged_list;
 }
 
-export async function extractEnglishAllergens(allergenList: Array<string>) {
-  if (allergenList) {
-    // console.log("allergenList = " + allergenList);
-    let translatedAllergens = new Array();
-    let i = 0;
-    while (i < allergenList.length) {
-      let allergen = allergenList[i];
-      if (allergen.length > 0){
-        // console.log(allergen);
-        allergen = allergen.toLowerCase();
-        if (allergen.includes("en:")) {
-          // console.log(allergen + " includes en:");
-          // if (translatedAllergens.length > 0) {
-          //   translatedAllergensallergen.slice(3).charAt(0).toUpperCase() + allergen.slice(4);
-          // } else {
-          let englishAllergen = allergen.slice(3).charAt(0).toUpperCase() + allergen.slice(4);
-          if (!translatedAllergens.includes(englishAllergen)){
-            translatedAllergens.push(englishAllergen);
-          }
-        } else {
-          // allergen is listed not in english, so translate
-          // console.log("allergen to be translated: " + allergen.slice(3) + " from '" + allergen.slice(0, 2) + "'");
-          let translation;
-          if (allergen.charAt(2) === ':'){
-            translation = await translate(allergen.slice(3), {from: allergen.slice(0, 2), to: 'en', forceTo: true, autoCorrect: true});
-          } else {
-            translation = await translate(allergen, {to: 'en', forceTo: true, autoCorrect: true});
-          }
-          if (translation.from.text.didYouMean){
-            translation = await translate(translation.from.text.value.replace(/[[\]]/g,''), {to: 'en', forceTo: true, autoCorrect: true})
-          }
-          // console.log("\n\ntranslated "+allergen+" -> "+  JSON.stringify(translation));
-          // console.log("before: " + s);
-          // if (s.length > 0) {
-            // s+= ", " + translation.text.charAt(0).toUpperCase() + translation.text.slice(1);
-          // } else {
-          let translated_allergen = translation.text.charAt(0).toUpperCase() + translation.text.slice(1);
-          if (!translatedAllergens.includes(translated_allergen)){
-            translatedAllergens.push(translated_allergen);
-          }
-          // console.log("after: " + s);
-        }
-      }
-      i++;
-    }
-    // console.log("allergens_string = " + s);
-    return translatedAllergens.join(", ");
-  }
-}
-
 function compileBarcodeResult(data : object, barcodeText : string | null = null) {
-  
+  // compiles results coming from an API call to OFF of a product
+
+
   if (data?.status_verbose === "product not found"){
     return {
-      "status": data?.status_verbose, 
+      "status": data?.status_verbose,
       "product_code": barcodeText == null ? data?.product?.code : barcodeText,
     }
-  } else {
+  }
+  else {
     return {
       "product_display_name": getProductDisplayName(data?.product?.product_name, data?.product?.brands_tags, data.product?.quantity),
       "date": new Date().toISOString(),
@@ -640,15 +586,12 @@ function compileBarcodeResult(data : object, barcodeText : string | null = null)
       "product_name": data?.product?.product_name,
       "product_image": data?.product?.image_front_url,
       "ingredients_image": data?.product?.image_ingredients_thumb_url,
-      // "image_size": data?.product?.
       "ingredients_text": data?.product?.ingredients_text,
       "ingredients_complete_boolean": data?.product?.states_hierarchy.includes("en:ingredients-completed"),
-      // "states_hierarchy": data?.product?.states_hierarchy,
       "allergens": mergeAllergenStringsToList(data?.product?.allergens, data?.product?.allergens_from_ingredients),
-      // "allergens_from_ingredients": data?.product?.allergens_from_ingredients,
       "may_contain": data?.product?.traces ? data?.product?.traces.replace("en:", "").replace(" ", "") : "",
-      "traces_tags": data?.product.traces_tags,//[0].replace("en:en-", "").split("-en-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(", ") : "",
-      "missing_ingredients": data?.product?.unknown_ingredients_n,    
+      "traces_tags": data?.product.traces_tags,
+      "missing_ingredients": data?.product?.unknown_ingredients_n,
       "non_vegan_ingredients": data?.product?.ingredients_analysis?.["en:non-vegan"],
       "vegan_status_unknown_ingredients": data?.product?.ingredients_analysis?.["en:vegan-status-unknown"],
       "vegetarian_status_unkown_ingredients": data?.product?.ingredients_analysis?.["en:vegetarian-status-unknown"],
@@ -656,34 +599,38 @@ function compileBarcodeResult(data : object, barcodeText : string | null = null)
   } 
 }
 
+// OFF API calls
+
 export async function scanBarcode(barcodeText: string) {
-  console.log("fetching from OFF");
+  // get product from OFF if available
+
   return fetch(`https://world.openfoodfacts.org/api/v2/product/${barcodeText}.json`, {
     method: "GET",
     headers: {
       'Content-Type': 'application/json'
     }
   }).then(res => {
-    console.log("Response received.");
     return res.json().then(async (data) => {
-      // console.log(data);
-      return compileBarcodeResult(data, barcodeText); 
+      return compileBarcodeResult(data, barcodeText);
     })
     }).catch(err => {
-      console.log(err);
-      console.log(err.response.data);
+      return err;
     });
 }
 
 export async function facetedProductSearch({queryString = null, page = 1, searchTerms = "", allergensContains, allergensNotContains}: SearchQuery) {
+  // for searching products from the OFF database
+
   let OFFSearchQueryUrl : string;
   let parameters = ""
-  let tagCount = 0;  
+  // let tagCount = 0;
 
   if (queryString == null) {
     if (searchTerms !== "") {
       parameters += `&search_terms2=${searchTerms}`;
     }
+
+    // DEPRECATED - OFF is not good enough yet at faceted search in a lot of cases, reconsider use in future
 
     // if (brand !== "") {
     //   parameters += `&tagtype_${tagCount}=brands&tag_contains_${tagCount}=contains&tag_${tagCount}=${brand}`;
@@ -694,8 +641,6 @@ export async function facetedProductSearch({queryString = null, page = 1, search
     //   parameters += `&tagtype_${tagCount}=categories&tag_contains_${tagCount}=contains&tag_${tagCount}=${category}`;
     //   tagCount++;
     // } 
-    // https://world.openfoodfacts.org/cgi/search.pl?action=process&tagtype_0=allergens&tag_contains_0=contains&tag_0=milk&sort_by=unique_scans_n&page_size=20
-    // https://world.openfoodfacts.org/cgi/search.pl?action=process&tagtype_0=allergens&tag_does_not_contain_0=does_not_contain&tag_0=Milk&page_size=25&json=true
 
     // for (let allergenContains of allergensContains) {
     //   parameters += `&tagtype_${tagCount}=allergens&tag_contains_${tagCount}=contains&tag_${tagCount}=${allergenContains}`
@@ -712,7 +657,6 @@ export async function facetedProductSearch({queryString = null, page = 1, search
     OFFSearchQueryUrl = queryString;
   }
 
-  console.log(`${OFFSearchQueryUrl}&page=${page}`)
   return fetch(`${OFFSearchQueryUrl}&page=${page}`, {
     method: "GET",
     headers: {
@@ -734,16 +678,6 @@ export async function facetedProductSearch({queryString = null, page = 1, search
       return {query: OFFSearchQueryUrl, pages: calculateTotalPages(res.count, 25), products: products};
     })
     }).catch(err => {
-      console.log(err);
-      console.log(err.response.data);
-    });  
-}
-//
-export function getInitialNotificationState(productId: string, scans: object) {
-  if (scans != null && Object.keys(scans).includes(productId)){
-      return scans[productId].receive_notifications;
-  }
-  else {
-      return true;
-  }
+      return err;
+    });
 }

@@ -8,7 +8,7 @@ interface ModalBtnsConfig {
         text?: string,
     },
     option2?: {
-        onPress: Function,
+        onPress?: Function,
         text?: string,
     }
 }
@@ -59,7 +59,9 @@ function AppModal({headerText, modalContent = <></>, modalContentText, modalBtns
                                 <TouchableOpacity
                                     style={{...styles.modalBtn, backgroundColor: "#ff5c5c"}}
                                     onPress={() => {
-                                        modalBtnsConfig.option2?.onPress()
+                                        if (modalBtnsConfig.option2?.onPress)
+                                            modalBtnsConfig.option2?.onPress()
+
                                         isModalOpen.setState(false);
                                     }}
                                 >
