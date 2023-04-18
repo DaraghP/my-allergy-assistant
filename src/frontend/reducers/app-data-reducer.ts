@@ -92,7 +92,9 @@ export const AppDataSlice = createSlice({
             const username = action.payload.username;
             const product_id = action.payload.product_id;
             const notifications_boolean = action.payload.product_notifications_boolean;
-            state.accounts[username].scans[product_id].receive_notifications = notifications_boolean;
+            if (state.accounts[username].scans[product_id]) {
+                state.accounts[username].scans[product_id].receive_notifications = notifications_boolean;
+            }
        },
        set_has_completed_setup(state, action) {
            const username = action.payload;

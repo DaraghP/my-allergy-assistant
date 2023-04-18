@@ -12,7 +12,12 @@ function AlertScreen() {
     const [notificationPerms, setNotificationPerms] = useState("");
 
     const sortedNotifications = useMemo(() => {
-        return [...notifications].sort((notification1, notification2) => new Date(notification2.date) - new Date(notification1.date));
+        if (notifications) {
+            return [...notifications].sort((notification1, notification2) => new Date(notification2.date) - new Date(notification1.date));
+        }
+        else {
+            return []
+        }
     }, [notifications])
 
     useEffect(() => {

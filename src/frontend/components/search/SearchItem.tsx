@@ -13,9 +13,14 @@ function SearchItem({navigation, product, data}) {
 
     return (
         <TouchableNativeFeedback onPress={() => {
-            storeScan(product.item.barcode, product.item.productResults, scans, dispatch, user);
-            dispatch(updateScanResult({scan: product.item.productResults,}));
-            navigation.navigate("Scan", { data: data })
+            navigation.navigate("Loading")
+            const id = setTimeout(() => {
+                storeScan(product.item.barcode, product.item.productResults, scans, dispatch, user);
+                dispatch(updateScanResult({scan: product.item.productResults,}));
+                navigation.navigate("Scan", { data: data })
+                clearTimeout(id);
+            }, 1)
+
         }}>
             <View style={styles.item}>
                 <SearchItemImage imageUrl={product.item.image_url}/>

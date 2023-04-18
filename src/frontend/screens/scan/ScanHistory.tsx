@@ -5,7 +5,7 @@ import ScanHistoryList from "../../components/scan/ScanHistoryList";
 
 function ScanHistory({navigation}) {
     const username = useAppSelector(state => state.user.username);
-    const scans = useAppSelector(state => state.appData.accounts[username].scans);
+    const scans = useAppSelector(state => state.appData.accounts[username]?.scans);
 
     const orderedScans = useMemo(() => {
         return new Map(Object.entries(scans).sort(([, scan1], [, scan2]) => new Date(scan2.date) - new Date(scan1.date)));

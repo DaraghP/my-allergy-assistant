@@ -33,7 +33,7 @@ function ScanNavigator({route}) {
     }
 
     useEffect(() => {
-        if (route.params?.data?.products == null && scan == null) {
+        if (route.params?.data?.products == null && Object.keys(scan).length < 1) {
             navigation.navigate("ScanScreen")
         }
         else {
