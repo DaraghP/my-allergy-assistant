@@ -49,16 +49,8 @@ function IngredientsAllergensTracesText({scan, setSafetyResult}) {
     };
 
     useEffect(() => {
-        if (!isFocused) {
-            setTranslatedAllergensText("translating..")
-            setTranslatedIngredientsText("translating..")
-            setTranslatedTracesText("translating..")
-        }
-    }, [isFocused])
-
-    useEffect(() => {
         translate().then((res) => {
-            setSafetyResult(getAllergensFromText(res, account));
+            setSafetyResult(getAllergensFromText(res, account)); 
         })
     }, [scan])
 

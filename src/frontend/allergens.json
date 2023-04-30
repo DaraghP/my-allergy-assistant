@@ -32,7 +32,8 @@
     {
       "Peanuts": [
         "peanut",
-        "peanuts"
+        "peanuts",
+        "nuts"
       ]
     },
     {
@@ -58,43 +59,33 @@
         "dairy"
       ]
     },
-    {
-      "Nuts": [
-        "nuts",
-        "peanuts",
-        "peanut",
-        "walnut",
-        "walnuts",
-        "almond",
-        "almonds",
-        "hazelnut",
-        "hazelnuts",
-        "cashew",
-        "cashews"
-      ]
-    },
+    
     {
       "Almonds": [
         "almond",
-        "almonds"
+        "almonds",
+        "nuts"
       ]
     },
     {
       "Hazelnuts": [
         "hazelnuts",
-        "hazelnut"
+        "hazelnut",
+        "nuts"
       ]
     },
     {
       "Walnuts": [
         "walnut",
-        "walnuts"
+        "walnuts",
+        "nuts"
       ]
     },
     {
       "Cashew nuts": [
         "cashew",
-        "cashews"
+        "cashews",
+        "nuts"
       ]
     },
     {
@@ -102,7 +93,8 @@
         "brazil nuts",
         "brazilnuts",
         "brazil nut",
-        "brazilnut"
+        "brazilnut",
+        "nuts"
       ]
     },
     {

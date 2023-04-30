@@ -26,10 +26,17 @@ import LoadingScreen from './screens/LoadingScreen';
 // 7. [DONE] detects fats as oats - increase similarity percentage threshold
 // 8. [QA] add to allergens.json - eggs, nuts etc, will make a test to see if gluten-free is certain as gluten
 // 9. [TO DO] fix barcode not found modal error,
-// 10. [TO DO] shouldn't say 'Safe to Eat' if product has been reported. may not be safe
+// 10. [In progress] shouldn't say 'Safe to Eat' if product has been reported. may not be safe
 // for this one (no.10), if ingredients etc are safe to eat, should then check reports
-// like if safe to eat and no reports = safe to eat
+// like if safe to eat and no reports = safe to eat 
 // if safe to eat and report containing your allergen = "warning may not be safe to eat, product has been reported"
+// 11. [TO DO] make sure peanuts etc are highlighted when OFF says contains nuts (i think this is already done with listed as no?)
+// 12. [IN PROGRESS] sort table to have user allergens first 
+
+// getting this error and whitescreen whenever i go to alert screen or profile screen: it to do with the flatlists but havent changed anything
+// TypeError: Cannot read property 'getItem' of undefined
+// This error is located at:
+// in FlatList (created by AllergySelectionList)
 
 // Amplify documentation: https://docs.amplify.aws/lib/auth/social/q/platform/react-native/#full-samples
 async function urlOpener(url, redirect) {

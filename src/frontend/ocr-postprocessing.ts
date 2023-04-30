@@ -5,8 +5,8 @@ import {difference, intersect} from "./utils";
 
 // process allergen dataset for use
 let possibleAllergens = ALLERGENS.data;
-let possibleAllergensLinks = {};
-let ingredientAllergenLinked = new Map();
+let possibleAllergensLinks = {}; 
+let ingredientAllergenLinked = new Map();// 
 let possibleAllergensSet;
 let possibleAllergensList = []
 _.values(possibleAllergens).forEach(a => {
@@ -39,6 +39,7 @@ let listedAs = new Map();
 
 function addAllergensToResultData(set, allergens, actualIngredient, ingredientText) {
     const mainAllergenName = ingredientAllergenLinked.get(actualIngredient)
+    console.log("INGREDIENTS FOUND: ingredientText -> " + ingredientText + " " + actualIngredient)
     if (!mainAllergenName) {
       addArrayToSet(set, allergens);
       addToListedAs(allergens, ingredientText);
@@ -67,8 +68,8 @@ function addProbableAllergenIfRated(ingredient, match) {
   // if word is a close match, add allergen to results
   if (match.rating > allergenSimilarityMaxThreshold) { // for example, 'penuts' instead of 'peanuts' would pass here
     addAllergensToResultData(probableMatchedAllergens, possibleAllergensLinks[match.target], match.target, ingredient);
-  }
-
+  }// 
+//
   // for severely misspelled words, they must pass a rating of 0.4
   else if (match.rating >= allergenSimilarityMinThreshold) {
     // in this case, it should be added to may contains as its not certain enough to be correct

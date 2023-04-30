@@ -24,6 +24,7 @@ function BarcodeScanResult() {
     const dispatch = useAppDispatch();
     const scan = useAppSelector(state => state.ui.scanResult).scan;
     const username = useAppSelector(state => state.user.username);
+    const userAllergens = useAppSelector(state => state.appData.accounts[state.user.username].allergens);
     const email = useAppSelector(state => state.user.email);
     const usersScanHistory = useAppSelector(state => state.appData.accounts[username]?.scans);
     const deviceEndpoint = useAppSelector(state => state.user.deviceEndpoint);
@@ -35,8 +36,8 @@ function BarcodeScanResult() {
     const [determined, setIsDetermined] = useState(false);
 
     useEffect(() => {
-        setIsDetermined(false)
-        setAllergensIdentified({userAllergens: [], listedAs: {}})
+        setIsDetermined(false) 
+        setAllergensIdentified({userAllergens: [], listedAs: {}}) // its in IngredientsAllergensTracesText.tsx where its set
         // get the product reports, we will use to display later and see if any contaim user allergens
         if (scan?.product_code) {
             getProductReports({productId: scan?.product_code}).then((res) => {
@@ -81,6 +82,8 @@ function BarcodeScanResult() {
                 userAllergensFound={allergensIdentified?.userAllergens ?? []}
                 userMayContain={[]}
                 determined={determined}
+                reportsContainUserAllergen={true}
+                reportsContainOtherAllergen={false}
             />
 
             <Text style={styles.productName}>
@@ -95,14 +98,34 @@ function BarcodeScanResult() {
                         setIsDetermined(true);
                     }}
                 />
-
+                
                 {Object.entries(allergensIdentified?.listedAs).length !== 0 &&
                     <View style={styles.listedAsContainer}>
                         <AllergenListedAsTable
-                            listedAs={allergensIdentified?.listedAs}
+                            listedAs={_.pick(allergensIdentified?.listedAs, Object.keys(allergensIdentified?.listedAs).filter(a => userAllergens.includes(a.charAt(0).toUpperCase() + a.slice(1))))}
+                        // {allergensIdentified?.listedAs} 
                         />
                     </View>
                 }
+
+                <Text> User Allergens:{"  "}
+                    {userAllergens.map((allergen, index) => {
+                        return <Text key={index.toString()}>{allergen}  </Text>
+                    })}
+                </Text>
+                
+                <Text> Allergens listedAs:{"  "}
+                    {Object.keys(allergensIdentified?.listedAs).map((allergen, index) => {
+                        return <Text key={index.toString()}>{allergen}  </Text>
+                    })}
+                </Text>
+
+                <Text> Matches:{"  "}
+                    {(Object.keys(allergensIdentified?.listedAs).filter(a => userAllergens.includes(a.charAt(0).toUpperCase() + a.slice(1)))).map((allergen, index) => {
+                        return <Text key={index.toString()}>{allergen}  </Text>
+                    })}
+                </Text>
+
                 <ProductReports
                     productReports={productReports}
                     myReportIndex={myReportIndex}

@@ -2,7 +2,7 @@ import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import {ActivityIndicator, StyleSheet, Text, View} from "react-native";
 import React from "react";
 
-function SafetyResult({style={}, userAllergensFound, userMayContain, determined = true}) {
+function SafetyResult({style={}, userAllergensFound, userMayContain, determined = true, reportsContainOtherAllergen, reportsContainUserAllergen}) {
     return (
         <View style={{...style, ...styles.container, borderBottomColor: determined ? (userAllergensFound.length > 0 ? "red" : "green") : "lightgrey"}}>
 
