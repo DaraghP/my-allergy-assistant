@@ -16,6 +16,7 @@ import ProductReports from "./ProductReports";
 import ReceiveProductNotifications from "../../scan/ReceiveProductNotifications";
 import ReportButtons from "./ReportButtons";
 import SafetyResult from "../SafetyResult";
+import AllergenListedAsTable from "../AllergenListedAsTable";
 
 
 // Used by ScanResult, for barcode scans
@@ -30,12 +31,12 @@ function BarcodeScanResult() {
     const [isDeleteReportModalOpen, setIsDeleteReportModalOpen] = useState<boolean>(false);
     const [myReportIndex, setMyReportIndex] = useState(-1);
     const [productReports, setProductReports] = useState(undefined);
-    const [allergensIdentified, setAllergensIdentified] = useState({userAllergensFound: []})
+    const [allergensIdentified, setAllergensIdentified] = useState({userAllergens: [], listedAs: {}})
     const [determined, setIsDetermined] = useState(false);
 
     useEffect(() => {
         setIsDetermined(false)
-        setAllergensIdentified({userAllergensFound: []})
+        setAllergensIdentified({userAllergens: [], listedAs: {}})
         // get the product reports, we will use to display later and see if any contaim user allergens
         if (scan?.product_code) {
             getProductReports({productId: scan?.product_code}).then((res) => {
@@ -48,8 +49,10 @@ function BarcodeScanResult() {
                 }
             })
 
-            // notifications are turned on by default
-            notificationStateHandler(0);
+            // notifications are turned on by default (unless already off)
+            if (usersScanHistory[scan.product_code].receive_notifications !== false) {
+                notificationStateHandler(0);
+            }
         }
     }, [scan])
 
@@ -74,6 +77,7 @@ function BarcodeScanResult() {
     return (
         <>
             <SafetyResult
+                style={{}}
                 userAllergensFound={allergensIdentified?.userAllergens ?? []}
                 userMayContain={[]}
                 determined={determined}
@@ -92,6 +96,13 @@ function BarcodeScanResult() {
                     }}
                 />
 
+                {Object.entries(allergensIdentified?.listedAs).length !== 0 &&
+                    <View style={styles.listedAsContainer}>
+                        <AllergenListedAsTable
+                            listedAs={allergensIdentified?.listedAs}
+                        />
+                    </View>
+                }
                 <ProductReports
                     productReports={productReports}
                     myReportIndex={myReportIndex}
@@ -144,7 +155,10 @@ const styles = StyleSheet.create({
         margin: '3.5%',
         flexWrap: "wrap",
         textAlign: 'center'
-    }
+    },
+    listedAsContainer: {
+        marginTop: 10
+    },
 })
 
 export default BarcodeScanResult;

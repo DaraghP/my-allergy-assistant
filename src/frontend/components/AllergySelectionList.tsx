@@ -99,8 +99,12 @@ function AllergySelectionList({onConfirm = null, update = true, customSelection 
                             }
                             else {
                                 // else, user is already created, so updateUser
-                                updateUser(userObj);
-                                ToastAndroid.show("Saving changes...", ToastAndroid.LONG)
+                                updateUser(userObj).then((res) => {
+                                    ToastAndroid.show("Changes saved", ToastAndroid.LONG)
+                                })
+                                .catch((err) => {
+                                    ToastAndroid.show("Error! Changes not saved.", ToastAndroid.LONG);
+                                })
                             }
                         }
                         

@@ -48,7 +48,6 @@ export const setHasCompletedSetup = createAction<string>("storage/set_has_comple
 export const addNotification = createAction<object>("storage/add_notification");
 export const openNotification = createAction<object>("storage/set_is_opened");
 export const deleteNotification = createAction<object>("storage/delete_notification");
-// export const deleteReportRedux = createAction<object>("storage/delete_report");
 
 export const AppDataSlice = createSlice({
    name: "storage",

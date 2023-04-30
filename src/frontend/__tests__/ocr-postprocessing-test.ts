@@ -3,6 +3,8 @@ import getAllergensFromText from "../ocr-postprocessing";
 import {readdirSync, readFileSync} from "fs";
 import path from "path";
 
+
+// TODO: change expected outputs as result of changing allergens.json
 describe("OCR-postprocessing", () => {
     const user = {allergens: []}
 
@@ -26,16 +28,31 @@ describe("OCR-postprocessing", () => {
         user.allergens = [];
     })
 
+    it("should not list gluten-free as gluten as a likely allergen", () => {
+        const res = getAllergensFromText("gluten-free", user);
+
+        expect(res.allergens).toEqual([]);
+        expect(res.mayContain).toContain("gluten");
+    })
+//
+
+    it("should not list fats as oats as a likely allergen", () => {
+        const res = getAllergensFromText("fats", user);
+
+        expect(res.allergens).toEqual([]);
+        expect(res.mayContain).toContain("oats");
+    })
+
     it("should identify barley, wheat, and rye in allergens found if gluten in text", () => {
         const res = getAllergensFromText("gluten", user);
 
-        expect(res.allergens).toEqual(["wheat", "rye", "barley"])
+        expect(res.allergens).toEqual(["gluten", "wheat", "rye", "barley"])
     })
 
     it("should identify barley, wheat, and rye in allergens it may contain if 'glutpn' in text", () => {
         const res = getAllergensFromText("glutin", user);
 
-        expect(res.mayContain).toEqual(["wheat", "rye", "barley"])
+        expect(res.mayContain).toEqual(["gluten", "wheat", "rye", "barley"])
     })
 
 
@@ -65,7 +82,7 @@ describe("OCR-postprocessing", () => {
         user.allergens = ["peanuts"];
         const res = getAllergensFromText("peanuts", user);
 
-        expect(res.allergens).toEqual([]);
+        expect(res.allergens).toEqual(["nuts", "walnut", "walnuts", "almond", "almonds", "hazelnut", "hazelnuts", "cashew", "cashews"]);
         expect(res.userAllergens).toContain("peanuts")
     })
 

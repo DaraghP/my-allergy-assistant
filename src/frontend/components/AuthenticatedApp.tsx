@@ -25,6 +25,7 @@ import LogOut from "./LogOut";
 const {height, width} = Dimensions.get("window");
 function AuthenticatedApp() {
     const dispatch = useAppDispatch();
+    const accounts = useAppSelector(state => state.appData.accounts)
     const Tab = createBottomTabNavigator();
     const Stack = createNativeStackNavigator(); // for loading
     const navigationRef = createNavigationContainerRef();
@@ -63,6 +64,7 @@ function AuthenticatedApp() {
       }
 
       Notifications.events().registerNotificationReceivedForeground((notification: Notification, completion) => {
+          console.log(accounts, username) // TODO: fix barcode not found modal
         dispatch(addNotification({username: username, notificationData: notification.payload["data"], date: new Date()}));
 
         completion({alert: true, sound: true, badge: true});

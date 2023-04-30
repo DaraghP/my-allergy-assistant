@@ -22,7 +22,8 @@ function TranslatedText({style = {}, title = "", originalText, translatedText} :
         if (originalText?.[0]?.includes("en:") || originalText == translatedText) {
             setWasAlreadyTranslated(true);
         }
-    }, [originalText])
+
+    }, [translatedText])
 
     return (
         <TouchableOpacity activeOpacity={wasAlreadyTranslated && 100} style={{...style, ...styles.button}} onPress={languageSwitchHandler}>

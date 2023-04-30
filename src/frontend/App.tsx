@@ -16,6 +16,20 @@ import {updateUsername, updateEmail} from "./reducers/user-reducer";
 import {getSingleUser} from './api';
 import LoadingScreen from './screens/LoadingScreen';
 
+// TODO:
+// 1. [DONE] Barcode Scan - safe to eat - what allergen?
+// 2. [DONE] Updating allergens - changes saved
+// 3. [DONE] Yes - Scan , Cancel
+// 4. [QA] remove 'translated from' if english
+// 5. [QA] prevent adding endpoint to notifications table after user turned them off
+// 6. [TO DO] size of 'safe to eat'
+// 7. [DONE] detects fats as oats - increase similarity percentage threshold
+// 8. [QA] add to allergens.json - eggs, nuts etc, will make a test to see if gluten-free is certain as gluten
+// 9. [TO DO] fix barcode not found modal error,
+// 10. [TO DO] shouldn't say 'Safe to Eat' if product has been reported. may not be safe
+// for this one (no.10), if ingredients etc are safe to eat, should then check reports
+// like if safe to eat and no reports = safe to eat
+// if safe to eat and report containing your allergen = "warning may not be safe to eat, product has been reported"
 
 // Amplify documentation: https://docs.amplify.aws/lib/auth/social/q/platform/react-native/#full-samples
 async function urlOpener(url, redirect) {
@@ -42,7 +56,6 @@ Amplify.configure({
 
 const App = (props) => {
   const dispatch = useAppDispatch();
-  const accounts = useAppSelector(state => state.appData.accounts);
   const [authStatus, setAuthStatus] = useState('unauthenticated');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 

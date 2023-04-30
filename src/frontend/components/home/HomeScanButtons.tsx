@@ -1,5 +1,5 @@
 import {Dimensions, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import {updateScanMode} from "../../reducers/ui-reducer";
+import {updateScanMode, updateScanResult} from "../../reducers/ui-reducer";
 import {ScanMode} from "../scan/Scanner";
 import React from "react";
 import {useAppDispatch} from "../../hooks";
@@ -26,6 +26,7 @@ function HomeScanButtons({navigation}) {
                   iconSize={height * 0.1}
                   onPress={() => {
                     navigation.navigate("Scan");
+                    dispatch(updateScanResult({}));
                     dispatch(updateScanMode(ScanMode.Barcode));
                   }}
               />
@@ -37,6 +38,7 @@ function HomeScanButtons({navigation}) {
                   iconSize={height * 0.1}
                   onPress={() => {
                     navigation.navigate("Scan");
+                    dispatch(updateScanResult({}));
                     dispatch(updateScanMode(ScanMode.Text));
                   }}
               />
@@ -51,6 +53,7 @@ function HomeScanButtons({navigation}) {
                 iconSize={height * 0.075}
                 onPress={() => {
                   navigation.navigate("Scan");
+                  dispatch(updateScanResult({}));
                   dispatch(updateScanMode(ScanMode.Detect));
                 }}
             />

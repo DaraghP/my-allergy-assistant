@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import {View, Text, StyleSheet} from "react-native";
 import Accordion from "../../Accordion";
 import SafetyResult from "../SafetyResult";
-import AllergenListedAsTable from "./AllergenListedAsTable";
+import AllergenListedAsTable from "../AllergenListedAsTable";
 
 function OCRScanResult() {
     const scan = useAppSelector(state => state.ui.scanResult).scan;

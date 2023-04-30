@@ -17,12 +17,12 @@ _.values(possibleAllergens).forEach(a => {
   allergenListedAs.forEach((allergen) => {
     if (allergen in possibleAllergensLinks) {
       // for example when gluten is found from barley, wheat, or rye
-      possibleAllergensLinks[allergen] = [...new Set([...possibleAllergensLinks[allergen], ...allergenListedAs])];
-      possibleAllergensLinks[allergen].splice(possibleAllergensLinks[allergen].indexOf(allergen), 1)
+      possibleAllergensLinks[allergen] = [...new Set([allergen, ...possibleAllergensLinks[allergen], ...allergenListedAs])];
+      // possibleAllergensLinks[allergen].splice(possibleAllergensLinks[allergen].indexOf(allergen), 1)
       ingredientAllergenLinked.set(allergen, null);
     }
     else {
-      possibleAllergensLinks[allergen] = allergenListedAs;
+      possibleAllergensLinks[allergen] = [...new Set([allergen, ...allergenListedAs])];
       ingredientAllergenLinked.set(allergen, allergenName);
     }
   })
@@ -61,16 +61,17 @@ function addToListedAs(keys, ingredient) {
 }
 
 function addProbableAllergenIfRated(ingredient, match) {
-  const P1 = 0.66; // fine-tuned through testing for normal cases
-  const P2 = 0.4; // for auto-correction comparison
+  const allergenSimilarityMaxThreshold = 0.67; // fine-tuned through testing for normal cases
+  const allergenSimilarityMinThreshold = 0.4; // for severely misspelled words
 
-  if (match.rating > P1) { // for example, 'penuts' instead of 'peanuts' would pass here
+  // if word is a close match, add allergen to results
+  if (match.rating > allergenSimilarityMaxThreshold) { // for example, 'penuts' instead of 'peanuts' would pass here
     addAllergensToResultData(probableMatchedAllergens, possibleAllergensLinks[match.target], match.target, ingredient);
   }
 
-  // for severely misspelled words, they must pass a rating of 0.4 and the similarity of the autocorrected spelling and the best matched target word found through our dataset must be greater than a rating of 0.66
-  else if (match.rating >= P2 && stringSimilarity.compareTwoStrings(autocorrect(ingredient), match.target) > P1) {
-    // in the auto-corrected case, it should be added to may contains as its not certain enough to be correct
+  // for severely misspelled words, they must pass a rating of 0.4
+  else if (match.rating >= allergenSimilarityMinThreshold) {
+    // in this case, it should be added to may contains as its not certain enough to be correct
     addAllergensToResultData(mayContain, possibleAllergensLinks[match.target], match.target, ingredient);
   }
 }

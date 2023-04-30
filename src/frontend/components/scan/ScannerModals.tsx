@@ -36,11 +36,11 @@ function ScannerModals({ocrModalConfig, productNotFoundModalConfig, lastBarcodeS
                modalBtnsConfig={{
                    option1: {
                        onPress: ocrModalConfig.onPressYes,
-                       text: "Yes"
+                       text: "Yes - Scan"
                    },
                    option2: {
                        onPress: ocrModalConfig.onPressNo,
-                       text: "No",
+                       text: "Cancel",
                    }
                }}
            />

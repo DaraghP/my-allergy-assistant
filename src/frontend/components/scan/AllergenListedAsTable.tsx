@@ -1,5 +1,5 @@
 import React from "react";
-import { Table, Row, Rows } from "react-native-table-component";
+import { Table, Row } from "react-native-table-component";
 
 // table for seeing what the allergen identification in ocr-postprocessing.ts found allergens as, e.g. milk was m1lk
 function AllergenListedAsTable({listedAs}) {

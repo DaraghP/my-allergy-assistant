@@ -1,6 +1,9 @@
 {
   "data": [
     {
+      "Gluten": ["gluten", "wheat", "rye", "barley"]
+    },
+    {
       "Wheat": ["wheat", "gluten"]
     },
     {
@@ -43,10 +46,31 @@
       ]
     },
     {
+      "Eggs": [
+        "egg",
+        "eggs"
+      ]
+    },
+    {
       "Milk": [
         "milk",
         "butter",
         "dairy"
+      ]
+    },
+    {
+      "Nuts": [
+        "nuts",
+        "peanuts",
+        "peanut",
+        "walnut",
+        "walnuts",
+        "almond",
+        "almonds",
+        "hazelnut",
+        "hazelnuts",
+        "cashew",
+        "cashews"
       ]
     },
     {
@@ -76,7 +100,9 @@
     {
       "Brazil nuts": [
         "brazil nuts",
-        "brazilnuts"
+        "brazilnuts",
+        "brazil nut",
+        "brazilnut"
       ]
     },
     {
