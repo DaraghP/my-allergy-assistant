@@ -32,12 +32,12 @@ function BarcodeScanResult() {
     const [isDeleteReportModalOpen, setIsDeleteReportModalOpen] = useState<boolean>(false);
     const [myReportIndex, setMyReportIndex] = useState(-1);
     const [productReports, setProductReports] = useState(undefined);
-    const [allergensIdentified, setAllergensIdentified] = useState({userAllergens: [], listedAs: {}})
+    const [allergensIdentified, setAllergensIdentified] = useState({userAllergens: [], listedAs: {}, likelyAllergensListedAs: {}})
     const [determined, setIsDetermined] = useState(false);
 
     useEffect(() => {
         setIsDetermined(false) 
-        setAllergensIdentified({userAllergens: [], listedAs: {}}) // its in IngredientsAllergensTracesText.tsx where its set
+        setAllergensIdentified({userAllergens: [], listedAs: {}, likelyAllergensListedAs: {}}) // its in IngredientsAllergensTracesText.tsx where its set
         // get the product reports, we will use to display later and see if any contaim user allergens
         if (scan?.product_code) {
             getProductReports({productId: scan?.product_code}).then((res) => {
@@ -82,8 +82,9 @@ function BarcodeScanResult() {
                 userAllergensFound={allergensIdentified?.userAllergens ?? []}
                 userMayContain={[]}
                 determined={determined}
-                reportsContainUserAllergen={true}
-                reportsContainOtherAllergen={false}
+                ingredientsUnavailable={(!scan?.ingredients_complete_boolean) && (!scan?.ingredients_text)} 
+                productReports={productReports}
+                isBarcodeResult={true}
             />
 
             <Text style={styles.productName}>
@@ -94,37 +95,20 @@ function BarcodeScanResult() {
                 <IngredientsAllergensTracesText
                     scan={scan}
                     setSafetyResult={(res) => {
+                        console.log("res: ", res);
                         setAllergensIdentified(res);
                         setIsDetermined(true);
                     }}
                 />
                 
-                {Object.entries(allergensIdentified?.listedAs).length !== 0 &&
+                {Object.entries(allergensIdentified?.likelyAllergensListedAs).length !== 0 &&
                     <View style={styles.listedAsContainer}>
                         <AllergenListedAsTable
-                            listedAs={_.pick(allergensIdentified?.listedAs, Object.keys(allergensIdentified?.listedAs).filter(a => userAllergens.includes(a.charAt(0).toUpperCase() + a.slice(1))))}
-                        // {allergensIdentified?.listedAs} 
+                            isBarcodeResult={true}
+                            listedAs={_.pick(allergensIdentified?.likelyAllergensListedAs, Object.keys(allergensIdentified?.likelyAllergensListedAs).filter(a => [...userAllergens].includes(a.charAt(0).toUpperCase() + a.slice(1))))}
                         />
                     </View>
                 }
-
-                <Text> User Allergens:{"  "}
-                    {userAllergens.map((allergen, index) => {
-                        return <Text key={index.toString()}>{allergen}  </Text>
-                    })}
-                </Text>
-                
-                <Text> Allergens listedAs:{"  "}
-                    {Object.keys(allergensIdentified?.listedAs).map((allergen, index) => {
-                        return <Text key={index.toString()}>{allergen}  </Text>
-                    })}
-                </Text>
-
-                <Text> Matches:{"  "}
-                    {(Object.keys(allergensIdentified?.listedAs).filter(a => userAllergens.includes(a.charAt(0).toUpperCase() + a.slice(1)))).map((allergen, index) => {
-                        return <Text key={index.toString()}>{allergen}  </Text>
-                    })}
-                </Text>
 
                 <ProductReports
                     productReports={productReports}
@@ -180,7 +164,10 @@ const styles = StyleSheet.create({
         textAlign: 'center'
     },
     listedAsContainer: {
-        marginTop: 10
+        marginTop: 10,
+        marginBottom: 10,
+        paddingBottom:10,
+        overflow: "hidden"
     },
 })
 

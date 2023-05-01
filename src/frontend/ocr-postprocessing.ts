@@ -5,6 +5,7 @@ import {difference, intersect} from "./utils";
 
 // process allergen dataset for use
 let possibleAllergens = ALLERGENS.data;
+console.log("Possible allergens = ", possibleAllergens);
 let possibleAllergensLinks = {}; 
 let ingredientAllergenLinked = new Map();// 
 let possibleAllergensSet;
@@ -32,31 +33,58 @@ _.values(possibleAllergens).forEach(a => {
 
 const autocorrect = require("autocorrect")({words: possibleAllergensList});
 
-possibleAllergensSet = new Set([...possibleAllergensList])
+possibleAllergensSet = new Set([...possibleAllergensList]);
+possibleAllergensList = [...possibleAllergensSet];
 let probableMatchedAllergens = new Set();
 let mayContain = new Set();
 let listedAs = new Map();
+let likelyAllergensListedAs = new Map();
 
-function addAllergensToResultData(set, allergens, actualIngredient, ingredientText) {
+// function returns the allergenKey(s) that match to a given word
+// e.g. if word=="wheat", allergenKeys will = ["wheat", "gluten"]
+function getAllergenKeyswithValue(word:String, allergensData:Array<Object>) {
+  let allergenKeys = [];
+  // for each allergen object in array
+  allergensData.forEach((allergen) => {
+    // get the list of values (possible aliases of that allergen)
+    let valueArray = Object.values(allergen);
+    // if that list contains the word, then add to result array
+    if (valueArray[0].includes(word)) {
+      allergenKeys.push(Object.keys(allergen)[0].toLowerCase());
+    }
+  });
+  return allergenKeys;
+}
+
+function addAllergensToResultData(set, allergens, actualIngredient, ingredientText, isLikelyAllergen) {
     const mainAllergenName = ingredientAllergenLinked.get(actualIngredient)
     console.log("INGREDIENTS FOUND: ingredientText -> " + ingredientText + " " + actualIngredient)
     if (!mainAllergenName) {
       addArrayToSet(set, allergens);
-      addToListedAs(allergens, ingredientText);
+      addToListedAs(allergens, ingredientText, isLikelyAllergen);
     }
     else {
       set.add(mainAllergenName);
-      addToListedAs([mainAllergenName], ingredientText);
+      addToListedAs([mainAllergenName], ingredientText, isLikelyAllergen);
     }
 }
 
-function addToListedAs(keys, ingredient) {
+function addToListedAs(keys, ingredient, isLikelyAllergen) {
   keys.forEach((key) => {
     if (!listedAs.has(key)) {
       listedAs.set(key, new Set())
     }
 
     listedAs.get(key).add(ingredient);
+
+
+    if (isLikelyAllergen && !likelyAllergensListedAs.has(key)) {
+      likelyAllergensListedAs.set(key, new Set());
+    }
+
+    if (isLikelyAllergen) {
+      likelyAllergensListedAs.get(key).add(ingredient);
+    }
 
   })
 }
@@ -67,14 +95,15 @@ function addProbableAllergenIfRated(ingredient, match) {
 
   // if word is a close match, add allergen to results
   if (match.rating > allergenSimilarityMaxThreshold) { // for example, 'penuts' instead of 'peanuts' would pass here
-    addAllergensToResultData(probableMatchedAllergens, possibleAllergensLinks[match.target], match.target, ingredient);
-  }// 
-//
+    console.log("possibleAllergensLinks["+match.target+"] = ", possibleAllergensLinks[match.target]);
+    addAllergensToResultData(probableMatchedAllergens, getAllergenKeyswithValue(match.target, possibleAllergens), match.target, ingredient, true);
+  }
+
   // for severely misspelled words, they must pass a rating of 0.4
   else if (match.rating >= allergenSimilarityMinThreshold) {
     // in this case, it should be added to may contains as its not certain enough to be correct
-    addAllergensToResultData(mayContain, possibleAllergensLinks[match.target], match.target, ingredient);
-  }
+    addAllergensToResultData(mayContain, getAllergenKeyswithValue(match.target, possibleAllergens), match.target, ingredient, false);
+  }// possibleAllergensLinks[match.target]
 }
 
 function exactContains(ingredient) {
@@ -104,14 +133,14 @@ function probableAllergens(ingredients) {
     // exact match
     if (possibleAllergensSet.has(ingredient)) {
       ingredientAllergens = possibleAllergensLinks[ingredient];
-      addAllergensToResultData(probableMatchedAllergens, ingredientAllergens, ingredient, ingredient)
+      addAllergensToResultData(probableMatchedAllergens, getAllergenKeyswithValue(ingredient, possibleAllergens), ingredient, ingredient, true)
       continue;
     }
 
     // exact contains
     let ingredientContainsAllergen = exactContains(ingredient);
-    if (ingredientContainsAllergen) {
-      addAllergensToResultData(probableMatchedAllergens, possibleAllergensLinks[ingredientContainsAllergen], ingredient, ingredient)
+    if (ingredientContainsAllergen) {// possibleAllergensLinks[ingredientContainsAllergen]
+      addAllergensToResultData(probableMatchedAllergens, possibleAllergensLinks[ingredientContainsAllergen], ingredient, ingredient, true)
     }
     else {
       let bestMatch;
@@ -162,23 +191,25 @@ function getAllergensFromText(ingredients, user) {
     let mayContainUserAllergens = intersect(userAllergensSet, mayContain);
 
     // compile results
-    let result = getResult(userAllergensFound, mayContainUserAllergens, probableMatchedAllergens, mayContain, Object.fromEntries([...listedAs]));
+    let result = getResult(userAllergensFound, mayContainUserAllergens, probableMatchedAllergens, mayContain, Object.fromEntries([...listedAs]), Object.fromEntries([...likelyAllergensListedAs]));
 
     probableMatchedAllergens.clear();
     mayContain.clear();
     listedAs.clear();
+    likelyAllergensListedAs.clear();
 
     return result;
   }
 }
 
-const getResult = (userAllergensFound, mayContainUserAllergens, probableMatchedAllergens, mayContain, listedAs) => {
+const getResult = (userAllergensFound, mayContainUserAllergens, probableMatchedAllergens, mayContain, listedAs, likelyAllergensListedAs) => {
   return {
     userAllergens: [...userAllergensFound], 
     mayContainUserAllergens: [...mayContainUserAllergens], 
     allergens: [...difference(probableMatchedAllergens, userAllergensFound)], 
     mayContain: [...difference(mayContain, mayContainUserAllergens)], 
-    listedAs: listedAs
+    listedAs: listedAs,
+    likelyAllergensListedAs: likelyAllergensListedAs
   }
 }
 

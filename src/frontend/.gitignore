@@ -64,3 +64,5 @@ buck-out/
 /vendor/bundle/
 
 android/app/google-services.json
+android/app/src/main/res/drawable*
+android/hs_err*

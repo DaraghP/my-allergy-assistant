@@ -3,8 +3,6 @@ import getAllergensFromText from "../ocr-postprocessing";
 import {readdirSync, readFileSync} from "fs";
 import path from "path";
 
-
-// TODO: change expected outputs as result of changing allergens.json
 describe("OCR-postprocessing", () => {
     const user = {allergens: []}
 
@@ -34,7 +32,6 @@ describe("OCR-postprocessing", () => {
         expect(res.allergens).toEqual([]);
         expect(res.mayContain).toContain("gluten");
     })
-//
 
     it("should not list fats as oats as a likely allergen", () => {
         const res = getAllergensFromText("fats", user);
@@ -96,46 +93,53 @@ describe("OCR-postprocessing", () => {
         user.allergens = ["peanuts"]
         const res = getAllergensFromText("penuts", user);
 
-        // expect(res.allergens).toEqual([]);
         expect(res?.userAllergens).toContain("peanuts");
     })
 
     it("should not see peanuts with high certainty and be listed as may contain if 'pinenuts' in ingredients", () => {
         const res = getAllergensFromText("pinenuts", user);
 
-        expect(res.mayContain).toContain("peanuts");//received [nuts]
+        expect(res.mayContain).toContain("peanuts");
     })
-// should work like the butter contains milk test
+
     it("should not see peanuts (user allergen) with high certainty and be listed as may contain if 'pinenuts' in ingredients", () => {
         user.allergens = ["peanuts"];
-        const res = getAllergensFromText("pinenuts", user); // thats strange
+        const res = getAllergensFromText("pinenuts", user);
         console.log(res);
         expect(res.userAllergens).toEqual([])
-        // expect(res.mayContain).toEqual(["nuts"]); //
         expect(res.allergens).toEqual([])
-        expect(res.mayContainUserAllergens).toContain("peanuts")//recieved []
+        expect(res.mayContainUserAllergens).toContain("peanuts")
     })
 
-    it("should contain nuts and walnuts as likely allergens if walnuts", () => {
+    it("should contain walnuts as likely allergens if walnuts", () => {
         const res = getAllergensFromText("walnuts", user);
         expect(res?.allergens).toContain("walnuts");
-        // expect(res?.allergens).toContain("nuts");
     })
 
+    it("should not detect barley if wheat and vice versa", () => {
+        const res = getAllergensFromText("wheat", user);
+        expect(res?.allergens).toEqual(["gluten", "wheat"]);
+        expect(res?.allergens).not.toContain("barley");
+    })
+
+    it("should not detect wheat if barley and vice versa", () => {
+        const res = getAllergensFromText("barley", user);
+        expect(res?.allergens).toEqual(["gluten", "barley"]);
+        expect(res?.allergens).not.toContain("wheat");
+    })
+
+    it("should detect all grains if gluten", () => {
+        const res = getAllergensFromText("gluten", user);
+        expect(res?.allergens).toEqual(["gluten", "wheat", "rye", "barley"]);
+    })
+    
+    it("should detect all nuts (peanuts, walnuts, etc.) when 'nuts' is listed", () => {
+        user.allergens = ["peanuts", "walnuts", "almonds", "brazil nuts", "cashew nuts", "hazelnuts", "milk"]
+        const res = getAllergensFromText("nuts", user);
+
+        expect(res.userAllergens).toEqual(["peanuts", "walnuts", "almonds", "brazil nuts", "cashew nuts", "hazelnuts"]);
+        expect(res.mayContain).toEqual([])
+    }) 
+
     generatePostProcessingTestCases()
-//{
-    // "Nuts": [
-    //     "nuts",
-    //     "peanuts",
-    //     "peanut",
-    //     "walnut",
-    //     "walnuts",
-    //     "almond",
-    //     "almonds",
-    //     "hazelnut",
-    //     "hazelnuts",
-    //     "cashew",
-    //     "cashews"
-    //   ]
-    // },
 })

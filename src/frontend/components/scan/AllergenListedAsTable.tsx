@@ -3,8 +3,9 @@ import { Table, Row } from "react-native-table-component";
 import {useAppSelector} from "../../hooks";
 
 // table for seeing what the allergen identification in ocr-postprocessing.ts found allergens as, e.g. milk was m1lk
-function AllergenListedAsTable({listedAs}) {
+function AllergenListedAsTable({listedAs, isBarcodeResult=false}) {
     // const listedAsKeys = Object.keys(listedAs);
+    let allergenTitle = isBarcodeResult ? "User allergens detected" : "Allergens detected";
     const userAllergens = [...useAppSelector(state => state.appData.accounts[state.user.username].allergens)];
     const sortedAllergensListedAs = useMemo(() => {
         const tempListedAs = new Map();
@@ -40,26 +41,30 @@ function AllergenListedAsTable({listedAs}) {
 
 
     return (
-        <Table borderStyle={{borderWidth: 1}}>
-            <Row textStyle={{margin: 8, fontWeight: "bold", color: "black"}} style={{backgroundColor: "#d6e5ff"}} data={["Allergen", "Listed as"]}/>
-            {[...sortedAllergensListedAs.entries()].map((entry) => {
-                const allergen = `${entry[0].slice(0, 1).toUpperCase()}${entry[0].slice(1)}`;
-                const allergenListings = [...entry[1]].join(", ");
-                return (
-                    <Row
-                        key={allergen}
-                        textStyle={{
-                            margin: 8,
-                            color: userAllergens.includes(allergen) ? "black" : "",
-                            fontWeight: userAllergens.includes(allergen) ? "bold" : "normal"}
-                        }
-                        style={{backgroundColor: "white"}}
-                        data={[allergen, allergenListings]}
-                    />
-                )
-            })}
+        <>
+        {(sortedAllergensListedAs.size > 0) &&
+            <Table borderStyle={{borderWidth: 1}}>
+                <Row textStyle={{margin: 8, fontWeight: "bold", color: "black"}} style={{backgroundColor: "#d6e5ff"}} data={[allergenTitle, "Listed as"]}/>
+                {[...sortedAllergensListedAs.entries()].map((entry, index) => {
+                    const allergen = `${entry[0].slice(0, 1).toUpperCase()}${entry[0].slice(1)}`;
+                    const allergenListings = [...entry[1]].join(", ");
+                    return (
+                        <Row
+                            key={allergen}
+                            textStyle={{
+                                margin: 8,
+                                color: userAllergens.includes(allergen) ? "black" : "",
+                                fontWeight: userAllergens.includes(allergen) ? "bold" : "normal"}
+                            }
+                            style={{backgroundColor: "white", borderBottomColor: "black", borderBottomWidth: (index == sortedAllergensListedAs.size - 1) ? 0.5 : 0}}
+                            data={[allergen, allergenListings]}
+                        />
+                    )
+                })}
 
-        </Table>
+            </Table>
+        }
+        </>
     )
 }
 

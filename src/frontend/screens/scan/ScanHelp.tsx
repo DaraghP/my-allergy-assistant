@@ -38,6 +38,8 @@ function ScanHelp({navigation}) {
                 Try to keep your camera steady while the camera button is red, ensuring the camera is focused with little shadow and glare appearing on the product for best results.
                 {"\n\n"}
                 Once you are happy, go for it!
+                {"\n\n"}
+                Note: Currently scanning ingredients only works for English text, but we plan on adding translation in the future so you can scan text from any language.
             </Text>
         </ScrollView>
     )

@@ -1,9 +1,9 @@
 import {BarcodeFormat} from "vision-camera-code-scanner";
 
-export const ScanBarcodeColor = "#FF6961"
+export const ScanBarcodeColor = "#ff5149"
 export const ScanBarcodeIconName = "barcode";
 
-export const ScanIngredientsColor = "#BEA9DF";
+export const ScanIngredientsColor = "#9471ca";
 export const ScanIngredientsIconName = "list";
 
 export const ScanBothColor = "#F7CC3B"

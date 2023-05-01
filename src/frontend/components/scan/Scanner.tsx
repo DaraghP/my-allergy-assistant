@@ -58,7 +58,6 @@ function Scanner() {
   const isFocused = useIsFocused();
 
   const [lastBarcodeSeen, setLastBarcodeSeen] = useState<string | null>(null);
-  const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState<boolean>(false);
   const [isOcrModalOpen, setIsOcrModalOpen] = useState<boolean>(false);
   const [isProductNotFoundModalOpen, setIsProductNotFoundModalOpen] = useState<boolean>(false);
   const [photo, setPhoto] = useState<string>("");
@@ -188,7 +187,7 @@ function Scanner() {
   useEffect(() => {
     const barcodeCondition = scanMode === ScanMode.Barcode || scanMode === ScanMode.Detect;
 
-    if (barcodeCondition && barcodes.length > 0 && isFocused) {
+    if (barcodeCondition && barcodes.length > 0 && barcodes[0]?.displayValue !== lastBarcodeSeen && isFocused) {
       barcodeScan();
     }
   }, [barcodes]);
@@ -196,7 +195,7 @@ function Scanner() {
   useEffect(() => {
     const ocrCondition = scanMode === ScanMode.Text || scanMode === ScanMode.Detect;
 
-    if (ocrCondition && ocrResult?.result?.blocks?.length > 0 && ocrResult.result?.text != "" && ocrResult.result?.text.toLowerCase().includes("ingredients")) {
+    if (ocrCondition && ocrResult?.result?.blocks?.length > 0 && ocrResult.result?.text != "" && ocrResult.result?.text.toLowerCase().includes("ingredient")) {
         if (!ingredientsFound) {
           takePhotoHandler().then((photo) => {
             setPhoto("file://" + photo.path)
@@ -224,7 +223,7 @@ function Scanner() {
              frameProcessorFps={5}
              photo={true}
              device={device}
-             isActive={!isOcrModalOpen && !isBarcodeModalOpen && !isProductNotFoundModalOpen && isFocused}
+             isActive={!isOcrModalOpen && !isProductNotFoundModalOpen && isFocused}
              style={StyleSheet.absoluteFill}
              enableZoomGesture
            />
