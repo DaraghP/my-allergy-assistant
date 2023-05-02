@@ -1,6 +1,7 @@
 import AppModal from "../AppModal";
 import {Image, Linking, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import ImagePicker from "react-native-image-crop-picker";
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import React from "react";
 
 function ScannerModals({ocrModalConfig, productNotFoundModalConfig, lastBarcodeSeen, photo, setPhoto}) {
@@ -47,10 +48,10 @@ function ScannerModals({ocrModalConfig, productNotFoundModalConfig, lastBarcodeS
 
             <AppModal
                isModalOpen={{state: productNotFoundModalConfig.isOpen, setState: (bool: boolean) => {productNotFoundModalConfig.setIsOpen(bool)}}}
-               headerText={"Product NOT FOUND :("}
+               headerText={"Product Not Found"}
                modalContent={
                   <>
-                    <Text>Barcode '{lastBarcodeSeen ?? 'N/A'}' not found in product database.</Text>
+                    <Text>Barcode '{lastBarcodeSeen ?? 'N/A'}' not found in product database.  <FontAwesome5 name={'frown'} size={20}/></Text>
                     <Text style={{marginTop: 10}}>
                       Try scan ingredients instead or help future scanners by filling in the product's information via Open Food Facts.
                     </Text>
