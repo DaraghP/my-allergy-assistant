@@ -9,11 +9,9 @@ import OCRScanResult from "../../components/scan/OCRScanResult/OCRScanResult";
 import { useIsFocused } from "@react-navigation/native";
 import OFFDataFooter from "../../components/scan/BarcodeScanResult/OFFDataFooter";
 import ScanResultImage from "../../components/scan/ScanResultImage";
-import {useAppDispatch, useAppSelector} from "../../hooks";
-import {updateScanResult} from "../../reducers/ui-reducer";
+import {useAppSelector} from "../../hooks";
 
 function ScanResult({navigation, route, backPressHandler}) {
-    const dispatch = useAppDispatch();
     const scan = useAppSelector(state => state.ui.scanResult).scan;
     const isFocused = useIsFocused();
     const scrollRef = useRef<ScrollView>()
