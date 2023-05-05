@@ -105,7 +105,7 @@ describe("OCR-postprocessing", () => {
     it("should not see peanuts (user allergen) with high certainty and be listed as may contain if 'pinenuts' in ingredients", () => {
         user.allergens = ["peanuts"];
         const res = getAllergensFromText("pinenuts", user);
-        console.log(res);
+
         expect(res.userAllergens).toEqual([])
         expect(res.allergens).toEqual([])
         expect(res.mayContainUserAllergens).toContain("peanuts")

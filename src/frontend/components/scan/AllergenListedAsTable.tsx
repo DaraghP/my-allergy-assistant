@@ -4,9 +4,8 @@ import {useAppSelector} from "../../hooks";
 
 // table for seeing what the allergen identification in ocr-postprocessing.ts found allergens as, e.g. milk was m1lk
 function AllergenListedAsTable({listedAs, isBarcodeResult=false}) {
-    // const listedAsKeys = Object.keys(listedAs);
     let allergenTitle = isBarcodeResult ? "User allergens detected" : "Allergens detected";
-    const userAllergens = [...useAppSelector(state => state.appData.accounts[state.user.username].allergens)];
+    const userAllergens = [...(useAppSelector(state => state.appData.accounts[state.user.username]?.allergens) ?? [])];
     const sortedAllergensListedAs = useMemo(() => {
         const tempListedAs = new Map();
 

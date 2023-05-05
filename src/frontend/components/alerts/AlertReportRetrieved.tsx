@@ -4,7 +4,7 @@ import moment from "moment";
 import {useAppSelector} from "../../hooks";
 
 function AlertReportRetrieved({alert}) {
-    const userAllergens = useAppSelector(state => state.appData.accounts[state.user.username].allergens);
+    const userAllergens = useAppSelector(state => state.appData.accounts[state.user.username]?.allergens);
 
     const containsMatch = (listA, listB) => {
         if (listB) {

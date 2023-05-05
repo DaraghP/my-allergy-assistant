@@ -34,10 +34,8 @@ backend-test:
   before_script:
     - cd src/backend/lambda_functions
     - npm i
-    - ls
     - cd ../__tests__
     - npm i
-    - ls
   script:
     - npm test
 

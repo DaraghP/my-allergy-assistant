@@ -8,7 +8,7 @@ import {useAppSelector} from "../../../hooks";
 function ReportModal({isReportModalOpen, setIsReportModalOpen, scan, productReports, setProductReports}) {
     const username = useAppSelector(state => state.user.username);
     const user = useAppSelector(state => state.appData.accounts[username]);
-    const userAllergens = user.allergens;
+    const userAllergens = user?.allergens;
     const [selectedList, setSelectedList] = useState([]);
     const [viewReportWarning, setViewReportWarning] = useState<boolean>(true);
 

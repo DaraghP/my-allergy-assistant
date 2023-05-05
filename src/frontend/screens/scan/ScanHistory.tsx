@@ -8,6 +8,10 @@ function ScanHistory({navigation}) {
     const scans = useAppSelector(state => state.appData.accounts[username]?.scans);
 
     const orderedScans = useMemo(() => {
+        if (!scans) {
+            return [];
+        }
+
         return new Map(Object.entries(scans).sort(([, scan1], [, scan2]) => new Date(scan2.date) - new Date(scan1.date)));
     }, [scans]);
 

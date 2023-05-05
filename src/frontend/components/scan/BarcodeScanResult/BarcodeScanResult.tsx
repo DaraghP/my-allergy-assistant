@@ -24,7 +24,7 @@ function BarcodeScanResult() {
     const dispatch = useAppDispatch();
     const scan = useAppSelector(state => state.ui.scanResult).scan;
     const username = useAppSelector(state => state.user.username);
-    const userAllergens = useAppSelector(state => state.appData.accounts[state.user.username].allergens);
+    const userAllergens = useAppSelector(state => state.appData.accounts[state.user.username]?.allergens) ?? [];
     const email = useAppSelector(state => state.user.email);
     const usersScanHistory = useAppSelector(state => state.appData.accounts[username]?.scans);
     const deviceEndpoint = useAppSelector(state => state.user.deviceEndpoint);
@@ -51,7 +51,7 @@ function BarcodeScanResult() {
             })
 
             // notifications are turned on by default (unless already off)
-            if (usersScanHistory[scan.product_code].receive_notifications !== false) {
+            if (usersScanHistory[scan.product_code]?.receive_notifications !== false) {
                 notificationStateHandler(0);
             }
         }
@@ -95,7 +95,6 @@ function BarcodeScanResult() {
                 <IngredientsAllergensTracesText
                     scan={scan}
                     setSafetyResult={(res) => {
-                        console.log("res: ", res);
                         setAllergensIdentified(res);
                         setIsDetermined(true);
                     }}

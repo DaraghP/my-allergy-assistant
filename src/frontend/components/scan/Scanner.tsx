@@ -215,7 +215,7 @@ function Scanner() {
 
   return (
     <View style={{flex: 1}}>
-       {device !== undefined && (
+       {isFocused && device !== undefined && (
         <>
            <Camera
              ref={camera}

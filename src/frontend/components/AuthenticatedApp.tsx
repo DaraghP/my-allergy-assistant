@@ -32,8 +32,8 @@ function AuthenticatedApp() {
     const deviceEndpoint = useAppSelector(state => state.user.deviceEndpoint);
     const loading = useAppSelector(state => state.ui.loading);
     const username = useAppSelector(state => state.user.username);
-    const notifications = useAppSelector(state => state.appData.accounts[state.user.username]?.notifications);
     const setupRequired = useAppSelector(state => state.user.username in state.appData.accounts ? !state.appData.accounts[state.user.username].hasCompletedSetup : null);
+    const notifications = useAppSelector(state => state.appData.accounts[state.user.username]?.notifications);
     const notificationsBadge = notifications?.filter((alert) => (!alert?.isOpened)).length > 0 ? notifications.filter((alert) => (!alert?.isOpened)).length : undefined;
 
     const searchTabOptions = {
@@ -64,21 +64,17 @@ function AuthenticatedApp() {
       }
 
       Notifications.events().registerNotificationReceivedForeground((notification: Notification, completion) => {
-          console.log(accounts, username) // TODO: fix barcode not found modal
         dispatch(addNotification({username: username, notificationData: notification.payload["data"], date: new Date()}));
-
         completion({alert: true, sound: true, badge: true});
       })
 
       Notifications.events().registerNotificationReceivedBackground((notification: Notification, completion: (response: NotificationCompletion) => void) => {
         dispatch(addNotification({username: username, notificationData: notification.payload["data"], date: new Date()}));
-
         completion({alert: true, sound: true, badge: true});
       })
     
       Notifications.events().registerNotificationOpened((notification: Notification, completion) => {
           Notifications.removeAllDeliveredNotifications();
-
           completion();
       });
 

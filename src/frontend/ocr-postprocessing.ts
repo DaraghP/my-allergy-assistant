@@ -5,9 +5,8 @@ import {difference, intersect} from "./utils";
 
 // process allergen dataset for use
 let possibleAllergens = ALLERGENS.data;
-console.log("Possible allergens = ", possibleAllergens);
 let possibleAllergensLinks = {}; 
-let ingredientAllergenLinked = new Map();// 
+let ingredientAllergenLinked = new Map();
 let possibleAllergensSet;
 let possibleAllergensList = []
 _.values(possibleAllergens).forEach(a => {
@@ -31,7 +30,6 @@ _.values(possibleAllergens).forEach(a => {
   possibleAllergensList.push(...Object.keys(possibleAllergensLinks));
 });
 
-const autocorrect = require("autocorrect")({words: possibleAllergensList});
 
 possibleAllergensSet = new Set([...possibleAllergensList]);
 possibleAllergensList = [...possibleAllergensSet];
@@ -58,7 +56,6 @@ function getAllergenKeyswithValue(word:String, allergensData:Array<Object>) {
 
 function addAllergensToResultData(set, allergens, actualIngredient, ingredientText, isLikelyAllergen) {
     const mainAllergenName = ingredientAllergenLinked.get(actualIngredient)
-    console.log("INGREDIENTS FOUND: ingredientText -> " + ingredientText + " " + actualIngredient)
     if (!mainAllergenName) {
       addArrayToSet(set, allergens);
       addToListedAs(allergens, ingredientText, isLikelyAllergen);
@@ -95,7 +92,6 @@ function addProbableAllergenIfRated(ingredient, match) {
 
   // if word is a close match, add allergen to results
   if (match.rating > allergenSimilarityMaxThreshold) { // for example, 'penuts' instead of 'peanuts' would pass here
-    console.log("possibleAllergensLinks["+match.target+"] = ", possibleAllergensLinks[match.target]);
     addAllergensToResultData(probableMatchedAllergens, getAllergenKeyswithValue(match.target, possibleAllergens), match.target, ingredient, true);
   }
 
@@ -103,7 +99,7 @@ function addProbableAllergenIfRated(ingredient, match) {
   else if (match.rating >= allergenSimilarityMinThreshold) {
     // in this case, it should be added to may contains as its not certain enough to be correct
     addAllergensToResultData(mayContain, getAllergenKeyswithValue(match.target, possibleAllergens), match.target, ingredient, false);
-  }// possibleAllergensLinks[match.target]
+  }
 }
 
 function exactContains(ingredient) {
@@ -139,7 +135,7 @@ function probableAllergens(ingredients) {
 
     // exact contains
     let ingredientContainsAllergen = exactContains(ingredient);
-    if (ingredientContainsAllergen) {// possibleAllergensLinks[ingredientContainsAllergen]
+    if (ingredientContainsAllergen) {
       addAllergensToResultData(probableMatchedAllergens, possibleAllergensLinks[ingredientContainsAllergen], ingredient, ingredient, true)
     }
     else {

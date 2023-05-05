@@ -19,5 +19,5 @@
     "aws-sdk-mock": "^5.8.0",
     "jest": "^29.5.0",
     "lambda-local": "^2.0.3"
-  }
+  }// ok 
 }

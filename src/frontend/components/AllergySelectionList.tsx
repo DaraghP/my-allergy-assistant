@@ -90,7 +90,7 @@ function AllergySelectionList({onConfirm = null, update = true, customSelection 
                         onConfirm()
 
                         if (update) {
-                            let userObj : User = {username: username, deviceEndpoint: deviceEndpoint, email: email, allergens: [...selection], scans: user.scans}
+                            let userObj : User = {username: username, deviceEndpoint: deviceEndpoint, email: email, allergens: [...selection], scans: user?.scans}
                             dispatch(updateAllergens(userObj));
                             
                             // if hasCompletedSetup is false then create new user in DynamoDB via API

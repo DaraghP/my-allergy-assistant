@@ -8,7 +8,7 @@ import AlertItem from "../components/alerts/AlertItem";
 // component for alerts from reports retrieved/submitted gone through SNS to the users endpoint
 function AlertScreen() {
     const navigation = useNavigation();
-    const notifications = useAppSelector(state => state.appData.accounts[state.user.username].notifications);
+    const notifications = useAppSelector(state => state.appData.accounts[state.user.username]?.notifications);
     const [notificationPerms, setNotificationPerms] = useState("");
 
     const sortedNotifications = useMemo(() => {

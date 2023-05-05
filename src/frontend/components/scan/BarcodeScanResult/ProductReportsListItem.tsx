@@ -6,7 +6,7 @@ import {useAppSelector} from "../../../hooks";
 
 function ProductReportsListItem({report, setMyReportIndex}) {
     const username = useAppSelector(state => state.user.username);
-    const userAllergens = [...useAppSelector(state => state.appData.accounts[username].allergens)];
+    const userAllergens = [...useAppSelector(state => state.appData.accounts[username]?.allergens)];
 
     const getReportColor = (userAllergens, report) => {
         // color to clarify whether product is safe, containing user allergens, or only containing non-user allergens
