@@ -83,6 +83,7 @@ const styles = StyleSheet.create({
         color: "black"
     },
     lightText: {
+        // width: "100%",
         fontWeight: "200"
     }
 })

@@ -8,8 +8,8 @@ function OFFDataFooter() {
                 <Text style={{color: "blue", textDecorationLine: "underline"}}
                     onPress={() => Linking.openURL('https://world.openfoodfacts.org/')}
                 >
-                    Click here
-                </Text> to learn more
+                    Learn more
+                </Text>
             </Text>
         </View>
     )
