@@ -3,7 +3,6 @@ import {ActivityIndicator, StyleSheet, Text, View} from "react-native";
 import React from "react";
 
 function SafetyResult({style = {}, userAllergensFound, userMayContain, determined = true, ingredientsUnavailable = false, productReports = [], isBarcodeResult = false}) {
-
     return (
         // orange only if previously was going to be green, but with reportContainingAllergen
         <View
@@ -30,8 +29,8 @@ function SafetyResult({style = {}, userAllergensFound, userMayContain, determine
                         <>
                             <FontAwesome5 color={"green"} style={{marginBottom: 10}} name="check-circle" size={100}/>
                             <Text style={styles.answerText}>Safe to eat</Text>
-                            <Text style={styles.lightText}>We cannot guarantee the absence of individual allergens.</Text>
-                            <Text style={styles.lightText}>It is recommended that you always verify the result.</Text>
+                            <Text style={styles.lightText}>* Product safety is not guaranteed. *</Text>
+                            <Text style={styles.lightText}>Always verify your result.</Text>
                         </>
                     }
 
