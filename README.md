@@ -6,7 +6,10 @@ The students involved are:
  - Daragh Prizeman (Student ID: 19459734)
  - George Eskander (Student ID: 19451972)
 
-A user manual, walkthrough video and technical guide can be found in the docs/ directory, if you would like to learn more about this project.
+Our user manual, walkthrough video and technical guide can be found in the docs/ directory, if you would like to learn more about this project.
+
+You can download the the release APK of this app from [here](https://drive.google.com/file/d/1lsLh5KXE5Iw9Zrdraig_EZ_1EL4J3E2k/view?usp=sharing) on your Android device.
+If you would like to run this app locally from your machine, follow the installation guide in our documentation.
 
 ## Packages/References
 
